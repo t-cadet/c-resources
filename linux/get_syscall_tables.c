@@ -224,6 +224,11 @@ struct
 }
 table;
 
+void Free_table(table* t)
+{
+  free(t->items);
+}
+
 htable_slot** Push_table(table* table)
 {
   if (table->size == table->capacity)
@@ -508,12 +513,6 @@ bool Read_syscall_number_line(char** bytes, syscall_number_line* outLine, bool g
       success = false;
     }
 
-    if (Eq_string(line.sysId, substring("setresgid"))
-     || Eq_string(line.sysId, substring("ioprio_set")))
-    {
-      int breakpoint = 3;
-    }
-
     if (success)
     {
       // x86_64 mseal is separated by several spaces so we clean that up
@@ -550,13 +549,6 @@ void AddLineToTable(arch* arch, htable* syscallTable, syscall_number_line* line)
       slot->value[i] = -1;
     }
     slot->value[arch->archId] = line->sysNr;
-  }
-  if (arch->archId == ARM_32_arch_id)
-  {
-    if (Eq_string(slot->key, substring("arm_sync_file_range")))
-    {
-      int breakpoint = 3;
-    }
   }
 }
 
@@ -607,13 +599,6 @@ void PrintSyscallNumbersSorted(arch* arch, htable* syscallTable)
   for (size_t i = 0; i < syscallTable->capacity; ++i)
   {
     htable_slot* slot = &syscallTable->slots[i];
-    if (arch->archId == ARM_32_arch_id)
-    {
-      if (Eq_string(slot->key, substring("arm_sync_file_range")))
-      {
-        int breakpoint = 3;
-      }
-    }
     if (!IsEmpty_slot(slot))
     {
       *Push_table(&sortedSyscalls) = slot;
@@ -632,13 +617,6 @@ void PrintSyscallNumbersSorted(arch* arch, htable* syscallTable)
     htable_slot* slot = sortedSyscalls.items[i];
     int sysNr = slot->value[arch->archId];
 
-    if (arch->archId == ARM_32_arch_id)
-    {
-      if (Eq_string(slot->key, substring("arm_sync_file_range")))
-      {
-        int breakpoint = 3;
-      }
-    }
     if (sysNr != -1)
     {
       if (arch->archId == ARM_32_arch_id &&
@@ -655,6 +633,7 @@ void PrintSyscallNumbersSorted(arch* arch, htable* syscallTable)
     }
   }
 
+  Free_table(&sortedSyscalls);
   assert(fwrite("\n", 1, 1, file) == 1);
   fclose(file);
 }
@@ -690,4 +669,5 @@ int main()
     arch* arch = archs + archId;
     Free_arch(arch);
   }
+  Free_htable(&syscallTable);
 }

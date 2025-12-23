@@ -972,7 +972,7 @@ void PrintTableSummary(table_printer* printer)
         break;
       }
       assert(col*colSize < sizeof(buffer));
-      snprintf(buffer + col*colSize, colSize + 1, "% 2zu. %-*s", titleIndex + 1, colSize - 4, printer->sectionTitles[titleIndex]);
+      snprintf(buffer + col*colSize, colSize + 1, "%2zu. %-*s", titleIndex + 1, (int)(colSize - 4), printer->sectionTitles[titleIndex]);
     }
     PrintTableTextLine(stderr, buffer, &printer->dimensions);
   }
@@ -1067,6 +1067,9 @@ void PrintUnifiedSyscallNumbersTable(htable* syscallTable, char* outPath)
       }
     }
   }
+
+  printf("syscallTable->size = %zu\n", syscallTable->size);
+  printf("\n");
 
   FILE* file = fopen(outPath, "w");
   assert(file);

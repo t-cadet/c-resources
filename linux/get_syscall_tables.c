@@ -733,7 +733,7 @@ table_dimensions Get_table_dimensions(int maxSysIdSize)
   dimensions.textStart = dimensions.tableStart + strlen("| ");
   dimensions.defineStart = dimensions.tableStart + strlen("|*/ ");
   dimensions.archStart = dimensions.defineStart + strlen("#define NR_") + dimensions.maxSysIdSize + strlen("_linux ") + strlen("BY_ARCH");
-  dimensions.tableEnd = dimensions.archStart + SIZE_arch_id * 10 + strlen(") //");
+  dimensions.tableEnd = dimensions.archStart + SIZE_arch_id * 10 + strlen(") /*");
   dimensions.charCountInLine = dimensions.tableEnd + 1;
   return dimensions;
 }
@@ -785,7 +785,7 @@ void PrintAndRemoveSyscall(FILE* file, htable* syscallTable, substring key, int 
       int archId = SIZE_arch_id - 1;
       PrintSyscallNumber(file, archId, key, slot->value[archId]);
     }
-    fprintf(file, ") //║\n");
+    fprintf(file, ") /*║*/\n");
     Remove_htable_slot(syscallTable, slot);
   }
   else
@@ -805,14 +805,14 @@ void PrintTableTopLine(FILE* file, table_dimensions* dimensions)
 {
   fprintf(file, "/*╔");
   PrintN(file, "═", dimensions->charCountInLine - 4);
-  fprintf(file, "╗\n");
+  fprintf(file, "╗*/\n");
 }
 
 void PrintTableBottomLine(FILE* file, table_dimensions* dimensions)
 {
   fprintf(file, "/*╚");
   PrintN(file, "═", dimensions->charCountInLine - 4);
-  fprintf(file, "╝\n");
+  fprintf(file, "╝*/\n");
 }
 
 void PrintTableTextLine(FILE* file, char* s, table_dimensions* dimensions)
@@ -821,7 +821,7 @@ void PrintTableTextLine(FILE* file, char* s, table_dimensions* dimensions)
   int n = dimensions->charCountInLine - strlen("/*| ") - strlen(s) - strlen("|");
   assert(n > 0);
   PrintN(file, " ", n);
-  fprintf(file, "║\n");
+  fprintf(file, "║*/\n");
 }
 
 void PrintTableTextLineCentered(FILE* file, char* s, table_dimensions* dimensions)
@@ -834,7 +834,7 @@ void PrintTableTextLineCentered(FILE* file, char* s, table_dimensions* dimension
     PrintN(file, " ", offset);
     fprintf(file, "%s", s);
     PrintN(file, " ", n - offset - strlen(s));
-    fprintf(file, "║\n");
+    fprintf(file, "║*/\n");
   }
 }
 
@@ -880,7 +880,7 @@ void PrintTableSeparatorLineEx(FILE* file, char* archSeparator, char* archSepara
   {
     fprintf(file, "╣");
   }
-  fprintf(file, "\n");
+  fprintf(file, "*/\n");
 }
 
 void PrintTableSeparatorLine(FILE* file, char* archSeparator, table_dimensions* dimensions)
@@ -902,7 +902,7 @@ void PrintTableArchitectureLine(FILE* file, table_dimensions* dimensions)
   for (int i = 0; i < SIZE_arch_id; ++i)
   {
     enum arch_id archId = i;
-    int archColSize = 9 + strlen(") //")*(i == SIZE_arch_id - 1);
+    int archColSize = 9 + strlen(") /*")*(i == SIZE_arch_id - 1);
     char* archName = GetArchName(archId);
     int archOffset = CenterOffset(archName, archColSize);
     PrintN(file, " ", archOffset);
@@ -910,7 +910,7 @@ void PrintTableArchitectureLine(FILE* file, table_dimensions* dimensions)
     PrintN(file, " ", archColSize - archOffset - strlen(archName));
     if (i == SIZE_arch_id - 1)
     {
-      fprintf(file, "║\n");
+      fprintf(file, "║*/\n");
     }
     else
     {

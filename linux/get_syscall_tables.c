@@ -1943,7 +1943,7 @@ int main()
     PrintSyscallNumbersSorted(arch, &syscallTable);
   }
 
-  PrintUnifiedSyscallNumbersTable(&syscallTable, "tables/cross_platform_syscall_table.h");
+  PrintUnifiedSyscallNumbersTable(&syscallTable, "tables/cross_architecture_syscall_table.h");
 
   for (int archId = 0; archId < ARRAY_SIZE(archs); ++archId)
   {

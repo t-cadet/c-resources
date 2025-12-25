@@ -732,7 +732,7 @@ table_dimensions Get_table_dimensions(int maxSysIdSize)
   dimensions.tableStart = strlen("/*");
   dimensions.textStart = dimensions.tableStart + strlen("| ");
   dimensions.defineStart = dimensions.tableStart + strlen("|*/ ");
-  dimensions.archStart = dimensions.defineStart + strlen("#define NR_") + dimensions.maxSysIdSize + strlen("_linux ") + strlen("BY_ARCH");
+  dimensions.archStart = dimensions.defineStart + strlen("#define NR_") + dimensions.maxSysIdSize + strlen("_linux ") + strlen("BY_ARCH_linux");
   dimensions.tableEnd = dimensions.archStart + SIZE_arch_id * 10 + strlen(") /*");
   dimensions.charCountInLine = dimensions.tableEnd + 1;
   return dimensions;
@@ -774,7 +774,7 @@ void PrintAndRemoveSyscall(FILE* file, htable* syscallTable, substring key, int 
     }
     fprintf(file, "_linux ");
     PrintN(file, " ", maxSysIdSize - key.size);
-    fprintf(file, "BY_ARCH( ");
+    fprintf(file, "BY_ARCH_linux( ");
     for (int archId = 0; archId < SIZE_arch_id - 1; ++archId)
     {
       PrintSyscallNumber(file, archId, key, slot->value[archId]);

@@ -13,7 +13,7 @@
 
 #define struct typedef struct
 
-#define GLIBC_SYSV "/home/tcadet/dev/open-source/glibc/sysdeps/unix/sysv/linux/"
+#define LINUX_ROOT "/home/tcadet/dev/open-source/linux/"
 #define LINUX_ARCH_ROOT "/home/tcadet/dev/open-source/linux/arch/"
 
 #define ARRAY_SIZE(array) (sizeof(array)/sizeof(array[0]))
@@ -355,7 +355,6 @@ struct
 
   char* inPath;
   char* outPath;
-  bool glibc;
   int sysNrOffset;
 
   char* fileBytes;
@@ -516,7 +515,7 @@ bool Read_int(char** bytes, int* out)
   return success;
 }
 
-bool Read_syscall_number_line(char** bytes, syscall_number_line* outLine, bool glibc)
+bool Read_syscall_number_line(char** bytes, syscall_number_line* outLine, enum arch_id archId)
 {
 
 
@@ -525,39 +524,40 @@ bool Read_syscall_number_line(char** bytes, syscall_number_line* outLine, bool g
   {
     char* cursor = *bytes;
     syscall_number_line line = {0};
-    if (glibc)
-    {
-      success = ReadUntilOneOf(&cursor, " \n", &line.callingConvention)
-             && Eq_string(line.callingConvention, DEFINE)
-             && ReadUntilOneOf(&cursor, " \n", &line.sysId)
-             && Read_int(&cursor, &line.sysNr)
-             && ReadUntil(&cursor, "\n", 0);
-      if (success)
-      {
-        assert(line.sysId.size > 5);
-        assert(line.sysId.bytes[0] == '_');
-        assert(line.sysId.bytes[1] == '_');
-        assert(line.sysId.bytes[2] == 'N');
-        assert(line.sysId.bytes[3] == 'R');
-        assert(line.sysId.bytes[4] == '_');
+    success = Read_int(&cursor, &line.sysNr)
+           && ReadUntil(&cursor, "\t", 0)
+           // renameat is separated by a space (typo?) so we look for that too
+           && ReadUntilOneOf(&cursor, "\t ", &line.callingConvention);
+    // handle lines that end after the 3rd column
+    char* cursor2 = cursor;
+    success = success
+           && ReadUntilOneOf(&cursor2, "\t\n", &line.sysId)
+           && ReadUntil(&cursor, "\n", 0);
 
-        line.sysId.bytes += 5;
-        line.sysId.size -= 5;
-      }
-    }
-    else
+    // relevant kernel files for riscv:
+    // 
+    // scripts/syscall.tbl
+    // arch/riscv/kernel/Makefile.syscalls
+    // scripts/syscalltbl.sh
+    // scripts/Makefile.asm-headers
+    if (archId == RISCV_32_arch_id)
     {
-      success = Read_int(&cursor, &line.sysNr)
-             && ReadUntil(&cursor, "\t", 0)
-             // renameat is separated by a space (typo?) so we look for that too
-             && ReadUntilOneOf(&cursor, "\t ", &line.callingConvention);
-      // handle lines that end after the 3rd column
-      char* cursor2 = cursor;
-      success = success
-             && ReadUntilOneOf(&cursor2, "\t\n", &line.sysId)
-             && ReadUntil(&cursor, "\n", 0);
+      success = success && (
+          Eq_string(line.callingConvention, substring("common"))
+       || Eq_string(line.callingConvention, substring("32"))
+       || Eq_string(line.callingConvention, substring("riscv"))
+       || Eq_string(line.callingConvention, substring("memfd_secret")));
     }
-    if (Eq_string(line.callingConvention, substring("csky"))
+    else if (archId == RISCV_64_arch_id)
+    {
+      success = success && (
+          Eq_string(line.callingConvention, substring("common"))
+       || Eq_string(line.callingConvention, substring("64"))
+       || Eq_string(line.callingConvention, substring("riscv"))
+       || Eq_string(line.callingConvention, substring("rlimit"))
+       || Eq_string(line.callingConvention, substring("memfd_secret")));
+    }
+    else if (Eq_string(line.callingConvention, substring("csky"))
      || Eq_string(line.callingConvention, substring("nios2"))
      || Eq_string(line.callingConvention, substring("oabi"))
      || Eq_string(line.callingConvention, substring("or1k"))
@@ -617,7 +617,7 @@ void LoadSyscallNumbers(arch* arch, htable* syscallTable)
 
   while (true)
   {
-    if (Read_syscall_number_line(&cursor, &line, arch->glibc))
+    if (Read_syscall_number_line(&cursor, &line, arch->archId))
     {
       line.sysNr -= arch->sysNrOffset;
       // printf("%d %.*s %.*s\n", line.sysNr, (int)line.callingConvention.size, line.callingConvention.bytes, (int)line.sysId.size, line.sysId.bytes);
@@ -1931,10 +1931,10 @@ int main()
 
   archs[X86_64_arch_id]   = (arch) { .archId = X86_64_arch_id  , .inPath   = LINUX_ARCH_ROOT "x86/entry/syscalls/syscall_64.tbl", .outPath = "tables/x86_64_syscall_table.h" };
   archs[ARM_64_arch_id]   = (arch) { .archId = ARM_64_arch_id  , .inPath   = LINUX_ARCH_ROOT "arm64/tools/syscall_64.tbl"       , .outPath = "tables/arm64_syscall_table.h" };
-  archs[RISCV_64_arch_id] = (arch) { .archId = RISCV_64_arch_id, .inPath   = GLIBC_SYSV "riscv/rv64/arch-syscall.h"             , .outPath = "tables/riscv64_syscall_table.h", .glibc = true };
+  archs[RISCV_64_arch_id] = (arch) { .archId = RISCV_64_arch_id, .inPath   = LINUX_ROOT "scripts/syscall.tbl"             , .outPath = "tables/riscv64_syscall_table.h" };
   archs[X86_32_arch_id]   = (arch) { .archId = X86_32_arch_id  , .inPath   = LINUX_ARCH_ROOT "x86/entry/syscalls/syscall_32.tbl", .outPath = "tables/x86_32_syscall_table.h" };
   archs[ARM_32_arch_id]   = (arch) { .archId = ARM_32_arch_id  , .inPath   = LINUX_ARCH_ROOT "arm/tools/syscall.tbl"            , .outPath = "tables/arm32_syscall_table.h" };
-  archs[RISCV_32_arch_id] = (arch) { .archId = RISCV_32_arch_id, .inPath   = GLIBC_SYSV "riscv/rv32/arch-syscall.h"             , .outPath = "tables/riscv32_syscall_table.h", .glibc = true };
+  archs[RISCV_32_arch_id] = (arch) { .archId = RISCV_32_arch_id, .inPath   = LINUX_ROOT "scripts/syscall.tbl"             , .outPath = "tables/riscv32_syscall_table.h" };
 
   for (int archId = 0; archId < ARRAY_SIZE(archs); ++archId)
   {

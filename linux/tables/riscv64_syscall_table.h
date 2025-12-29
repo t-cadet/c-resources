@@ -125,6 +125,7 @@
 #define __NR_linkat 37
 #define __NR_listen 201
 #define __NR_listmount 458
+#define __NR_listns 470
 #define __NR_listxattr 11
 #define __NR_listxattrat 465
 #define __NR_llistxattr 12

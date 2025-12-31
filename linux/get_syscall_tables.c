@@ -1,4 +1,4 @@
-// clang -std=c23 -ggdb get_syscall_tables.c -o get_syscall_tables && ./get_syscall_tables
+// clang -O0 -std=c23 -ggdb get_syscall_tables.c -o get_syscall_tables && ./get_syscall_tables
 //
 // Resources:
 // * https://github.com/torvalds/linux/tree/master/arch
@@ -23,6 +23,17 @@
 bool streq(char* a, char* b)
 {
   return strcmp(a, b) == 0;
+}
+
+bool IsAlpha(char c)
+{
+  return (c >= 'a' && c <= 'z')
+      || (c >= 'A' && c <= 'Z');
+}
+
+bool IsDigit(char c)
+{
+  return (c >= '0' && c <= '9');
 }
 
 char Capitalize(char c)
@@ -139,6 +150,7 @@ struct
   enum htable_slot_state state;
   substring key;
   int value[SIZE_arch_id];
+  substring prototype;
 }
 htable_slot;
 
@@ -201,18 +213,18 @@ htable_slot* Set_htable(htable* table, substring key)
   for (size_t offset = 0; offset < table->capacity; ++offset)
   {
     htable_slot* slot = &table->slots[(hash + offset) % table->capacity];
-    if (Eq_string(slot->key, key))
-    {
-      out = slot;
-      break;
-    }
-    else if (slot->state == EMPTY_htable_slot_state
+    if (slot->state == EMPTY_htable_slot_state
           || slot->state == REMOVED_htable_slot_state)
     {
       slot->key = key;
       slot->state = OCCUPIED_htable_slot_state;
       out = slot;
       ++table->size;
+      break;
+    }
+    else if (Eq_string(slot->key, key))
+    {
+      out = slot;
       break;
     }
   }
@@ -409,7 +421,7 @@ bool ReadUntil(char** bytes, char* delimiter, substring* out)
       delimiterMatches = true;
       for (size_t i = 0; i < delimiterSize && delimiterMatches; ++i)
       {
-        delimiterMatches = *bytes[i] == delimiter[i];
+        delimiterMatches = (*bytes)[i] == delimiter[i];
       }
 
       if (delimiterMatches)
@@ -643,9 +655,284 @@ void LoadSyscallNumbers(arch* arch, htable* syscallTable)
 
     line = (syscall_number_line){.sysNr = 0x0f0006, .callingConvention = {0}, .sysId = substring("get_tls") };
     AddLineToTable(arch, syscallTable, &line);
+
+    // also adding gethostname, it has no number on the 6 arch handled for now,
+    // but it should have a wrapper, and also be in the table for consistency
+    line = (syscall_number_line){.sysNr = -1, .callingConvention = {0}, .sysId = substring("gethostname") };
+    AddLineToTable(arch, syscallTable, &line);
   }
 
   // printf("\n");
+}
+void FillKnownSyscallsWithPrototypesButNoNumber(htable* table)
+{
+  Set_htable(table, substring("newfstat"));
+  Set_htable(table, substring("sync_file_range2"));
+  Set_htable(table, substring("timerfd_settime32"));
+  Set_htable(table, substring("utimensat_time32"));
+  Set_htable(table, substring("nanosleep_time32"));
+  Set_htable(table, substring("timer_settime32"));
+  Set_htable(table, substring("clock_gettime32"));
+  Set_htable(table, substring("clock_nanosleep_time32"));
+  Set_htable(table, substring("mq_timedreceive_time32"));
+  Set_htable(table, substring("old_shmctl"));
+  Set_htable(table, substring("spu_run"));
+  Set_htable(table, substring("newlstat"));
+  Set_htable(table, substring("time32"));
+  Set_htable(table, substring("futimesat_time32"));
+  Set_htable(table, substring("utimes_time32"));
+  Set_htable(table, substring("oldumount"));
+  Set_htable(table, substring("chown16"));
+  Set_htable(table, substring("fchown16"));
+  Set_htable(table, substring("setgid16"));
+  Set_htable(table, substring("setuid16"));
+  Set_htable(table, substring("getresuid16"));
+  Set_htable(table, substring("getresgid16"));
+  Set_htable(table, substring("setfsgid16"));
+  Set_htable(table, substring("setgroups16"));
+  Set_htable(table, substring("geteuid16"));
+  Set_htable(table, substring("getegid16"));
+  Set_htable(table, substring("old_select"));
+  Set_htable(table, substring("old_readdir"));
+  Set_htable(table, substring("old_getrlimit"));
+  Set_htable(table, substring("mmap_pgoff"));
+  Set_htable(table, substring("ni_syscall"));
+  Set_htable(table, substring("io_getevents_time32"));
+  Set_htable(table, substring("io_pgetevents_time32"));
+  Set_htable(table, substring("pselect6_time32"));
+  Set_htable(table, substring("ppoll_time32"));
+  Set_htable(table, substring("timerfd_gettime32"));
+  Set_htable(table, substring("futex_time32"));
+  Set_htable(table, substring("timer_gettime32"));
+  Set_htable(table, substring("clock_settime32"));
+  Set_htable(table, substring("clock_getres_time32"));
+  Set_htable(table, substring("sched_rr_get_interval_time32"));
+  Set_htable(table, substring("rt_sigtimedwait_time32"));
+  Set_htable(table, substring("newuname"));
+  Set_htable(table, substring("adjtimex_time32"));
+  Set_htable(table, substring("mq_timedsend_time32"));
+  Set_htable(table, substring("old_msgctl"));
+  Set_htable(table, substring("old_semctl"));
+  Set_htable(table, substring("semtimedop_time32"));
+  Set_htable(table, substring("recvmmsg_time32"));
+  Set_htable(table, substring("clock_adjtime32"));
+  Set_htable(table, substring("spu_create"));
+  Set_htable(table, substring("newstat"));
+  Set_htable(table, substring("utime32"));
+  Set_htable(table, substring("stime32"));
+  Set_htable(table, substring("lchown16"));
+  Set_htable(table, substring("setregid16"));
+  Set_htable(table, substring("setreuid16"));
+  Set_htable(table, substring("setresuid16"));
+  Set_htable(table, substring("setresgid16"));
+  Set_htable(table, substring("setfsuid16"));
+  Set_htable(table, substring("getgroups16"));
+  Set_htable(table, substring("getuid16"));
+  Set_htable(table, substring("getgid16"));
+  Set_htable(table, substring("old_mmap"));
+  Set_htable(table, substring("ni_posix_timers"));
+}
+
+char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
+{
+  char* bytes = Read_file(inPath);
+  assert(bytes);
+
+  htable knownSyscallsWithPrototypesButNoNumber = {0};
+  FillKnownSyscallsWithPrototypesButNoNumber(&knownSyscallsWithPrototypesButNoNumber);
+
+  htable knownSyscallsWithMultiplePrototypes = {0};
+  Set_htable(&knownSyscallsWithMultiplePrototypes, substring("clone"));
+  Set_htable(&knownSyscallsWithMultiplePrototypes, substring("fanotify_mark"));
+  Set_htable(&knownSyscallsWithMultiplePrototypes, substring("sigsuspend"));
+
+  char* cursor = bytes;
+  substring asmlinkage = {};
+
+  int prototypeCount = 0;
+  int prototypeCountWithNumber = 0;
+  while (ReadUntilOneOf(&cursor, " \t\n", &asmlinkage))
+  {
+    // asmlinkage long sys_getresgid16(old_gid_t __user *rgid,
+    // 				old_gid_t __user *egid, old_gid_t __user *sgid);
+    if (Eq_string(asmlinkage, substring("asmlinkage")))
+    {
+      substring key = {};
+      bool ok = ReadUntil(&cursor, "sys_", 0);
+      ok = ok && ReadUntilOneOf(&cursor, "( \t\n", &key);
+      ok = ok && ReadUntil(&cursor, ";\n", 0);
+      if (ok)
+      {
+        ++prototypeCount;
+
+        substring prototype = {};
+        prototype.bytes = asmlinkage.bytes;
+        prototype.size = cursor - prototype.bytes;
+
+        htable_slot* slot = Get_htable(syscallTable, key);
+        if (slot)
+        {
+          ++prototypeCountWithNumber;
+          if (slot->prototype.size > 0 && !Get_htable(&knownSyscallsWithMultiplePrototypes, key))
+          {
+            fprintf(stderr, "(LoadSyscallPrototypes) WARNING: replacing prototype for syscall %.*s: %.*s -> %.*s\n", (int)key.size, key.bytes, (int)slot->prototype.size, slot->prototype.bytes, (int)prototype.size, prototype.bytes);
+          }
+          slot->prototype = prototype;
+        }
+        else
+        {
+          if (!Get_htable(&knownSyscallsWithPrototypesButNoNumber, key))
+          {
+            fprintf(stderr, "(LoadSyscallPrototypes) WARNING: no syscall number for prototype: %.*s\n", (int)prototype.size, prototype.bytes);
+          }
+        }
+      }
+      else
+      {
+        substring line = {};
+        if (cursor[-1] != '\n')
+        {
+          ReadUntil(&cursor, "\n", &line);
+        }
+        fprintf(stderr, "(LoadSyscallPrototypes) ERROR: failed to read a line starting with asmlinkage: asmlinkage %.*s\n", (int)line.size, line.bytes);
+      }
+    }
+    else
+    {
+      if (cursor[-1] != '\n')
+      {
+        ReadUntil(&cursor, "\n", 0);
+      }
+    }
+  }
+
+  fprintf(stderr, "(LoadSyscallPrototypes) INFO: retrieved %d prototypes from the linux file, %d of which have a syscall number,\n", prototypeCount, prototypeCountWithNumber);
+
+  // Make exit's prototype noreturn
+  Get_htable(syscallTable, substring("exit"))->prototype = substring("asmlinkage __attribute__((noreturn)) void sys_exit(int error_code);\n");
+  Get_htable(syscallTable, substring("exit_group"))->prototype = substring("asmlinkage __attribute__((noreturn)) void sys_exit_group(int error_code);\n");
+
+  // Manually specifying prototypes that appear multiple times (#ifdef) in the linux file
+  Get_htable(syscallTable, substring("clone"))->prototype = substring("asmlinkage long sys_clone(unsigned long clone_flags, unsigned long newsp, int __user *parent_tidptr, int __user *child_tidptr, unsigned long tls);\n");
+  Get_htable(syscallTable, substring("fanotify_mark"))->prototype = substring("asmlinkage long sys_fanotify_mark(int fanotify_fd, unsigned int flags, u64 mask, int fd, const char  __user *pathname);\n");
+  Get_htable(syscallTable, substring("sigsuspend"))->prototype = substring("asmlinkage long sys_sigsuspend(old_sigset_t mask);\n");
+
+  // Manually add arg names for prototypes that don't have them
+  Get_htable(syscallTable, substring("pselect6"))->prototype = substring("asmlinkage long sys_pselect6(int n, fd_set __user *inp, fd_set __user *outp, fd_set __user *exp, struct __kernel_timespec __user *tsp, void __user *sig);\n");
+  Get_htable(syscallTable, substring("sigaction"))->prototype = substring("asmlinkage long sys_sigaction(int sig, const struct old_sigaction __user *act, struct old_sigaction __user *oact);\n");
+  Get_htable(syscallTable, substring("rt_sigaction"))->prototype = substring("asmlinkage long sys_rt_sigaction(int sig, const struct sigaction __user *act, struct sigaction __user *oact, size_t sigsetsize);\n");
+  Get_htable(syscallTable, substring("socket"))->prototype = substring("asmlinkage long sys_socket(int family, int type, int protocol);\n");
+  Get_htable(syscallTable, substring("socketpair"))->prototype = substring("asmlinkage long sys_socketpair(int family, int type, int protocol, int __user *usockvec);\n");
+  Get_htable(syscallTable, substring("bind"))->prototype = substring("asmlinkage long sys_bind(int fd, struct sockaddr __user *umyaddr, int addrlen);\n");
+  Get_htable(syscallTable, substring("listen"))->prototype = substring("asmlinkage long sys_listen(int fd, int backlog);\n");
+  Get_htable(syscallTable, substring("accept"))->prototype = substring("asmlinkage long sys_accept(int fd, struct sockaddr __user *upeer_sockaddr, int __user *upeer_addrlen);\n");
+  Get_htable(syscallTable, substring("accept4"))->prototype = substring("asmlinkage long sys_accept4(int fd, struct sockaddr __user *upeer_sockaddr, int __user *upeer_addrlen, int flags);\n");
+  Get_htable(syscallTable, substring("connect"))->prototype = substring("asmlinkage long sys_connect(int fd, struct sockaddr __user *uservaddr, int addrlen);\n");
+  Get_htable(syscallTable, substring("shutdown"))->prototype = substring("asmlinkage long sys_shutdown(int fd, int how);\n");
+  Get_htable(syscallTable, substring("send"))->prototype = substring("asmlinkage long sys_send(int fd, void __user *buff, size_t len, unsigned int flags);\n");
+  Get_htable(syscallTable, substring("sendto"))->prototype = substring("asmlinkage long sys_sendto(int fd, void __user *buff, size_t len, unsigned int flags, struct sockaddr __user *addr, int addr_len);\n");
+  Get_htable(syscallTable, substring("recv"))->prototype = substring("asmlinkage long sys_recv(int fd, void __user *ubuf, size_t size, unsigned int flags);\n");
+  Get_htable(syscallTable, substring("recvfrom"))->prototype = substring("asmlinkage long sys_recvfrom(int fd, void __user *ubuf, size_t size, unsigned int flags, struct sockaddr __user *addr, int __user *addr_len);\n");
+  Get_htable(syscallTable, substring("getsockname"))->prototype = substring("asmlinkage long sys_getsockname(int fd, struct sockaddr __user *usockaddr, int __user *usockaddr_len);\n");
+  Get_htable(syscallTable, substring("getpeername"))->prototype = substring("asmlinkage long sys_getpeername(int fd, struct sockaddr __user *usockaddr, int __user *usockaddr_len);\n");
+  Get_htable(syscallTable, substring("io_submit"))->prototype = substring("asmlinkage long sys_io_submit(aio_context_t ctx_id, long nr, struct iocb __user * __user *iocbpp);\n");
+
+  // Additional prototypes missing from the linux file, these might be unreliable
+  Get_htable(syscallTable, substring("arch_prctl"))->prototype = substring("asmlinkage long sys_arch_prctl(int option, unsigned long addr);\n");
+  Get_htable(syscallTable, substring("modify_ldt"))->prototype = substring("asmlinkage long sys_modify_ldt(int func, void __user *ptr, unsigned long bytecount);\n");
+  Get_htable(syscallTable, substring("set_thread_area"))->prototype = substring("asmlinkage long sys_set_thread_area(struct user_desc __user *u_info);\n");
+  Get_htable(syscallTable, substring("get_thread_area"))->prototype = substring("asmlinkage long sys_get_thread_area(struct user_desc __user *u_info);\n");
+  Get_htable(syscallTable, substring("mmap"))->prototype = substring("asmlinkage long sys_mmap(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long off);\n");
+  Get_htable(syscallTable, substring("mmap2"))->prototype = substring("asmlinkage long sys_mmap2(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);\n");
+  Get_htable(syscallTable, substring("arm_fadvise64_64"))->prototype = substring("asmlinkage long sys_arm_fadvise64_64(int fd, int advice, loff_t offset, loff_t len);\n");
+  Get_htable(syscallTable, substring("rt_sigtimedwait_time64"))->prototype = substring("asmlinkage long sys_rt_sigtimedwait_time64(compat_sigset_t __user *uthese, struct compat_siginfo __user *uinfo, struct __kernel_timespec __user *uts, compat_size_t sigsetsize);\n");
+  Get_htable(syscallTable, substring("sigreturn"))->prototype = substring("asmlinkage long sys_sigreturn(struct pt_regs *regs);\n");
+  Get_htable(syscallTable, substring("rt_sigreturn"))->prototype = substring("asmlinkage long sys_rt_sigreturn(struct pt_regs *regs);\n");
+  Get_htable(syscallTable, substring("iopl"))->prototype = substring("asmlinkage long sys_iopl(unsigned int level);\n");
+  Get_htable(syscallTable, substring("riscv_flush_icache"))->prototype = substring("asmlinkage long sys_riscv_flush_icache(uintptr_t start, uintptr_t end, uintptr_t flags);\n");
+  Get_htable(syscallTable, substring("riscv_hwprobe"))->prototype = substring("asmlinkage long sys_riscv_hwprobe(struct riscv_hwprobe __user *pairs, size_t pair_count, size_t cpu_count, unsigned long __user *cpumask, unsigned int flags);\n");
+  Get_htable(syscallTable, substring("vm86"))->prototype = substring("asmlinkage long sys_vm86(unsigned long cmd, unsigned long arg);\n");
+  Get_htable(syscallTable, substring("vm86old"))->prototype = substring("asmlinkage long sys_vm86old(struct vm86_struct __user *user_vm86);\n");
+  Get_htable(syscallTable, substring("set_tls"))->prototype = substring("asmlinkage long sys_set_tls(unsigned long val);\n");
+  Get_htable(syscallTable, substring("get_tls"))->prototype = substring("asmlinkage long sys_get_tls(void);\n");
+  Get_htable(syscallTable, substring("sched_rr_get_interval_time64"))->prototype = substring("asmlinkage long sys_sched_rr_get_interval_time64(pid_t pid, struct __kernel_timespec __user *interval);\n");
+  Get_htable(syscallTable, substring("_llseek"))->prototype = substring("asmlinkage long sys__llseek(unsigned int fd, unsigned long offset_high, unsigned long offset_low, loff_t __user *result, unsigned int whence);\n");
+  Get_htable(syscallTable, substring("arm_sync_file_range"))->prototype = substring("asmlinkage long sys_arm_sync_file_range(int fd, loff_t offset, loff_t nbytes, unsigned int flags);\n");
+  Get_htable(syscallTable, substring("_newselect"))->prototype = substring("asmlinkage long sys__newselect(int n, fd_set __user *inp, fd_set __user *outp, fd_set __user *exp, struct __kernel_old_timeval __user *tvp);\n");
+  Get_htable(syscallTable, substring("pselect6_time64"))->prototype = substring("asmlinkage long sys_pselect6_time64(int n, fd_set __user *inp, fd_set __user *outp, fd_set __user *exp, struct __kernel_timespec __user *tsp, void __user *sig);\n");
+  Get_htable(syscallTable, substring("ppoll_time64"))->prototype = substring("asmlinkage long sys_ppoll_time64(struct pollfd __user *ufds, unsigned int nfds, struct __kernel_timespec __user *tsp, const sigset_t __user *sigmask, size_t sigsetsize);\n");
+  Get_htable(syscallTable, substring("epoll_ctl_old"))->prototype = substring("asmlinkage long sys_epoll_ctl_old(int epfd, int op, int fd, struct epoll_event __user *event);\n");
+  Get_htable(syscallTable, substring("epoll_wait_old"))->prototype = substring("asmlinkage long sys_epoll_wait_old(int epfd, struct epoll_event __user *events, int maxevents, int timeout);\n");
+  Get_htable(syscallTable, substring("oldstat"))->prototype = substring("asmlinkage long sys_oldstat(const char __user *filename, struct __old_kernel_stat __user *statbuf);\n");
+  Get_htable(syscallTable, substring("oldfstat"))->prototype = substring("asmlinkage long sys_oldfstat(unsigned int fd, struct __old_kernel_stat __user *statbuf);\n");
+  Get_htable(syscallTable, substring("oldlstat"))->prototype = substring("asmlinkage long sys_oldlstat(const char __user *filename, struct __old_kernel_stat __user *statbuf);\n");
+  Get_htable(syscallTable, substring("chown32"))->prototype = substring("asmlinkage long sys_chown32(const char __user *filename, uid_t user, gid_t group);\n");
+  Get_htable(syscallTable, substring("fchown32"))->prototype = substring("asmlinkage long sys_fchown32(unsigned int fd, uid_t user, gid_t group);\n");
+  Get_htable(syscallTable, substring("lchown32"))->prototype = substring("asmlinkage long sys_lchown32(const char __user *filename, uid_t user, gid_t group);\n");
+  Get_htable(syscallTable, substring("utimensat_time64"))->prototype = substring("asmlinkage long sys_utimensat_time64(int dfd, const char __user *filename, struct __kernel_timespec __user *t, int flags);\n");
+  Get_htable(syscallTable, substring("readdir"))->prototype = substring("asmlinkage long sys_readdir(unsigned int fd, struct old_linux_dirent __user *dirent, unsigned int count);\n");
+  Get_htable(syscallTable, substring("umount2"))->prototype = substring("asmlinkage long sys_umount2(char __user *name, int flags);\n");
+  Get_htable(syscallTable, substring("semtimedop_time64"))->prototype = substring("asmlinkage long sys_semtimedop_time64(int semid, struct sembuf __user *tsops, unsigned int nsops, const struct __kernel_timespec __user *timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedsend_time64"))->prototype = substring("asmlinkage long sys_mq_timedsend_time64(mqd_t mqdes, const char __user *u_msg_ptr, size_t msg_len, unsigned int msg_prio, const struct __kernel_timespec __user *u_abs_timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedreceive_time64"))->prototype = substring("asmlinkage long sys_mq_timedreceive_time64(mqd_t mqdes, char __user *u_msg_ptr, size_t msg_len, unsigned int __user *u_msg_prio, const struct __kernel_timespec __user *u_abs_timeout);\n");
+  Get_htable(syscallTable, substring("futex_time64"))->prototype = substring("asmlinkage long sys_futex_time64(u32 __user *uaddr, int op, u32 val, const struct __kernel_timespec __user *utime, u32 __user *uaddr2, u32 val3);\n");
+  Get_htable(syscallTable, substring("recvmmsg_time64"))->prototype = substring("asmlinkage long sys_recvmmsg_time64(int fd, struct mmsghdr __user *mmsg, unsigned int vlen, unsigned int flags, struct __kernel_timespec __user *timeout);\n");
+  Get_htable(syscallTable, substring("io_pgetevents_time64"))->prototype = substring("asmlinkage long sys_io_pgetevents_time64(aio_context_t ctx_id, long min_nr, long nr, struct io_event __user *events, struct __kernel_timespec __user *timeout, const struct __aio_sigset __user *sig);\n");
+  Get_htable(syscallTable, substring("clock_gettime64"))->prototype = substring("asmlinkage long sys_clock_gettime64(clockid_t which_clock, struct __kernel_timespec __user *tp);\n");
+  Get_htable(syscallTable, substring("clock_getres_time64"))->prototype = substring("asmlinkage long sys_clock_getres_time64(clockid_t which_clock, struct __kernel_timespec __user *tp);\n");
+  Get_htable(syscallTable, substring("clock_settime64"))->prototype = substring("asmlinkage long sys_clock_settime64(clockid_t which_clock, const struct __kernel_timespec __user *tp);\n");
+  Get_htable(syscallTable, substring("clock_adjtime64"))->prototype = substring("asmlinkage long sys_clock_adjtime64(clockid_t which_clock, struct __kernel_timex __user *tx);\n");
+  Get_htable(syscallTable, substring("clock_nanosleep_time64"))->prototype = substring("asmlinkage long sys_clock_nanosleep_time64(clockid_t which_clock, int flags, const struct __kernel_timespec __user *rqtp, struct __kernel_timespec __user *rmtp);\n");
+  Get_htable(syscallTable, substring("timer_settime64"))->prototype = substring("asmlinkage long sys_timer_settime64(timer_t timerid, int flags, const struct __kernel_timespec __user *new_setting, struct __kernel_timespec __user *old_setting);\n");
+  Get_htable(syscallTable, substring("timer_gettime64"))->prototype = substring("asmlinkage long sys_timer_gettime64(timer_t timerid, struct __kernel_timespec __user *setting);\n");
+  Get_htable(syscallTable, substring("timerfd_settime64"))->prototype = substring("asmlinkage long sys_timerfd_settime64(int ufd, int flags, const struct __kernel_timespec __user *utmr, struct __kernel_timespec __user *otmr);\n");
+  Get_htable(syscallTable, substring("timerfd_gettime64"))->prototype = substring("asmlinkage long sys_timerfd_gettime64(int ufd, struct __kernel_timespec __user *otmr);\n");
+  Get_htable(syscallTable, substring("getuid32"))->prototype = substring("asmlinkage long sys_getuid32(void);\n");
+  Get_htable(syscallTable, substring("geteuid32"))->prototype = substring("asmlinkage long sys_geteuid32(void);\n");
+  Get_htable(syscallTable, substring("setuid32"))->prototype = substring("asmlinkage long sys_setuid32(uid_t uid);\n");
+  Get_htable(syscallTable, substring("setreuid32"))->prototype = substring("asmlinkage long sys_setreuid32(uid_t ruid, uid_t euid);\n");
+  Get_htable(syscallTable, substring("setresuid32"))->prototype = substring("asmlinkage long sys_setresuid32(uid_t ruid, uid_t euid, uid_t suid);\n");
+  Get_htable(syscallTable, substring("getresuid32"))->prototype = substring("asmlinkage long sys_getresuid32(uid_t __user *ruid, uid_t __user *euid, uid_t __user *suid);\n");
+  Get_htable(syscallTable, substring("setfsuid32"))->prototype = substring("asmlinkage long sys_setfsuid32(uid_t uid);\n");
+  Get_htable(syscallTable, substring("getgid32"))->prototype = substring("asmlinkage long sys_getgid32(void);\n");
+  Get_htable(syscallTable, substring("getegid32"))->prototype = substring("asmlinkage long sys_getegid32(void);\n");
+  Get_htable(syscallTable, substring("setgid32"))->prototype = substring("asmlinkage long sys_setgid32(gid_t gid);\n");
+  Get_htable(syscallTable, substring("setregid32"))->prototype = substring("asmlinkage long sys_setregid32(gid_t rgid, gid_t egid);\n");
+  Get_htable(syscallTable, substring("setresgid32"))->prototype = substring("asmlinkage long sys_setresgid32(gid_t rgid, gid_t egid, gid_t sgid);\n");
+  Get_htable(syscallTable, substring("getresgid32"))->prototype = substring("asmlinkage long sys_getresgid32(gid_t __user *rgid, gid_t __user *egid, gid_t __user *sgid);\n");
+  Get_htable(syscallTable, substring("setfsgid32"))->prototype = substring("asmlinkage long sys_setfsgid32(gid_t gid);\n");
+  Get_htable(syscallTable, substring("getgroups32"))->prototype = substring("asmlinkage long sys_getgroups32(int gidsetsize, gid_t __user *grouplist);\n");
+  Get_htable(syscallTable, substring("setgroups32"))->prototype = substring("asmlinkage long sys_setgroups32(int gidsetsize, gid_t __user *grouplist);\n");
+  Get_htable(syscallTable, substring("security"))->prototype = substring("asmlinkage long sys_security(void);\n");
+  Get_htable(syscallTable, substring("ugetrlimit"))->prototype = substring("asmlinkage long sys_ugetrlimit(unsigned int resource, struct rlimit __user *rlim);\n");
+  Get_htable(syscallTable, substring("ulimit"))->prototype = substring("asmlinkage long sys_ulimit(int cmd, long newval);\n");
+  Get_htable(syscallTable, substring("oldolduname"))->prototype = substring("asmlinkage long sys_oldolduname(struct oldold_utsname __user *name);\n");
+  Get_htable(syscallTable, substring("create_module"))->prototype = substring("asmlinkage long sys_create_module(const char __user *name, size_t size);\n");
+  Get_htable(syscallTable, substring("query_module"))->prototype = substring("asmlinkage long sys_query_module(const char __user *name, int which, void __user *buf, size_t bufsize, size_t __user *ret);\n");
+  Get_htable(syscallTable, substring("get_kernel_syms"))->prototype = substring("asmlinkage long sys_get_kernel_syms(struct kernel_sym __user *table);\n");
+  Get_htable(syscallTable, substring("cacheflush"))->prototype = substring("asmlinkage long sys_cacheflush(unsigned long start, unsigned long end, int flags);\n");
+  Get_htable(syscallTable, substring("mpx"))->prototype = substring("asmlinkage long sys_mpx(void);\n");
+  Get_htable(syscallTable, substring("lookup_dcookie"))->prototype = substring("asmlinkage long sys_lookup_dcookie(u64 cookie64, char __user *buf, size_t len);\n");
+  Get_htable(syscallTable, substring("_sysctl"))->prototype = substring("asmlinkage long sys__sysctl(struct __sysctl_args __user *args);\n");
+  Get_htable(syscallTable, substring("profil"))->prototype = substring("asmlinkage long sys_profil(unsigned short __user *sample_buffer, size_t size, unsigned long offset, unsigned int scale);\n");
+  Get_htable(syscallTable, substring("prof"))->prototype = substring("asmlinkage long sys_prof(void);\n");
+  Get_htable(syscallTable, substring("afs_syscall"))->prototype = substring("asmlinkage long sys_afs_syscall(void);\n");
+  Get_htable(syscallTable, substring("break"))->prototype = substring("asmlinkage long sys_break(void);\n");
+  Get_htable(syscallTable, substring("ftime"))->prototype = substring("asmlinkage long sys_ftime(void);\n");
+  Get_htable(syscallTable, substring("gtty"))->prototype = substring("asmlinkage long sys_gtty(void);\n");
+  Get_htable(syscallTable, substring("idle"))->prototype = substring("asmlinkage long sys_idle(void);\n");
+  Get_htable(syscallTable, substring("lock"))->prototype = substring("asmlinkage long sys_lock(void);\n");
+  Get_htable(syscallTable, substring("nfsservctl"))->prototype = substring("asmlinkage long sys_nfsservctl(int cmd, struct nfsctl_arg __user *arg, union nfsctl_res __user *res);\n");
+  Get_htable(syscallTable, substring("getpmsg"))->prototype = substring("asmlinkage long sys_getpmsg(int fd, struct strbuf __user *ctlptr, struct strbuf __user *dataptr, int __user *bandp, int __user *flagsp);\n");
+  Get_htable(syscallTable, substring("putpmsg"))->prototype = substring("asmlinkage long sys_putpmsg(int fd, struct strbuf __user *ctlptr, struct strbuf __user *dataptr, int band, int flags);\n");
+  Get_htable(syscallTable, substring("stty"))->prototype = substring("asmlinkage long sys_stty(void);\n");
+  Get_htable(syscallTable, substring("tuxcall"))->prototype = substring("asmlinkage long sys_tuxcall(void);\n");
+  Get_htable(syscallTable, substring("vserver"))->prototype = substring("asmlinkage long sys_vserver(void);\n");
+  Get_htable(syscallTable, substring("bdflush"))->prototype = substring("asmlinkage long sys_bdflush(int func, long data);\n");
+
+  Free_htable(&knownSyscallsWithPrototypesButNoNumber);
+  Free_htable(&knownSyscallsWithMultiplePrototypes);
+  return bytes;
 }
 
 void PrintSyscallNumber(FILE* file, int archId, substring sysId, int sysNr)
@@ -930,6 +1217,9 @@ enum table_printer_state
 struct table_printer
 {
   FILE* out;
+  FILE* wrapperPrototypesFile;
+  FILE* wrapperImplementationFile;
+
   table_dimensions dimensions;
   htable* syscallTable;
 
@@ -941,6 +1231,9 @@ struct table_printer
 
   char* sectionTitles[MAX_SESSION_TITLES];
   int sectionTitlesCount;
+
+  bool disabledWrapper;
+  char* customWrapper;
 } table_printer;
 
 void PushSectionTitle(table_printer* printer, char* title)
@@ -997,6 +1290,14 @@ void PrintSection(table_printer* printer, char* title, char* subtitle)
   PrintTableTextLineCentered(printer->out, buffer, &printer->dimensions);
   ++printer->linesPrintedSinceLastArchSection;
 
+  fprintf(printer->wrapperPrototypesFile, "//\n");
+  fprintf(printer->wrapperPrototypesFile, "// %s\n", buffer);
+  fprintf(printer->wrapperPrototypesFile, "//\n");
+
+  fprintf(printer->wrapperImplementationFile, "//\n");
+  fprintf(printer->wrapperImplementationFile, "// %s\n", buffer);
+  fprintf(printer->wrapperImplementationFile, "//\n");
+
   PushSectionTitle(printer, title);
 
   if (subtitle)
@@ -1037,6 +1338,9 @@ void PrintSubsection(table_printer* printer, char* title)
   PrintTableTextLineCentered(printer->out, buffer, &printer->dimensions);
   ++printer->linesPrintedSinceLastArchSection;
 
+  fprintf(printer->wrapperPrototypesFile, "// %s\n", buffer);
+  fprintf(printer->wrapperImplementationFile, "// %s\n", buffer);
+
   PrintTableSeparatorLineEx(printer->out, "─", "─", "─", &printer->dimensions);
   ++printer->linesPrintedSinceLastArchSection;
 
@@ -1046,14 +1350,240 @@ void PrintSubsection(table_printer* printer, char* title)
   assert(printer->subsectionLetter <= 'z');
 }
 
+void SkipSpaces(char **s)
+{
+  if (s && *s)
+  {
+    while (IsSpace(**s))
+    {
+      *s = *s+1;
+    }
+  }
+}
+
+substring ReplaceLinuxType(substring linuxType)
+{
+  substring out = linuxType;
+  if (Eq_string(linuxType, substring("pid_t")))
+  {
+    out = substring("int");
+  }
+  else if (Eq_string(linuxType, substring("size_t")))
+  {
+    out = substring("unsigned long");
+  }
+  else if (Eq_string(linuxType, substring("clone_args")))
+  {
+    out = substring("clone_args_linux");
+  }
+  else if (Eq_string(linuxType, substring("rusage")))
+  {
+    out = substring("rusage_linux");
+  }
+  else if (Eq_string(linuxType, substring("siginfo")))
+  {
+    out = substring("siginfo_t_linux");
+  }
+  return out;
+}
+
 void PrintSyscallLine(table_printer* printer, char* s) {
   assert(printer->state != PRINTED_NOTHING_table_printer_state);
-  PrintAndRemoveSyscall(printer->out, printer->syscallTable, substring(s), printer->dimensions.maxSysIdSize);
+
+  // syscall wrapper prototype and implementation handling
+  substring key = substring(s);
+  htable_slot* slot = Get_htable(printer->syscallTable, key);
+  if (slot)
+  {
+    if (slot->prototype.size == 0)
+    {
+      fprintf(stderr, "ERROR: missing prototype for %.*s\n", (int)key.size, key.bytes);
+    }
+    else
+    {
+      if (printer->disabledWrapper)
+      {
+        fprintf(printer->wrapperPrototypesFile, "// Disabled Wrapper: ");
+        fprintf(printer->wrapperImplementationFile, "// Disabled Wrapper: ");
+      }
+
+      substring argNames[6] = {0};
+      int argNamesCount = 0;
+
+      char* cursor = slot->prototype.bytes;
+      assert(ReadUntil(&cursor, " ", 0));
+
+      substring returnType = {0};
+      assert(ReadUntil(&cursor, "sys_", &returnType));
+
+      substring syscallName = {0};
+      assert(ReadUntil(&cursor, "(", &syscallName));
+      fprintf(printer->wrapperPrototypesFile, "%.*s%.*s_linux(", (int)returnType.size, returnType.bytes, (int)syscallName.size, syscallName.bytes);
+      fprintf(printer->wrapperImplementationFile, "%.*s%.*s_linux(", (int)returnType.size, returnType.bytes, (int)syscallName.size, syscallName.bytes);
+
+      substring arg = {0};
+      do
+      {
+        assert(ReadUntilOneOf(&cursor, ",)", &arg));
+        char* argCursor = arg.bytes;
+        bool sawType = false;
+        SkipSpaces(&argCursor);
+        char delim = 0;
+        do
+        {
+          substring buf = {0};
+          SkipSpaces(&argCursor);
+          assert(ReadUntilOneOf(&argCursor, " ,)", &buf));
+          delim = argCursor[-1];
+          if (IsSpace(delim))
+          {
+            SkipSpaces(&argCursor);
+            delim = *argCursor;
+          }
+          switch (delim)
+          {
+            default:
+            {
+              if (!Eq_string(buf, substring("__user")) && !Eq_string(buf, substring("struct")))
+              {
+                sawType = true;
+                buf = ReplaceLinuxType(buf);
+                fprintf(printer->wrapperPrototypesFile, "%.*s ", (int)buf.size, buf.bytes);
+                fprintf(printer->wrapperImplementationFile, "%.*s ", (int)buf.size, buf.bytes);
+              }
+            } break;
+            case ',':
+            case ')':
+            {
+              if (sawType)
+              {
+                // arg name
+                assert(argCursor[-2] != ' ');
+                fprintf(printer->wrapperPrototypesFile, "%.*s", (int)buf.size, buf.bytes);
+                fprintf(printer->wrapperImplementationFile, "%.*s", (int)buf.size, buf.bytes);
+                substring argName = buf;
+                for (size_t i = 0; i < argName.size; ++i)
+                {
+                  char c = argName.bytes[i];
+                  if (IsAlpha(c) || c == '_')
+                  {
+                    argName.bytes = argName.bytes + i;
+                    argName.size -= i;
+                    break;
+                  }
+                }
+                for (size_t i = 0; i < argName.size; ++i)
+                {
+                  char c = argName.bytes[i];
+                  if (!IsAlpha(c) && !IsDigit(c) && c != '_')
+                  {
+                    argName.size = i;
+                    break;
+                  }
+                }
+                argNames[argNamesCount++] = argName;
+                sawType = false;
+              }
+              else
+              {
+                if (delim != ')')
+                {
+                  fprintf(stderr, "ERROR: delim != ')' (missing arg name?) for %.*s", (int)slot->prototype.size, slot->prototype.bytes);
+                }
+                buf = ReplaceLinuxType(buf);
+                fprintf(printer->wrapperPrototypesFile, "%.*s", (int)buf.size, buf.bytes);
+                fprintf(printer->wrapperImplementationFile, "%.*s", (int)buf.size, buf.bytes);
+              }
+
+              if (delim == ',')
+              {
+                fprintf(printer->wrapperPrototypesFile, ", ");
+                fprintf(printer->wrapperImplementationFile, ", ");
+              }
+            } break;
+          }
+        } while (delim != ')' && delim != ',');
+      } while(cursor[-1] != ')');
+
+      fprintf(printer->wrapperPrototypesFile, ");\n");
+      if (printer->disabledWrapper)
+      {
+        fprintf(printer->wrapperImplementationFile, ");\n");
+        printer->disabledWrapper = false;
+        printer->customWrapper = 0;
+      }
+      else
+      {
+        fprintf(printer->wrapperImplementationFile, ") {\n");
+        if (printer->customWrapper)
+        {
+          fprintf(printer->wrapperImplementationFile, "%s", printer->customWrapper);
+          printer->customWrapper = 0;
+        }
+        else
+        {
+          fprintf(printer->wrapperImplementationFile, "  return Syscall%d_linux(NR_%.*s_linux", argNamesCount, (int)syscallName.size, syscallName.bytes);
+          for (size_t i = 0; i < argNamesCount; ++i)
+          {
+            fprintf(printer->wrapperImplementationFile, ", %.*s", (int)argNames[i].size, argNames[i].bytes);
+          }
+          fprintf(printer->wrapperImplementationFile, ", 0);\n");
+        }
+        fprintf(printer->wrapperImplementationFile, "}\n");
+      }
+    }
+  }
+
+  // syscall table numbers
+  PrintAndRemoveSyscall(printer->out, printer->syscallTable, key, printer->dimensions.maxSysIdSize);
   ++printer->linesPrintedSinceLastArchSection;
   printer->state = PRINTED_SYSCALL_table_printer_state;
 }
 
-void PrintUnifiedSyscallNumbersTable(htable* syscallTable, char* outPath)
+char* cloneWrapper = \
+"#if defined(__x86_64__)\n"
+"  return Syscall5_linux(NR_clone_linux, clone_flags, newsp,  parent_tidptr, child_tidptr, tls, 0);\n"
+"#else\n"
+"  return Syscall5_linux(NR_clone_linux, clone_flags, newsp,  parent_tidptr, tls, child_tidptr, 0);\n"
+"#endif\n";
+char* wait4Wrapper = \
+"#if !(defined(__riscv) && (__riscv_xlen == 32))\n"
+"  return Syscall4_linux(NR_wait4_linux, pid, stat_addr, options, ru, 0);\n"
+"#else\n"
+"  int which = P_PID_linux;\n"
+"  if (pid < -1) {\n"
+"    which = P_PGID_linux;\n"
+"    pid = -pid;\n"
+"  } else if (pid == -1) {\n"
+"    which = P_ALL_linux;\n"
+"  } else if (pid == 0) {\n"
+"    which = P_PGID_linux;\n"
+"  }\n"
+"\n"
+"  siginfo_t_linux infop;\n"
+"  infop.si_pid_linux = 0;\n"
+"\n"
+"  long ret = Syscall5_linux(NR_waitid_linux, which, pid, &infop, options | WEXITED_linux, ru, 0);\n"
+"\n"
+"  if (ret >= 0) {\n"
+"    ret = infop.si_pid_linux;\n"
+"    if (infop.si_pid_linux && stat_addr) {\n"
+"      switch (infop.si_code) {\n"
+"        case CLD_EXITED_linux: *stat_addr = (infop.si_status_linux & 0xff) << 8; break;\n"
+"        case CLD_KILLED_linux: *stat_addr = infop.si_status_linux & 0x7f; break;\n"
+"        case CLD_DUMPED_linux: *stat_addr = (infop.si_status_linux & 0x7f) | 0x80; break;\n"
+"        case CLD_TRAPPED_linux:\n"
+"        case CLD_STOPPED_linux: *stat_addr = (infop.si_status_linux << 8) | 0x7f; break;\n"
+"        case CLD_CONTINUED_linux: *stat_addr = 0xffff; break;\n"
+"        default: *stat_addr = 0; break;\n"
+"      }\n"
+"    }\n"
+"  }\n"
+"\n"
+"  return ret;\n"
+"#endif\n";
+
+void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
   int maxSysIdSize = 0;
   for (size_t i = 0; i < syscallTable->capacity; ++i)
@@ -1072,7 +1602,12 @@ void PrintUnifiedSyscallNumbersTable(htable* syscallTable, char* outPath)
   printf("\n");
 
   FILE* file = fopen(outPath, "w");
+  FILE* wrapperPrototypesFile = fopen("tables/wrapper_prototypes.h", "w");
+  FILE* wrapperImplementationFile = fopen("tables/wrapper_implementations.h", "w");
+
   assert(file);
+  assert(wrapperPrototypesFile);
+  assert(wrapperImplementationFile);
 
   #define PRINT(s) PrintSyscallLine(&printer, s)
 
@@ -1087,21 +1622,30 @@ void PrintUnifiedSyscallNumbersTable(htable* syscallTable, char* outPath)
 
   table_printer printer = {0};
   printer.out = file;
+  printer.wrapperPrototypesFile = wrapperPrototypesFile;
+  printer.wrapperImplementationFile = wrapperImplementationFile;
   printer.dimensions = dimensions;
   printer.syscallTable = syscallTable;
 
   PrintSection(&printer, "PROCESS & THREAD LIFECYCLE", "Creation, execution, termination, and reaping of processes/threads");
 
+  printer.customWrapper = "  return clone_linux(SIGCHLD_linux, 0, 0, 0, 0);\n";
   PRINT("fork");
+  printer.customWrapper = "  return clone_linux(CLONE_VFORK_linux | CLONE_VM_linux | SIGCHLD_linux, 0, 0, 0, 0);\n";
   PRINT("vfork");
+  printer.customWrapper = cloneWrapper;
   PRINT("clone");
   PRINT("clone3");
   PRINT("execve");
   PRINT("execveat");
+  printer.customWrapper = "  Syscall1_linux(NR_exit_linux, error_code, 0);\n  __builtin_unreachable();\n";
   PRINT("exit");
+  printer.customWrapper = "  Syscall1_linux(NR_exit_group_linux, error_code, 0);\n  __builtin_unreachable();\n";
   PRINT("exit_group");
+  printer.customWrapper = wait4Wrapper;
   PRINT("wait4");
   PRINT("waitid");
+  printer.customWrapper = "  return wait4_linux(pid, stat_addr, options, 0);\n";
   PRINT("waitpid");
 
   PrintSection(&printer, "PROCESS ATTRIBUTES & CONTROL", NULL);
@@ -1768,6 +2312,7 @@ void PrintUnifiedSyscallNumbersTable(htable* syscallTable, char* outPath)
   PRINT("uname");
   PRINT("olduname");
   PRINT("oldolduname");
+  PRINT("gethostname");
   PRINT("sethostname");
   PRINT("setdomainname");
 
@@ -1921,6 +2466,8 @@ void PrintUnifiedSyscallNumbersTable(htable* syscallTable, char* outPath)
   assert(syscallsNotInTable == 0);
 
   fclose(file);
+  fclose(wrapperPrototypesFile);
+  fclose(wrapperImplementationFile);
 }
 
 int main()
@@ -1943,7 +2490,9 @@ int main()
     PrintSyscallNumbersSorted(arch, &syscallTable);
   }
 
-  PrintUnifiedSyscallNumbersTable(&syscallTable, "tables/cross_architecture_syscall_table.h");
+  char* prototypesBytes = LoadSyscallPrototypes(&syscallTable, LINUX_ROOT "include/linux/syscalls.h");
+
+  PrintUnifiedSyscallNumbersTableAndWrappers(&syscallTable, "tables/cross_architecture_syscall_table.h");
 
   for (int archId = 0; archId < ARRAY_SIZE(archs); ++archId)
   {
@@ -1951,4 +2500,5 @@ int main()
     Free_arch(arch);
   }
   Free_htable(&syscallTable);
+  free(prototypesBytes);
 }

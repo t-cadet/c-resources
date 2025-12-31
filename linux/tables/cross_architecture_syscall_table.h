@@ -739,6 +739,7 @@
 /*║*/ #define NR_uname_linux                        BY_ARCH_linux(       63,      160,      160,      122,      122,      160) /*║*/
 /*║*/ #define NR_olduname_linux                     BY_ARCH_linux(     void,     void,     void,      109,     void,     void) /*║*/
 /*║*/ #define NR_oldolduname_linux                  BY_ARCH_linux(     void,     void,     void,       59,     void,     void) /*║*/
+/*║*/ #define NR_gethostname_linux                  BY_ARCH_linux(     void,     void,     void,     void,     void,     void) /*║*/
 /*║*/ #define NR_sethostname_linux                  BY_ARCH_linux(      170,      161,      161,       74,       74,      161) /*║*/
 /*║*/ #define NR_setdomainname_linux                BY_ARCH_linux(      171,      162,      162,      121,      121,      162) /*║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/

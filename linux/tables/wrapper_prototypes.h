@@ -25,29 +25,23 @@ long getpgrp_linux(void);
 long getsid_linux(int pid);
 long setsid_linux(void);
 long set_tid_address_linux(int *tidptr);
-// 2b. Process control, personality, and miscellaneous attributes
+// 2b. Process control and personality
 long prctl_linux(int option, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5);
 long personality_linux(unsigned int personality);
-long arch_prctl_linux(int option, unsigned long addr);
-long modify_ldt_linux(int func, void *ptr, unsigned long bytecount);
-long set_thread_area_linux(user_desc *u_info);
-long get_thread_area_linux(user_desc *u_info);
-long set_tls_linux(unsigned long val);
-long get_tls_linux(void);
 //
 // 3. SCHEDULING & PRIORITIES
 //
-long sched_setscheduler_linux(int pid, int policy, sched_param *param);
+long sched_setscheduler_linux(int pid, int policy, sched_param_linux *param);
 long sched_getscheduler_linux(int pid);
-long sched_setparam_linux(int pid, sched_param *param);
-long sched_getparam_linux(int pid, sched_param *param);
-long sched_setattr_linux(int pid, sched_attr *attr, unsigned int flags);
-long sched_getattr_linux(int pid, sched_attr *attr, unsigned int size, unsigned int flags);
+long sched_setparam_linux(int pid, sched_param_linux *param);
+long sched_getparam_linux(int pid, sched_param_linux *param);
+long sched_setattr_linux(int pid, sched_attr_linux *attr, unsigned int flags);
+long sched_getattr_linux(int pid, sched_attr_linux *attr, unsigned int size, unsigned int flags);
 long sched_yield_linux(void);
 long sched_get_priority_max_linux(int policy);
 long sched_get_priority_min_linux(int policy);
-long sched_rr_get_interval_linux(int pid, __kernel_timespec *interval);
-long sched_rr_get_interval_time64_linux(int pid, __kernel_timespec *interval);
+// Disabled wrapper: long sched_rr_get_interval_linux(int pid, __kernel_old_timespec_linux *interval);
+long sched_rr_get_interval_time64_linux(int pid, __kernel_timespec_linux *interval);
 long sched_setaffinity_linux(int pid, unsigned int len, unsigned long *user_mask_ptr);
 long sched_getaffinity_linux(int pid, unsigned int len, unsigned long *user_mask_ptr);
 long nice_linux(int increment);
@@ -160,18 +154,18 @@ long ioctl_linux(unsigned int fd, unsigned int cmd, unsigned long arg);
 // 6c. I/O Multiplexing
 long select_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timeval *tvp);
 long _newselect_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timeval *tvp);
-long pselect6_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_timespec *tsp, void *sig);
-long pselect6_time64_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_timespec *tsp, void *sig);
+// Disabled wrapper: pselect6_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timespec_linux *tsp, void *sig);
+long pselect6_time64_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_timespec_linux *tsp, void *sig);
 long poll_linux(pollfd *ufds, unsigned int nfds, int timeout);
-long ppoll_linux(pollfd *, unsigned int, __kernel_timespec *, const sigset_t *, unsigned long);
-long ppoll_time64_linux(pollfd *ufds, unsigned int nfds, __kernel_timespec *tsp, const sigset_t *sigmask, unsigned long sigsetsize);
+// Disabled wrapper: ppoll_linux(pollfd *, unsigned int, __kernel_old_timespec_linux *, const sigset_t *, unsigned long);
+long ppoll_time64_linux(pollfd *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t *sigmask, unsigned long sigsetsize);
 // 6d. Scalable I/O event notification
 long epoll_create_linux(int size);
 long epoll_create1_linux(int flags);
 long epoll_ctl_linux(int epfd, int op, int fd, epoll_event *event);
 long epoll_wait_linux(int epfd, epoll_event *events, int maxevents, int timeout);
 long epoll_pwait_linux(int epfd, epoll_event *events, int maxevents, int timeout, const sigset_t *sigmask, unsigned long sigsetsize);
-long epoll_pwait2_linux(int epfd, epoll_event *events, int maxevents, const __kernel_timespec *timeout, const sigset_t *sigmask, unsigned long sigsetsize);
+long epoll_pwait2_linux(int epfd, epoll_event *events, int maxevents, const __kernel_timespec_linux *timeout, const sigset_t *sigmask, unsigned long sigsetsize);
 long epoll_ctl_old_linux(int epfd, int op, int fd, epoll_event *event);
 long epoll_wait_old_linux(int epfd, epoll_event *events, int maxevents, int timeout);
 //
@@ -209,8 +203,8 @@ long file_setattr_linux(int dfd, const char *filename, file_attr *attr, unsigned
 long utime_linux(char *filename, utimbuf *times);
 long utimes_linux(char *filename, __kernel_old_timeval *utimes);
 long futimesat_linux(int dfd, const char *filename, __kernel_old_timeval *utimes);
-long utimensat_linux(int dfd, const char *filename, __kernel_timespec *utimes, int flags);
-long utimensat_time64_linux(int dfd, const char *filename, __kernel_timespec *t, int flags);
+// Disabled wrapper: utimensat_linux(int dfd, const char *filename, __kernel_old_timespec_linux *utimes, int flags);
+long utimensat_time64_linux(int dfd, const char *filename, __kernel_timespec_linux *t, int flags);
 // 7d. Testing file accessibility
 long access_linux(const char *filename, int mode);
 long faccessat_linux(int dfd, const char *filename, int mode);
@@ -326,8 +320,8 @@ long rt_sigpending_linux(sigset_t *set, unsigned long sigsetsize);
 long sigsuspend_linux(old_sigset_t mask);
 long rt_sigsuspend_linux(sigset_t *unewset, unsigned long sigsetsize);
 long pause_linux(void);
-long rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_timespec *uts, unsigned long sigsetsize);
-long rt_sigtimedwait_time64_linux(compat_sigset_t *uthese, compat_siginfo *uinfo, __kernel_timespec *uts, compat_size_t sigsetsize);
+// Disabled wrapper: rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
+long rt_sigtimedwait_time64_linux(compat_sigset_t *uthese, compat_siginfo *uinfo, __kernel_timespec_linux *uts, compat_size_t sigsetsize);
 // 11e. Alternate signal stack and return from handlers
 long sigaltstack_linux(const sigaltstack *uss, sigaltstack *uoss);
 long sigreturn_linux(pt_regs *regs);
@@ -357,23 +351,23 @@ long msgctl_linux(int msqid, int cmd, msqid_ds *buf);
 long semget_linux(key_t key, int nsems, int semflg);
 long semop_linux(int semid, sembuf *sops, unsigned nsops);
 long semctl_linux(int semid, int semnum, int cmd, unsigned long arg);
-long semtimedop_linux(int semid, sembuf *sops, unsigned nsops, const __kernel_timespec *timeout);
-long semtimedop_time64_linux(int semid, sembuf *tsops, unsigned int nsops, const __kernel_timespec *timeout);
+// Disabled wrapper: semtimedop_linux(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec_linux *timeout);
+long semtimedop_time64_linux(int semid, sembuf *tsops, unsigned int nsops, const __kernel_timespec_linux *timeout);
 // 13d. POSIX Message Queues
 long mq_open_linux(const char *name, int oflag, umode_t mode, mq_attr *attr);
 long mq_unlink_linux(const char *name);
-long mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec *abs_timeout);
-long mq_timedsend_time64_linux(mqd_t mqdes, const char *u_msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec *u_abs_timeout);
-long mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_timespec *abs_timeout);
-long mq_timedreceive_time64_linux(mqd_t mqdes, char *u_msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec *u_abs_timeout);
+// Disabled wrapper: mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+long mq_timedsend_time64_linux(mqd_t mqdes, const char *u_msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec_linux *u_abs_timeout);
+// Disabled wrapper: mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+long mq_timedreceive_time64_linux(mqd_t mqdes, char *u_msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec_linux *u_abs_timeout);
 long mq_notify_linux(mqd_t mqdes, const sigevent *notification);
 long mq_getsetattr_linux(mqd_t mqdes, const mq_attr *mqstat, mq_attr *omqstat);
 // 13e. Synchronization Primitives - Futexes
-long futex_linux(u32 *uaddr, int op, u32 val, const __kernel_timespec *utime, u32 *uaddr2, u32 val3);
-long futex_time64_linux(u32 *uaddr, int op, u32 val, const __kernel_timespec *utime, u32 *uaddr2, u32 val3);
-long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, __kernel_timespec *timespec, clockid_t clockid);
+// Disabled wrapper: futex_linux(u32 *uaddr, int op, u32 val, const __kernel_old_timespec_linux *utime, u32 *uaddr2, u32 val3);
+long futex_time64_linux(u32 *uaddr, int op, u32 val, const __kernel_timespec_linux *utime, u32 *uaddr2, u32 val3);
+long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, __kernel_timespec_linux *timespec, clockid_t clockid);
 long futex_wake_linux(void *uaddr, unsigned long mask, int nr, unsigned int flags);
-long futex_waitv_linux(futex_waitv *waiters, unsigned int nr_futexes, unsigned int flags, __kernel_timespec *timeout, clockid_t clockid);
+long futex_waitv_linux(futex_waitv *waiters, unsigned int nr_futexes, unsigned int flags, __kernel_timespec_linux *timeout, clockid_t clockid);
 long futex_requeue_linux(futex_waitv *waiters, unsigned int flags, int nr_wake, int nr_requeue);
 long set_robust_list_linux(robust_list_head *head, unsigned long len);
 long get_robust_list_linux(int pid, robust_list_head * *head_ptr, unsigned long *len_ptr);
@@ -401,8 +395,8 @@ long sendmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags);
 long recv_linux(int fd, void *ubuf, unsigned long size, unsigned int flags);
 long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr *addr, int *addr_len);
 long recvmsg_linux(int fd, user_msghdr *msg, unsigned flags);
-long recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_timespec *timeout);
-long recvmmsg_time64_linux(int fd, mmsghdr *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec *timeout);
+// Disabled wrapper: recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
+long recvmmsg_time64_linux(int fd, mmsghdr *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout);
 // 14c. Getting and setting socket options
 long getsockopt_linux(int fd, int level, int optname, char *optval, int *optlen);
 long setsockopt_linux(int fd, int level, int optname, char *optval, int optlen);
@@ -416,9 +410,9 @@ long io_setup_linux(unsigned nr_reqs, aio_context_t *ctx);
 long io_destroy_linux(aio_context_t ctx);
 long io_submit_linux(aio_context_t ctx_id, long nr, iocb * *iocbpp);
 long io_cancel_linux(aio_context_t ctx_id, iocb *iocb, io_event *result);
-long io_getevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec *timeout);
-long io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec *timeout, const __aio_sigset *sig);
-long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec *timeout, const __aio_sigset *sig);
+long io_getevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout);
+// Disabled wrapper: io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
+long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout, const __aio_sigset *sig);
 // 15b. io_uring: high-performance asynchronous I/O
 long io_uring_setup_linux(u32 entries, io_uring_params *p);
 long io_uring_enter_linux(unsigned int fd, u32 to_submit, u32 min_complete, u32 flags, const void *argp, unsigned long argsz);
@@ -429,40 +423,40 @@ long io_uring_register_linux(unsigned int fd, unsigned int op, void *arg, unsign
 // 16a. Reading current time from various clocks
 long time_linux(__kernel_old_time_t *tloc);
 long gettimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
-long clock_gettime_linux(clockid_t which_clock, __kernel_timespec *tp);
-long clock_gettime64_linux(clockid_t which_clock, __kernel_timespec *tp);
-long clock_getres_linux(clockid_t which_clock, __kernel_timespec *tp);
-long clock_getres_time64_linux(clockid_t which_clock, __kernel_timespec *tp);
+// Disabled wrapper: clock_gettime_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
+long clock_gettime64_linux(clockid_t which_clock, __kernel_timespec_linux *tp);
+// Disabled wrapper: clock_getres_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
+long clock_getres_time64_linux(clockid_t which_clock, __kernel_timespec_linux *tp);
 // 16b. Setting system time and adjusting clocks
 long settimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
-long clock_settime_linux(clockid_t which_clock, const __kernel_timespec *tp);
-long clock_settime64_linux(clockid_t which_clock, const __kernel_timespec *tp);
+// Disabled wrapper: clock_settime_linux(clockid_t which_clock, const __kernel_old_timespec_linux *tp);
+long clock_settime64_linux(clockid_t which_clock, const __kernel_timespec_linux *tp);
 long stime_linux(__kernel_old_time_t *tptr);
 long adjtimex_linux(__kernel_timex *txc_p);
 long clock_adjtime_linux(clockid_t which_clock, __kernel_timex *tx);
 long clock_adjtime64_linux(clockid_t which_clock, __kernel_timex *tx);
 // 16c. Suspending execution for a period of time
-long nanosleep_linux(__kernel_timespec *rqtp, __kernel_timespec *rmtp);
-long clock_nanosleep_linux(clockid_t which_clock, int flags, const __kernel_timespec *rqtp, __kernel_timespec *rmtp);
-long clock_nanosleep_time64_linux(clockid_t which_clock, int flags, const __kernel_timespec *rqtp, __kernel_timespec *rmtp);
+long nanosleep_linux(__kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
+// Disabled wrapper: clock_nanosleep_linux(clockid_t which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
+long clock_nanosleep_time64_linux(clockid_t which_clock, int flags, const __kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
 // 16d. Setting periodic or one-shot timers
 long alarm_linux(unsigned int seconds);
 long setitimer_linux(int which, __kernel_old_itimerval *value, __kernel_old_itimerval *ovalue);
 long getitimer_linux(int which, __kernel_old_itimerval *value);
 // 16e. Per-process timers with precise control
 long timer_create_linux(clockid_t which_clock, sigevent *timer_event_spec, timer_t * created_timer_id);
-long timer_settime_linux(timer_t timer_id, int flags, const __kernel_itimerspec *new_setting, __kernel_itimerspec *old_setting);
-long timer_settime64_linux(timer_t timerid, int flags, const __kernel_timespec *new_setting, __kernel_timespec *old_setting);
-long timer_gettime_linux(timer_t timer_id, __kernel_itimerspec *setting);
-long timer_gettime64_linux(timer_t timerid, __kernel_timespec *setting);
+// Disabled wrapper: long timer_settime_linux(timer_t timer_id, int flags, const __kernel_itimerspec *new_setting, __kernel_itimerspec *old_setting);
+long timer_settime64_linux(timer_t timerid, int flags, const __kernel_timespec_linux *new_setting, __kernel_timespec_linux *old_setting);
+// Disabled wrapper: long timer_gettime_linux(timer_t timer_id, __kernel_itimerspec *setting);
+long timer_gettime64_linux(timer_t timerid, __kernel_timespec_linux *setting);
 long timer_getoverrun_linux(timer_t timer_id);
 long timer_delete_linux(timer_t timer_id);
 // 16f. Timers accessible via file descriptors
 long timerfd_create_linux(int clockid, int flags);
-long timerfd_settime_linux(int ufd, int flags, const __kernel_itimerspec *utmr, __kernel_itimerspec *otmr);
-long timerfd_settime64_linux(int ufd, int flags, const __kernel_timespec *utmr, __kernel_timespec *otmr);
-long timerfd_gettime_linux(int ufd, __kernel_itimerspec *otmr);
-long timerfd_gettime64_linux(int ufd, __kernel_timespec *otmr);
+// Disabled wrapper: long timerfd_settime_linux(int ufd, int flags, const __kernel_itimerspec *utmr, __kernel_itimerspec *otmr);
+long timerfd_settime64_linux(int ufd, int flags, const __kernel_timespec_linux *utmr, __kernel_timespec_linux *otmr);
+// Disabled wrapper: long timerfd_gettime_linux(int ufd, __kernel_itimerspec *otmr);
+long timerfd_gettime64_linux(int ufd, __kernel_timespec_linux *otmr);
 //
 // 17. RANDOM NUMBERS
 //
@@ -629,13 +623,20 @@ long cachestat_linux(unsigned int fd, cachestat_range *cstat_range, cachestat *c
 //
 // 28. ARCHITECTURE-SPECIFIC OPERATIONS
 //
-// 28a. RISC-V architecture operations
-long riscv_flush_icache_linux(uintptr_t start, uintptr_t end, uintptr_t flags);
-long riscv_hwprobe_linux(riscv_hwprobe *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags);
-// 28b. x86 architecture operations
+// 28a. x86 architecture operations
+long arch_prctl_linux(int option, unsigned long addr);
+long modify_ldt_linux(int func, void *ptr, unsigned long bytecount);
+long set_thread_area_linux(user_desc *u_info);
+long get_thread_area_linux(user_desc *u_info);
 long vm86_linux(unsigned long cmd, unsigned long arg);
 long vm86old_linux(vm86_struct *user_vm86);
-// 28c. Intel MPX support (deprecated)
+// 28b. ARM architecture operations
+long set_tls_linux(unsigned long val);
+long get_tls_linux(void);
+// 28c. RISC-V architecture operations
+long riscv_flush_icache_linux(uintptr_t start, uintptr_t end, uintptr_t flags);
+long riscv_hwprobe_linux(riscv_hwprobe *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags);
+// 28d. Intel MPX support (deprecated)
 long mpx_linux(void);
 //
 // 29. ADVANCED EXECUTION CONTROL

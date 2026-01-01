@@ -817,8 +817,24 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("fanotify_mark"))->prototype = substring("asmlinkage long sys_fanotify_mark(int fanotify_fd, unsigned int flags, u64 mask, int fd, const char  __user *pathname);\n");
   Get_htable(syscallTable, substring("sigsuspend"))->prototype = substring("asmlinkage long sys_sigsuspend(old_sigset_t mask);\n");
 
+  // Override architecture dependent sizes
+  Get_htable(syscallTable, substring("sched_rr_get_interval"))->prototype = substring("asmlinkage long sys_sched_rr_get_interval(int pid, __kernel_old_timespec *interval);\n");
+  Get_htable(syscallTable, substring("ppoll"))->prototype = substring("long sys_ppoll(pollfd *, unsigned int, __kernel_old_timespec *, const sigset_t *, unsigned long);\n");
+  Get_htable(syscallTable, substring("utimensat"))->prototype = substring("long sys_utimensat(int dfd, const char *filename, __kernel_old_timespec *utimes, int flags);\n");
+  Get_htable(syscallTable, substring("rt_sigtimedwait"))->prototype = substring("long sys_rt_sigtimedwait(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec *uts, unsigned long sigsetsize);\n");
+  Get_htable(syscallTable, substring("semtimedop"))->prototype = substring("long sys_semtimedop(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec *timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedsend"))->prototype = substring("long sys_mq_timedsend(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec *abs_timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedreceive"))->prototype = substring("long sys_mq_timedreceive(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec *abs_timeout);\n");
+  Get_htable(syscallTable, substring("futex"))->prototype = substring("long sys_futex(u32 *uaddr, int op, u32 val, const __kernel_old_timespec *utime, u32 *uaddr2, u32 val3);\n");
+  Get_htable(syscallTable, substring("recvmmsg"))->prototype = substring("long sys_recvmmsg(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec *timeout);\n");
+  Get_htable(syscallTable, substring("io_pgetevents"))->prototype = substring("long sys_io_pgetevents(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec *timeout, const __aio_sigset *sig);\n");
+  Get_htable(syscallTable, substring("clock_gettime"))->prototype = substring("long sys_clock_gettime(clockid_t which_clock, __kernel_old_timespec *tp);\n");
+  Get_htable(syscallTable, substring("clock_getres"))->prototype = substring("long sys_clock_getres(clockid_t which_clock, __kernel_old_timespec *tp);\n");
+  Get_htable(syscallTable, substring("clock_settime"))->prototype = substring("long sys_clock_settime(clockid_t which_clock, const __kernel_old_timespec *tp);\n");
+  Get_htable(syscallTable, substring("clock_nanosleep"))->prototype = substring("long sys_clock_nanosleep(clockid_t which_clock, int flags, const __kernel_old_timespec *rqtp, __kernel_old_timespec *rmtp);\n");
+
   // Manually add arg names for prototypes that don't have them
-  Get_htable(syscallTable, substring("pselect6"))->prototype = substring("asmlinkage long sys_pselect6(int n, fd_set __user *inp, fd_set __user *outp, fd_set __user *exp, struct __kernel_timespec __user *tsp, void __user *sig);\n");
+  Get_htable(syscallTable, substring("pselect6"))->prototype = substring("long sys_pselect6(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timespec *tsp, void *sig);\n");
   Get_htable(syscallTable, substring("sigaction"))->prototype = substring("asmlinkage long sys_sigaction(int sig, const struct old_sigaction __user *act, struct old_sigaction __user *oact);\n");
   Get_htable(syscallTable, substring("rt_sigaction"))->prototype = substring("asmlinkage long sys_rt_sigaction(int sig, const struct sigaction __user *act, struct sigaction __user *oact, size_t sigsetsize);\n");
   Get_htable(syscallTable, substring("socket"))->prototype = substring("asmlinkage long sys_socket(int family, int type, int protocol);\n");
@@ -1384,6 +1400,22 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("siginfo_t_linux");
   }
+  else if (Eq_string(linuxType, substring("__kernel_old_timespec")))
+  {
+    out = substring("__kernel_old_timespec_linux");
+  }
+  else if (Eq_string(linuxType, substring("__kernel_timespec")))
+  {
+    out = substring("__kernel_timespec_linux");
+  }
+  else if (Eq_string(linuxType, substring("sched_attr")))
+  {
+    out = substring("sched_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("sched_param")))
+  {
+    out = substring("sched_param_linux");
+  }
   return out;
 }
 
@@ -1403,8 +1435,8 @@ void PrintSyscallLine(table_printer* printer, char* s) {
     {
       if (printer->disabledWrapper)
       {
-        fprintf(printer->wrapperPrototypesFile, "// Disabled Wrapper: ");
-        fprintf(printer->wrapperImplementationFile, "// Disabled Wrapper: ");
+        fprintf(printer->wrapperPrototypesFile, "// Disabled wrapper: ");
+        fprintf(printer->wrapperImplementationFile, "// Disabled wrapper: ");
       }
 
       substring argNames[6] = {0};
@@ -1583,6 +1615,18 @@ char* wait4Wrapper = \
 "  return ret;\n"
 "#endif\n";
 
+char* sched_rr_get_interval_time64Wrapper = \
+"#if defined(__x86_64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_sched_rr_get_interval_linux, pid, interval, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_sched_rr_get_interval_time64_linux, pid, interval, 0);\n"
+"#endif\n";
+
+char* niceWrapper = \
+"  long ret = getpriority_linux(PRIO_PROCESS_linux, 0);\n"
+"  if (ret < 0) return ret;\n"
+"  return setpriority_linux(PRIO_PROCESS_linux, 0, (int)(20 - ret + increment));\n";
+
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
   int maxSysIdSize = 0;
@@ -1656,21 +1700,16 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("gettid");
   PRINT("getpgid");
   PRINT("setpgid");
+  printer.customWrapper = "  return getpgid_linux(0);\n";
   PRINT("getpgrp");
   PRINT("getsid");
   PRINT("setsid");
   PRINT("set_tid_address");
 
-  PrintSubsection(&printer, "Process control, personality, and miscellaneous attributes");
+  PrintSubsection(&printer, "Process control and personality");
 
   PRINT("prctl");
   PRINT("personality");
-  PRINT("arch_prctl");
-  PRINT("modify_ldt");
-  PRINT("set_thread_area");
-  PRINT("get_thread_area");
-  PRINT("set_tls");
-  PRINT("get_tls");
 
   PrintSection(&printer, "SCHEDULING & PRIORITIES", NULL);
 
@@ -1683,10 +1722,13 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("sched_yield");
   PRINT("sched_get_priority_max");
   PRINT("sched_get_priority_min");
+  printer.disabledWrapper = true;
   PRINT("sched_rr_get_interval");
+  printer.customWrapper = sched_rr_get_interval_time64Wrapper;
   PRINT("sched_rr_get_interval_time64");
   PRINT("sched_setaffinity");
   PRINT("sched_getaffinity");
+  printer.customWrapper = niceWrapper;
   PRINT("nice");
   PRINT("setpriority");
   PRINT("getpriority");
@@ -1823,9 +1865,11 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("select");
   PRINT("_newselect");
+  printer.disabledWrapper = true;
   PRINT("pselect6");
   PRINT("pselect6_time64");
   PRINT("poll");
+  printer.disabledWrapper = true;
   PRINT("ppoll");
   PRINT("ppoll_time64");
 
@@ -1878,6 +1922,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("utime");
   PRINT("utimes");
   PRINT("futimesat");
+  printer.disabledWrapper = true;
   PRINT("utimensat");
   PRINT("utimensat_time64");
 
@@ -2019,6 +2064,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("sigsuspend");
   PRINT("rt_sigsuspend");
   PRINT("pause");
+  printer.disabledWrapper = true;
   PRINT("rt_sigtimedwait");
   PRINT("rt_sigtimedwait_time64");
 
@@ -2058,6 +2104,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("semget");
   PRINT("semop");
   PRINT("semctl");
+  printer.disabledWrapper = true;
   PRINT("semtimedop");
   PRINT("semtimedop_time64");
 
@@ -2065,8 +2112,10 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("mq_open");
   PRINT("mq_unlink");
+  printer.disabledWrapper = true;
   PRINT("mq_timedsend");
   PRINT("mq_timedsend_time64");
+  printer.disabledWrapper = true;
   PRINT("mq_timedreceive");
   PRINT("mq_timedreceive_time64");
   PRINT("mq_notify");
@@ -2074,6 +2123,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Synchronization Primitives - Futexes");
 
+  printer.disabledWrapper = true;
   PRINT("futex");
   PRINT("futex_time64");
   PRINT("futex_wait");
@@ -2110,6 +2160,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("recv");
   PRINT("recvfrom");
   PRINT("recvmsg");
+  printer.disabledWrapper = true;
   PRINT("recvmmsg");
   PRINT("recvmmsg_time64");
 
@@ -2128,6 +2179,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("io_submit");
   PRINT("io_cancel");
   PRINT("io_getevents");
+  printer.disabledWrapper = true;
   PRINT("io_pgetevents");
   PRINT("io_pgetevents_time64");
 
@@ -2142,14 +2194,17 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("time");
   PRINT("gettimeofday");
+  printer.disabledWrapper = true;
   PRINT("clock_gettime");
   PRINT("clock_gettime64");
+  printer.disabledWrapper = true;
   PRINT("clock_getres");
   PRINT("clock_getres_time64");
 
   PrintSubsection(&printer, "Setting system time and adjusting clocks");
 
   PRINT("settimeofday");
+  printer.disabledWrapper = true;
   PRINT("clock_settime");
   PRINT("clock_settime64");
   PRINT("stime");
@@ -2160,6 +2215,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Suspending execution for a period of time");
 
   PRINT("nanosleep");
+  printer.disabledWrapper = true;
   PRINT("clock_nanosleep");
   PRINT("clock_nanosleep_time64");
 
@@ -2172,8 +2228,10 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Per-process timers with precise control");
 
   PRINT("timer_create");
+  printer.disabledWrapper = true;
   PRINT("timer_settime");
   PRINT("timer_settime64");
+  printer.disabledWrapper = true;
   PRINT("timer_gettime");
   PRINT("timer_gettime64");
   PRINT("timer_getoverrun");
@@ -2182,8 +2240,10 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Timers accessible via file descriptors");
 
   PRINT("timerfd_create");
+  printer.disabledWrapper = true;
   PRINT("timerfd_settime");
   PRINT("timerfd_settime64");
+  printer.disabledWrapper = true;
   PRINT("timerfd_gettime");
   PRINT("timerfd_gettime64");
 
@@ -2397,15 +2457,24 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("cachestat");
 
   PrintSection(&printer, "ARCHITECTURE-SPECIFIC OPERATIONS", NULL);
+  PrintSubsection(&printer, "x86 architecture operations");
+
+  PRINT("arch_prctl");
+  PRINT("modify_ldt");
+  PRINT("set_thread_area");
+  PRINT("get_thread_area");
+  PRINT("vm86");
+  PRINT("vm86old");
+
+  PrintSubsection(&printer, "ARM architecture operations");
+
+  PRINT("set_tls");
+  PRINT("get_tls");
+
   PrintSubsection(&printer, "RISC-V architecture operations");
 
   PRINT("riscv_flush_icache");
   PRINT("riscv_hwprobe");
-
-  PrintSubsection(&printer, "x86 architecture operations");
-
-  PRINT("vm86");
-  PRINT("vm86old");
 
   PrintSubsection(&printer, "Intel MPX support (deprecated)");
 

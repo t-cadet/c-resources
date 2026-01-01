@@ -45,16 +45,10 @@
 /*║*/ #define NR_setsid_linux                       BY_ARCH_linux(      112,      157,      157,       66,       66,      157) /*║*/
 /*║*/ #define NR_set_tid_address_linux              BY_ARCH_linux(      218,       96,       96,      258,      256,       96) /*║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║                                2b. Process control, personality, and miscellaneous attributes                                ║*/
+/*║                                             2b. Process control and personality                                              ║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
 /*║*/ #define NR_prctl_linux                        BY_ARCH_linux(      157,      167,      167,      172,      172,      167) /*║*/
 /*║*/ #define NR_personality_linux                  BY_ARCH_linux(      135,       92,       92,      136,      136,       92) /*║*/
-/*║*/ #define NR_arch_prctl_linux                   BY_ARCH_linux(      158,     void,     void,      384,     void,     void) /*║*/
-/*║*/ #define NR_modify_ldt_linux                   BY_ARCH_linux(      154,     void,     void,      123,     void,     void) /*║*/
-/*║*/ #define NR_set_thread_area_linux              BY_ARCH_linux(      205,     void,     void,      243,     void,     void) /*║*/
-/*║*/ #define NR_get_thread_area_linux              BY_ARCH_linux(      211,     void,     void,      244,     void,     void) /*║*/
-/*║*/ #define NR_set_tls_linux                      BY_ARCH_linux(     void,     void,     void,     void, 0x0f0005,     void) /*║*/
-/*║*/ #define NR_get_tls_linux                      BY_ARCH_linux(     void,     void,     void,     void, 0x0f0006,     void) /*║*/
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/
 /*║                                                  3. SCHEDULING & PRIORITIES                                                  ║*/
 /*╠══════════════════════════════════════════════════════════════╦═════════╤═════════╤═════════╤═════════╤═════════╤═════════════╣*/
@@ -833,17 +827,26 @@
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/
 /*║                                             28. ARCHITECTURE-SPECIFIC OPERATIONS                                             ║*/
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/
-/*║                                             28a. RISC-V architecture operations                                              ║*/
+/*║                                               28a. x86 architecture operations                                               ║*/
+/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
+/*║*/ #define NR_arch_prctl_linux                   BY_ARCH_linux(      158,     void,     void,      384,     void,     void) /*║*/
+/*║*/ #define NR_modify_ldt_linux                   BY_ARCH_linux(      154,     void,     void,      123,     void,     void) /*║*/
+/*║*/ #define NR_set_thread_area_linux              BY_ARCH_linux(      205,     void,     void,      243,     void,     void) /*║*/
+/*║*/ #define NR_get_thread_area_linux              BY_ARCH_linux(      211,     void,     void,      244,     void,     void) /*║*/
+/*║*/ #define NR_vm86_linux                         BY_ARCH_linux(     void,     void,     void,      166,     void,     void) /*║*/
+/*║*/ #define NR_vm86old_linux                      BY_ARCH_linux(     void,     void,     void,      113,     void,     void) /*║*/
+/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
+/*║                                               28b. ARM architecture operations                                               ║*/
+/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
+/*║*/ #define NR_set_tls_linux                      BY_ARCH_linux(     void,     void,     void,     void, 0x0f0005,     void) /*║*/
+/*║*/ #define NR_get_tls_linux                      BY_ARCH_linux(     void,     void,     void,     void, 0x0f0006,     void) /*║*/
+/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
+/*║                                             28c. RISC-V architecture operations                                              ║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
 /*║*/ #define NR_riscv_flush_icache_linux           BY_ARCH_linux(     void,     void,      259,     void,     void,      259) /*║*/
 /*║*/ #define NR_riscv_hwprobe_linux                BY_ARCH_linux(     void,     void,      258,     void,     void,      258) /*║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║                                               28b. x86 architecture operations                                               ║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║*/ #define NR_vm86_linux                         BY_ARCH_linux(     void,     void,     void,      166,     void,     void) /*║*/
-/*║*/ #define NR_vm86old_linux                      BY_ARCH_linux(     void,     void,     void,      113,     void,     void) /*║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║                                             28c. Intel MPX support (deprecated)                                              ║*/
+/*║                                             28d. Intel MPX support (deprecated)                                              ║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
 /*║*/ #define NR_mpx_linux                          BY_ARCH_linux(     void,     void,     void,       56,     void,     void) /*║*/
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/

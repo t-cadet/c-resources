@@ -91,58 +91,58 @@ long map_shadow_stack_linux(unsigned long addr, unsigned long size, unsigned int
 long userfaultfd_linux(int flags);
 long process_mrelease_linux(int pidfd, unsigned int flags);
 long membarrier_linux(int cmd, unsigned int flags, int cpu_id);
-#if 0 // WIP
 //
 // 5. FILE I/O OPERATIONS
 //
 // 5a. Opening, creating, and closing files
-long open_linux(const char *filename, int flags, umode_t mode);
-long openat_linux(int dfd, const char *filename, int flags, umode_t mode);
-long openat2_linux(int dfd, const char *filename, open_how *how, unsigned long size);
-long creat_linux(const char *pathname, umode_t mode);
+long open_linux(const char *filename, int flags, unsigned short mode);
+long openat_linux(int dfd, const char *filename, int flags, unsigned short mode);
+long openat2_linux(int dfd, const char *filename, open_how_linux *how, unsigned long size);
+long creat_linux(const char *pathname, unsigned short mode);
 long close_linux(unsigned int fd);
 long close_range_linux(unsigned int fd, unsigned int max_fd, unsigned int flags);
-long open_by_handle_at_linux(int mountdirfd, file_handle *handle, int flags);
-long name_to_handle_at_linux(int dfd, const char *name, file_handle *handle, void *mnt_id, int flag);
+long open_by_handle_at_linux(int mountdirfd, file_handle_linux *handle, int flags);
+long name_to_handle_at_linux(int dfd, const char *name, file_handle_linux *handle, void *mnt_id, int flag);
 // 5b. Reading and writing file data
 long read_linux(unsigned int fd, char *buf, unsigned long count);
 long write_linux(unsigned int fd, const char *buf, unsigned long count);
 long readv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen);
 long writev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen);
-long pread64_linux(unsigned int fd, char *buf, unsigned long count, loff_t pos);
-long pwrite64_linux(unsigned int fd, const char *buf, unsigned long count, loff_t pos);
+long pread64_linux(unsigned int fd, char *buf, unsigned long count, long long pos);
+long pwrite64_linux(unsigned int fd, const char *buf, unsigned long count, long long pos);
 long preadv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
 long pwritev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
-long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags);
-long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags);
+long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, int flags);
+long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, int flags);
 // 5c. Seeking and truncating files
-long lseek_linux(unsigned int fd, off_t offset, unsigned int whence);
-long llseek_linux(unsigned int fd, unsigned long offset_high, unsigned long offset_low, loff_t *result, unsigned int whence);
-long _llseek_linux(unsigned int fd, unsigned long offset_high, unsigned long offset_low, loff_t *result, unsigned int whence);
-long truncate_linux(const char *path, long length);
-long truncate64_linux(const char *path, loff_t length);
-long ftruncate_linux(unsigned int fd, off_t length);
-long ftruncate64_linux(unsigned int fd, loff_t length);
+// Disabled wrapper: long lseek_linux(unsigned int fd, long offset, unsigned int whence);
+long llseek_linux(unsigned int fd, unsigned long long offset, long long *result, unsigned int whence);
+// Disabled wrapper: long _llseek_linux(unsigned int fd, unsigned long offset_high, unsigned long offset_low, long long *result, unsigned int whence);
+// Disabled wrapper: long truncate_linux(const char *path, long length);
+long truncate64_linux(const char *path, long long length);
+// Disabled wrapper: long ftruncate_linux(unsigned int fd, long length);
+long ftruncate64_linux(unsigned int fd, long long length);
 // 5d. Zero-copy and specialized I/O
-long sendfile_linux(int out_fd, int in_fd, off_t *offset, unsigned long count);
-long sendfile64_linux(int out_fd, int in_fd, loff_t *offset, unsigned long count);
-long splice_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsigned long len, unsigned int flags);
+// Disabled wrapper: long sendfile_linux(int out_fd, int in_fd, long *offset, unsigned long count);
+long sendfile64_linux(int out_fd, int in_fd, long long *offset, unsigned long count);
+long splice_linux(int fd_in, long long *off_in, int fd_out, long long *off_out, unsigned long len, unsigned int flags);
 long tee_linux(int fdin, int fdout, unsigned long len, unsigned int flags);
 long vmsplice_linux(int fd, const iovec_linux *iov, unsigned long nr_segs, unsigned int flags);
-long copy_file_range_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsigned long len, unsigned int flags);
+long copy_file_range_linux(int fd_in, long long *off_in, int fd_out, long long *off_out, unsigned long len, unsigned int flags);
 // 5e. I/O hints and space allocation
-long fadvise64_linux(int fd, loff_t offset, unsigned long len, int advice);
-long fadvise64_64_linux(int fd, loff_t offset, loff_t len, int advice);
-long arm_fadvise64_64_linux(int fd, int advice, loff_t offset, loff_t len);
-long readahead_linux(int fd, loff_t offset, unsigned long count);
-long fallocate_linux(int fd, int mode, loff_t offset, loff_t len);
+// Disabled wrapper: long fadvise64_linux(int fd, long long offset, unsigned long len, int advice);
+long fadvise64_64_linux(int fd, long long offset, long long len, int advice);
+// Disabled wrapper: long arm_fadvise64_64_linux(int fd, int advice, long long offset, long long len);
+long readahead_linux(int fd, long long offset, unsigned long count);
+long fallocate_linux(int fd, int mode, long long offset, long long len);
 // 5f. Flushing file data to storage
 long sync_linux(void);
 long syncfs_linux(int fd);
 long fsync_linux(unsigned int fd);
 long fdatasync_linux(unsigned int fd);
-long sync_file_range_linux(int fd, loff_t offset, loff_t nbytes, unsigned int flags);
-long arm_sync_file_range_linux(int fd, loff_t offset, loff_t nbytes, unsigned int flags);
+long sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned int flags);
+// Disabled wrapper: long arm_sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned int flags);
+#if 0 // WIP
 //
 // 6. FILE DESCRIPTOR MANAGEMENT
 //
@@ -160,7 +160,7 @@ long _newselect_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_ol
 // Disabled wrapper: pselect6_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timespec_linux *tsp, void *sig);
 long pselect6_time64_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_timespec_linux *tsp, void *sig);
 long poll_linux(pollfd *ufds, unsigned int nfds, int timeout);
-// Disabled wrapper: ppoll_linux(pollfd *, unsigned int, __kernel_old_timespec_linux *, const sigset_t *, unsigned long);
+// Disabled wrapper: long ppoll_linux(pollfd *, unsigned int, __kernel_old_timespec_linux *, const sigset_t *, unsigned long);
 long ppoll_time64_linux(pollfd *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t *sigmask, unsigned long sigsetsize);
 // 6d. Scalable I/O event notification
 long epoll_create_linux(int size);
@@ -189,10 +189,10 @@ long oldfstat_linux(unsigned int fd, __old_kernel_stat *statbuf);
 long oldlstat_linux(const char *filename, __old_kernel_stat *statbuf);
 long file_getattr_linux(int dfd, const char *filename, file_attr *attr, unsigned long usize, unsigned int at_flags);
 // 7b. Changing file permissions and ownership
-long chmod_linux(const char *filename, umode_t mode);
-long fchmod_linux(unsigned int fd, umode_t mode);
-long fchmodat_linux(int dfd, const char *filename, umode_t mode);
-long fchmodat2_linux(int dfd, const char *filename, umode_t mode, unsigned int flags);
+long chmod_linux(const char *filename, unsigned short mode);
+long fchmod_linux(unsigned int fd, unsigned short mode);
+long fchmodat_linux(int dfd, const char *filename, unsigned short mode);
+long fchmodat2_linux(int dfd, const char *filename, unsigned short mode, unsigned int flags);
 long umask_linux(int mask);
 long chown_linux(const char *filename, uid_t user, gid_t group);
 long fchown_linux(unsigned int fd, uid_t user, gid_t group);
@@ -206,7 +206,7 @@ long file_setattr_linux(int dfd, const char *filename, file_attr *attr, unsigned
 long utime_linux(char *filename, utimbuf *times);
 long utimes_linux(char *filename, __kernel_old_timeval *utimes);
 long futimesat_linux(int dfd, const char *filename, __kernel_old_timeval *utimes);
-// Disabled wrapper: utimensat_linux(int dfd, const char *filename, __kernel_old_timespec_linux *utimes, int flags);
+// Disabled wrapper: long utimensat_linux(int dfd, const char *filename, __kernel_old_timespec_linux *utimes, int flags);
 long utimensat_time64_linux(int dfd, const char *filename, __kernel_timespec_linux *t, int flags);
 // 7d. Testing file accessibility
 long access_linux(const char *filename, int mode);
@@ -235,8 +235,8 @@ long flock_linux(unsigned int fd, unsigned int cmd);
 // 8. DIRECTORY & NAMESPACE OPERATIONS
 //
 // 8a. Creating, removing, and reading directories
-long mkdir_linux(const char *pathname, umode_t mode);
-long mkdirat_linux(int dfd, const char * pathname, umode_t mode);
+long mkdir_linux(const char *pathname, unsigned short mode);
+long mkdirat_linux(int dfd, const char * pathname, unsigned short mode);
 long rmdir_linux(const char *pathname);
 long getdents_linux(unsigned int fd, linux_dirent *dirent, unsigned int count);
 long getdents64_linux(unsigned int fd, linux_dirent64 *dirent, unsigned int count);
@@ -258,8 +258,8 @@ long rename_linux(const char *oldname, const char *newname);
 long renameat_linux(int olddfd, const char * oldname, int newdfd, const char * newname);
 long renameat2_linux(int olddfd, const char *oldname, int newdfd, const char *newname, unsigned int flags);
 // 8d. Creating device and named pipe nodes
-long mknod_linux(const char *filename, umode_t mode, unsigned dev);
-long mknodat_linux(int dfd, const char * filename, umode_t mode, unsigned dev);
+long mknod_linux(const char *filename, unsigned short mode, unsigned dev);
+long mknodat_linux(int dfd, const char * filename, unsigned short mode, unsigned dev);
 //
 // 9. FILE SYSTEM OPERATIONS
 //
@@ -323,7 +323,7 @@ long rt_sigpending_linux(sigset_t *set, unsigned long sigsetsize);
 long sigsuspend_linux(old_sigset_t mask);
 long rt_sigsuspend_linux(sigset_t *unewset, unsigned long sigsetsize);
 long pause_linux(void);
-// Disabled wrapper: rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
+// Disabled wrapper: long rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
 long rt_sigtimedwait_time64_linux(compat_sigset_t *uthese, compat_siginfo *uinfo, __kernel_timespec_linux *uts, compat_size_t sigsetsize);
 // 11e. Alternate signal stack and return from handlers
 long sigaltstack_linux(const sigaltstack *uss, sigaltstack *uoss);
@@ -354,19 +354,19 @@ long msgctl_linux(int msqid, int cmd, msqid_ds *buf);
 long semget_linux(key_t key, int nsems, int semflg);
 long semop_linux(int semid, sembuf *sops, unsigned nsops);
 long semctl_linux(int semid, int semnum, int cmd, unsigned long arg);
-// Disabled wrapper: semtimedop_linux(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec_linux *timeout);
+// Disabled wrapper: long semtimedop_linux(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec_linux *timeout);
 long semtimedop_time64_linux(int semid, sembuf *tsops, unsigned int nsops, const __kernel_timespec_linux *timeout);
 // 13d. POSIX Message Queues
-long mq_open_linux(const char *name, int oflag, umode_t mode, mq_attr *attr);
+long mq_open_linux(const char *name, int oflag, unsigned short mode, mq_attr *attr);
 long mq_unlink_linux(const char *name);
-// Disabled wrapper: mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+// Disabled wrapper: long mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
 long mq_timedsend_time64_linux(mqd_t mqdes, const char *u_msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec_linux *u_abs_timeout);
-// Disabled wrapper: mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+// Disabled wrapper: long mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
 long mq_timedreceive_time64_linux(mqd_t mqdes, char *u_msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec_linux *u_abs_timeout);
 long mq_notify_linux(mqd_t mqdes, const sigevent *notification);
 long mq_getsetattr_linux(mqd_t mqdes, const mq_attr *mqstat, mq_attr *omqstat);
 // 13e. Synchronization Primitives - Futexes
-// Disabled wrapper: futex_linux(u32 *uaddr, int op, u32 val, const __kernel_old_timespec_linux *utime, u32 *uaddr2, u32 val3);
+// Disabled wrapper: long futex_linux(u32 *uaddr, int op, u32 val, const __kernel_old_timespec_linux *utime, u32 *uaddr2, u32 val3);
 long futex_time64_linux(u32 *uaddr, int op, u32 val, const __kernel_timespec_linux *utime, u32 *uaddr2, u32 val3);
 long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, __kernel_timespec_linux *timespec, clockid_t clockid);
 long futex_wake_linux(void *uaddr, unsigned long mask, int nr, unsigned int flags);
@@ -398,7 +398,7 @@ long sendmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags);
 long recv_linux(int fd, void *ubuf, unsigned long size, unsigned int flags);
 long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr *addr, int *addr_len);
 long recvmsg_linux(int fd, user_msghdr *msg, unsigned flags);
-// Disabled wrapper: recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
+// Disabled wrapper: long recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
 long recvmmsg_time64_linux(int fd, mmsghdr *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout);
 // 14c. Getting and setting socket options
 long getsockopt_linux(int fd, int level, int optname, char *optval, int *optlen);
@@ -414,7 +414,7 @@ long io_destroy_linux(aio_context_t ctx);
 long io_submit_linux(aio_context_t ctx_id, long nr, iocb * *iocbpp);
 long io_cancel_linux(aio_context_t ctx_id, iocb *iocb, io_event *result);
 long io_getevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout);
-// Disabled wrapper: io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
+// Disabled wrapper: long io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
 long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout, const __aio_sigset *sig);
 // 15b. io_uring: high-performance asynchronous I/O
 long io_uring_setup_linux(u32 entries, io_uring_params *p);
@@ -426,13 +426,13 @@ long io_uring_register_linux(unsigned int fd, unsigned int op, void *arg, unsign
 // 16a. Reading current time from various clocks
 long time_linux(__kernel_old_time_t *tloc);
 long gettimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
-// Disabled wrapper: clock_gettime_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
+// Disabled wrapper: long clock_gettime_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
 long clock_gettime64_linux(clockid_t which_clock, __kernel_timespec_linux *tp);
-// Disabled wrapper: clock_getres_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
+// Disabled wrapper: long clock_getres_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
 long clock_getres_time64_linux(clockid_t which_clock, __kernel_timespec_linux *tp);
 // 16b. Setting system time and adjusting clocks
 long settimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
-// Disabled wrapper: clock_settime_linux(clockid_t which_clock, const __kernel_old_timespec_linux *tp);
+// Disabled wrapper: long clock_settime_linux(clockid_t which_clock, const __kernel_old_timespec_linux *tp);
 long clock_settime64_linux(clockid_t which_clock, const __kernel_timespec_linux *tp);
 long stime_linux(__kernel_old_time_t *tptr);
 long adjtimex_linux(__kernel_timex *txc_p);
@@ -440,7 +440,7 @@ long clock_adjtime_linux(clockid_t which_clock, __kernel_timex *tx);
 long clock_adjtime64_linux(clockid_t which_clock, __kernel_timex *tx);
 // 16c. Suspending execution for a period of time
 long nanosleep_linux(__kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
-// Disabled wrapper: clock_nanosleep_linux(clockid_t which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
+// Disabled wrapper: long clock_nanosleep_linux(clockid_t which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
 long clock_nanosleep_time64_linux(clockid_t which_clock, int flags, const __kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
 // 16d. Setting periodic or one-shot timers
 long alarm_linux(unsigned int seconds);

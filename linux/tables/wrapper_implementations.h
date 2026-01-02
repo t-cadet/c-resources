@@ -283,22 +283,21 @@ long process_mrelease_linux(int pidfd, unsigned int flags) {
 long membarrier_linux(int cmd, unsigned int flags, int cpu_id) {
   return Syscall3_linux(NR_membarrier_linux, cmd, flags, cpu_id, 0);
 }
-#if 0 // WIP
 //
 // 5. FILE I/O OPERATIONS
 //
 // 5a. Opening, creating, and closing files
-long open_linux(const char *filename, int flags, umode_t mode) {
-  return Syscall3_linux(NR_open_linux, filename, flags, mode, 0);
+long open_linux(const char *filename, int flags, unsigned short mode) {
+  return openat_linux(AT_FDCWD_linux, filename, flags, mode);
 }
-long openat_linux(int dfd, const char *filename, int flags, umode_t mode) {
+long openat_linux(int dfd, const char *filename, int flags, unsigned short mode) {
   return Syscall4_linux(NR_openat_linux, dfd, filename, flags, mode, 0);
 }
-long openat2_linux(int dfd, const char *filename, open_how *how, unsigned long size) {
+long openat2_linux(int dfd, const char *filename, open_how_linux *how, unsigned long size) {
   return Syscall4_linux(NR_openat2_linux, dfd, filename, how, size, 0);
 }
-long creat_linux(const char *pathname, umode_t mode) {
-  return Syscall2_linux(NR_creat_linux, pathname, mode, 0);
+long creat_linux(const char *pathname, unsigned short mode) {
+  return open_linux(pathname, O_CREAT_linux | O_WRONLY_linux | O_TRUNC_linux, mode);
 }
 long close_linux(unsigned int fd) {
   return Syscall1_linux(NR_close_linux, fd, 0);
@@ -306,10 +305,10 @@ long close_linux(unsigned int fd) {
 long close_range_linux(unsigned int fd, unsigned int max_fd, unsigned int flags) {
   return Syscall3_linux(NR_close_range_linux, fd, max_fd, flags, 0);
 }
-long open_by_handle_at_linux(int mountdirfd, file_handle *handle, int flags) {
+long open_by_handle_at_linux(int mountdirfd, file_handle_linux *handle, int flags) {
   return Syscall3_linux(NR_open_by_handle_at_linux, mountdirfd, handle, flags, 0);
 }
-long name_to_handle_at_linux(int dfd, const char *name, file_handle *handle, void *mnt_id, int flag) {
+long name_to_handle_at_linux(int dfd, const char *name, file_handle_linux *handle, void *mnt_id, int flag) {
   return Syscall5_linux(NR_name_to_handle_at_linux, dfd, name, handle, mnt_id, flag, 0);
 }
 // 5b. Reading and writing file data
@@ -325,11 +324,23 @@ long readv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen) {
 long writev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen) {
   return Syscall3_linux(NR_writev_linux, fd, vec, vlen, 0);
 }
-long pread64_linux(unsigned int fd, char *buf, unsigned long count, loff_t pos) {
+long pread64_linux(unsigned int fd, char *buf, unsigned long count, long long pos) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall4_linux(NR_pread64_linux, fd, buf, count, pos, 0);
+#elif defined(__i386__)
+  return Syscall5_linux(NR_pread64_linux, fd, buf, count, LO32_bits(pos), HI32_bits(pos), 0);
+#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))
+  return Syscall6_linux(NR_pread64_linux, fd, buf, count, 0, LO32_bits(pos), HI32_bits(pos), 0);
+#endif
 }
-long pwrite64_linux(unsigned int fd, const char *buf, unsigned long count, loff_t pos) {
+long pwrite64_linux(unsigned int fd, const char *buf, unsigned long count, long long pos) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall4_linux(NR_pwrite64_linux, fd, buf, count, pos, 0);
+#elif defined(__i386__)
+  return Syscall5_linux(NR_pwrite64_linux, fd, buf, count, LO32_bits(pos), HI32_bits(pos), 0);
+#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))
+  return Syscall6_linux(NR_pwrite64_linux, fd, buf, count, 0, LO32_bits(pos), HI32_bits(pos), 0);
+#endif
 }
 long preadv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h) {
   return Syscall5_linux(NR_preadv_linux, fd, vec, vlen, pos_l, pos_h, 0);
@@ -337,42 +348,59 @@ long preadv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, 
 long pwritev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h) {
   return Syscall5_linux(NR_pwritev_linux, fd, vec, vlen, pos_l, pos_h, 0);
 }
-long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags) {
+long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, int flags) {
   return Syscall6_linux(NR_preadv2_linux, fd, vec, vlen, pos_l, pos_h, flags, 0);
 }
-long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags) {
+long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, int flags) {
   return Syscall6_linux(NR_pwritev2_linux, fd, vec, vlen, pos_l, pos_h, flags, 0);
 }
 // 5c. Seeking and truncating files
-long lseek_linux(unsigned int fd, off_t offset, unsigned int whence) {
-  return Syscall3_linux(NR_lseek_linux, fd, offset, whence, 0);
+// Disabled wrapper: long lseek_linux(unsigned int fd, long offset, unsigned int whence);
+long llseek_linux(unsigned int fd, unsigned long long offset, long long *result, unsigned int whence) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  long ret = Syscall3_linux(NR_lseek_linux, fd, offset, whence, 0);
+  if (ret >= 0 && result) {
+    *result = ret;
+    ret = 0;
+  }
+  return ret;
+#elif defined(__riscv) && (__riscv_xlen == 32)
+  return Syscall5_linux(NR_llseek_linux, fd, HI32_bits(offset), LO32_bits(offset), result, whence, 0);
+#else
+  return Syscall5_linux(NR__llseek_linux, fd, HI32_bits(offset), LO32_bits(offset), result, whence, 0);
+#endif
 }
-long llseek_linux(unsigned int fd, unsigned long offset_high, unsigned long offset_low, loff_t *result, unsigned int whence) {
-  return Syscall5_linux(NR_llseek_linux, fd, offset_high, offset_low, result, whence, 0);
-}
-long _llseek_linux(unsigned int fd, unsigned long offset_high, unsigned long offset_low, loff_t *result, unsigned int whence) {
-  return Syscall5_linux(NR__llseek_linux, fd, offset_high, offset_low, result, whence, 0);
-}
-long truncate_linux(const char *path, long length) {
+// Disabled wrapper: long _llseek_linux(unsigned int fd, unsigned long offset_high, unsigned long offset_low, long long *result, unsigned int whence);
+// Disabled wrapper: long truncate_linux(const char *path, long length);
+long truncate64_linux(const char *path, long long length) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall2_linux(NR_truncate_linux, path, length, 0);
+#elif defined(__i386__)
+  return Syscall3_linux(NR_truncate64_linux, path, LO32_bits(length), HI32_bits(length), 0);
+#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))
+  return Syscall4_linux(NR_truncate64_linux, path, 0, LO32_bits(length), HI32_bits(length), 0);
+#endif
 }
-long truncate64_linux(const char *path, loff_t length) {
-  return Syscall2_linux(NR_truncate64_linux, path, length, 0);
-}
-long ftruncate_linux(unsigned int fd, off_t length) {
+// Disabled wrapper: long ftruncate_linux(unsigned int fd, long length);
+long ftruncate64_linux(unsigned int fd, long long length) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall2_linux(NR_ftruncate_linux, fd, length, 0);
-}
-long ftruncate64_linux(unsigned int fd, loff_t length) {
-  return Syscall2_linux(NR_ftruncate64_linux, fd, length, 0);
+#elif defined(__i386__)
+  return Syscall3_linux(NR_ftruncate64_linux, fd, LO32_bits(length), HI32_bits(length), 0);
+#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))
+  return Syscall4_linux(NR_ftruncate64_linux, fd, 0, LO32_bits(length), HI32_bits(length), 0);
+#endif
 }
 // 5d. Zero-copy and specialized I/O
-long sendfile_linux(int out_fd, int in_fd, off_t *offset, unsigned long count) {
+// Disabled wrapper: long sendfile_linux(int out_fd, int in_fd, long *offset, unsigned long count);
+long sendfile64_linux(int out_fd, int in_fd, long long *offset, unsigned long count) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall4_linux(NR_sendfile_linux, out_fd, in_fd, offset, count, 0);
-}
-long sendfile64_linux(int out_fd, int in_fd, loff_t *offset, unsigned long count) {
+#else
   return Syscall4_linux(NR_sendfile64_linux, out_fd, in_fd, offset, count, 0);
+#endif
 }
-long splice_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsigned long len, unsigned int flags) {
+long splice_linux(int fd_in, long long *off_in, int fd_out, long long *off_out, unsigned long len, unsigned int flags) {
   return Syscall6_linux(NR_splice_linux, fd_in, off_in, fd_out, off_out, len, flags, 0);
 }
 long tee_linux(int fdin, int fdout, unsigned long len, unsigned int flags) {
@@ -381,24 +409,38 @@ long tee_linux(int fdin, int fdout, unsigned long len, unsigned int flags) {
 long vmsplice_linux(int fd, const iovec_linux *iov, unsigned long nr_segs, unsigned int flags) {
   return Syscall4_linux(NR_vmsplice_linux, fd, iov, nr_segs, flags, 0);
 }
-long copy_file_range_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsigned long len, unsigned int flags) {
+long copy_file_range_linux(int fd_in, long long *off_in, int fd_out, long long *off_out, unsigned long len, unsigned int flags) {
   return Syscall6_linux(NR_copy_file_range_linux, fd_in, off_in, fd_out, off_out, len, flags, 0);
 }
 // 5e. I/O hints and space allocation
-long fadvise64_linux(int fd, loff_t offset, unsigned long len, int advice) {
+// Disabled wrapper: long fadvise64_linux(int fd, long long offset, unsigned long len, int advice);
+long fadvise64_64_linux(int fd, long long offset, long long len, int advice) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall4_linux(NR_fadvise64_linux, fd, offset, len, advice, 0);
+#elif defined(__i386__)
+  return Syscall6_linux(NR_fadvise64_64_linux, fd, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), advice, 0);
+#elif defined(__arm__)
+  return Syscall6_linux(NR_arm_fadvise64_64_linux, fd, advice, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);
+#elif defined(__riscv) && (__riscv_xlen == 32)
+   return Syscall6_linux(NR_fadvise64_64_linux, fd, advice, 0, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);
+#endif
 }
-long fadvise64_64_linux(int fd, loff_t offset, loff_t len, int advice) {
-  return Syscall4_linux(NR_fadvise64_64_linux, fd, offset, len, advice, 0);
-}
-long arm_fadvise64_64_linux(int fd, int advice, loff_t offset, loff_t len) {
-  return Syscall4_linux(NR_arm_fadvise64_64_linux, fd, advice, offset, len, 0);
-}
-long readahead_linux(int fd, loff_t offset, unsigned long count) {
+// Disabled wrapper: long arm_fadvise64_64_linux(int fd, int advice, long long offset, long long len);
+long readahead_linux(int fd, long long offset, unsigned long count) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall3_linux(NR_readahead_linux, fd, offset, count, 0);
+#elif defined(__i386__)
+  return Syscall4_linux(NR_readahead_linux, fd, LO32_bits(offset), HI32_bits(offset), count, 0);
+#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))
+  return Syscall5_linux(NR_readahead_linux, fd, 0, LO32_bits(offset), HI32_bits(offset), count, 0);
+#endif
 }
-long fallocate_linux(int fd, int mode, loff_t offset, loff_t len) {
+long fallocate_linux(int fd, int mode, long long offset, long long len) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall4_linux(NR_fallocate_linux, fd, mode, offset, len, 0);
+#else
+  return Syscall6_linux(NR_fallocate_linux, fd, mode, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);
+#endif
 }
 // 5f. Flushing file data to storage
 long sync_linux(void) {
@@ -413,12 +455,19 @@ long fsync_linux(unsigned int fd) {
 long fdatasync_linux(unsigned int fd) {
   return Syscall1_linux(NR_fdatasync_linux, fd, 0);
 }
-long sync_file_range_linux(int fd, loff_t offset, loff_t nbytes, unsigned int flags) {
+long sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned int flags) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall4_linux(NR_sync_file_range_linux, fd, offset, nbytes, flags, 0);
+#elif defined(__i386__)
+  return Syscall6_linux(NR_sync_file_range_linux, fd, LO32_bits(offset), HI32_bits(offset), LO32_bits(nbytes), HI32_bits(nbytes), flags, 0);
+#elif defined(__arm__)
+  return Syscall6_linux(NR_arm_sync_file_range_linux, fd, flags, LO32_bits(offset), HI32_bits(offset), LO32_bits(nbytes), HI32_bits(nbytes), 0);
+#elif defined(__riscv) && (__riscv_xlen == 32)
+  return Syscall6_linux(NR_sync_file_range_linux, fd, flags, LO32_bits(offset), HI32_bits(offset), LO32_bits(nbytes), HI32_bits(nbytes), 0);
+#endif
 }
-long arm_sync_file_range_linux(int fd, loff_t offset, loff_t nbytes, unsigned int flags) {
-  return Syscall4_linux(NR_arm_sync_file_range_linux, fd, offset, nbytes, flags, 0);
-}
+// Disabled wrapper: long arm_sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned int flags);
+#if 0 // WIP
 //
 // 6. FILE DESCRIPTOR MANAGEMENT
 //
@@ -456,7 +505,7 @@ long pselect6_time64_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kern
 long poll_linux(pollfd *ufds, unsigned int nfds, int timeout) {
   return Syscall3_linux(NR_poll_linux, ufds, nfds, timeout, 0);
 }
-// Disabled wrapper: ppoll_linux(pollfd *, unsigned int, __kernel_old_timespec_linux *, const sigset_t *, unsigned long);
+// Disabled wrapper: long ppoll_linux(pollfd *, unsigned int, __kernel_old_timespec_linux *, const sigset_t *, unsigned long);
 long ppoll_time64_linux(pollfd *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t *sigmask, unsigned long sigsetsize) {
   return Syscall5_linux(NR_ppoll_time64_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);
 }
@@ -529,16 +578,16 @@ long file_getattr_linux(int dfd, const char *filename, file_attr *attr, unsigned
   return Syscall5_linux(NR_file_getattr_linux, dfd, filename, attr, usize, at_flags, 0);
 }
 // 7b. Changing file permissions and ownership
-long chmod_linux(const char *filename, umode_t mode) {
+long chmod_linux(const char *filename, unsigned short mode) {
   return Syscall2_linux(NR_chmod_linux, filename, mode, 0);
 }
-long fchmod_linux(unsigned int fd, umode_t mode) {
+long fchmod_linux(unsigned int fd, unsigned short mode) {
   return Syscall2_linux(NR_fchmod_linux, fd, mode, 0);
 }
-long fchmodat_linux(int dfd, const char *filename, umode_t mode) {
+long fchmodat_linux(int dfd, const char *filename, unsigned short mode) {
   return Syscall3_linux(NR_fchmodat_linux, dfd, filename, mode, 0);
 }
-long fchmodat2_linux(int dfd, const char *filename, umode_t mode, unsigned int flags) {
+long fchmodat2_linux(int dfd, const char *filename, unsigned short mode, unsigned int flags) {
   return Syscall4_linux(NR_fchmodat2_linux, dfd, filename, mode, flags, 0);
 }
 long umask_linux(int mask) {
@@ -578,7 +627,7 @@ long utimes_linux(char *filename, __kernel_old_timeval *utimes) {
 long futimesat_linux(int dfd, const char *filename, __kernel_old_timeval *utimes) {
   return Syscall3_linux(NR_futimesat_linux, dfd, filename, utimes, 0);
 }
-// Disabled wrapper: utimensat_linux(int dfd, const char *filename, __kernel_old_timespec_linux *utimes, int flags);
+// Disabled wrapper: long utimensat_linux(int dfd, const char *filename, __kernel_old_timespec_linux *utimes, int flags);
 long utimensat_time64_linux(int dfd, const char *filename, __kernel_timespec_linux *t, int flags) {
   return Syscall4_linux(NR_utimensat_time64_linux, dfd, filename, t, flags, 0);
 }
@@ -649,10 +698,10 @@ long flock_linux(unsigned int fd, unsigned int cmd) {
 // 8. DIRECTORY & NAMESPACE OPERATIONS
 //
 // 8a. Creating, removing, and reading directories
-long mkdir_linux(const char *pathname, umode_t mode) {
+long mkdir_linux(const char *pathname, unsigned short mode) {
   return Syscall2_linux(NR_mkdir_linux, pathname, mode, 0);
 }
-long mkdirat_linux(int dfd, const char * pathname, umode_t mode) {
+long mkdirat_linux(int dfd, const char * pathname, unsigned short mode) {
   return Syscall3_linux(NR_mkdirat_linux, dfd, pathname, mode, 0);
 }
 long rmdir_linux(const char *pathname) {
@@ -712,10 +761,10 @@ long renameat2_linux(int olddfd, const char *oldname, int newdfd, const char *ne
   return Syscall5_linux(NR_renameat2_linux, olddfd, oldname, newdfd, newname, flags, 0);
 }
 // 8d. Creating device and named pipe nodes
-long mknod_linux(const char *filename, umode_t mode, unsigned dev) {
+long mknod_linux(const char *filename, unsigned short mode, unsigned dev) {
   return Syscall3_linux(NR_mknod_linux, filename, mode, dev, 0);
 }
-long mknodat_linux(int dfd, const char * filename, umode_t mode, unsigned dev) {
+long mknodat_linux(int dfd, const char * filename, unsigned short mode, unsigned dev) {
   return Syscall4_linux(NR_mknodat_linux, dfd, filename, mode, dev, 0);
 }
 //
@@ -871,7 +920,7 @@ long rt_sigsuspend_linux(sigset_t *unewset, unsigned long sigsetsize) {
 long pause_linux(void) {
   return Syscall0_linux(NR_pause_linux, 0);
 }
-// Disabled wrapper: rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
+// Disabled wrapper: long rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
 long rt_sigtimedwait_time64_linux(compat_sigset_t *uthese, compat_siginfo *uinfo, __kernel_timespec_linux *uts, compat_size_t sigsetsize) {
   return Syscall4_linux(NR_rt_sigtimedwait_time64_linux, uthese, uinfo, uts, sigsetsize, 0);
 }
@@ -940,22 +989,22 @@ long semop_linux(int semid, sembuf *sops, unsigned nsops) {
 long semctl_linux(int semid, int semnum, int cmd, unsigned long arg) {
   return Syscall4_linux(NR_semctl_linux, semid, semnum, cmd, arg, 0);
 }
-// Disabled wrapper: semtimedop_linux(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec_linux *timeout);
+// Disabled wrapper: long semtimedop_linux(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec_linux *timeout);
 long semtimedop_time64_linux(int semid, sembuf *tsops, unsigned int nsops, const __kernel_timespec_linux *timeout) {
   return Syscall4_linux(NR_semtimedop_time64_linux, semid, tsops, nsops, timeout, 0);
 }
 // 13d. POSIX Message Queues
-long mq_open_linux(const char *name, int oflag, umode_t mode, mq_attr *attr) {
+long mq_open_linux(const char *name, int oflag, unsigned short mode, mq_attr *attr) {
   return Syscall4_linux(NR_mq_open_linux, name, oflag, mode, attr, 0);
 }
 long mq_unlink_linux(const char *name) {
   return Syscall1_linux(NR_mq_unlink_linux, name, 0);
 }
-// Disabled wrapper: mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+// Disabled wrapper: long mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
 long mq_timedsend_time64_linux(mqd_t mqdes, const char *u_msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec_linux *u_abs_timeout) {
   return Syscall5_linux(NR_mq_timedsend_time64_linux, mqdes, u_msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);
 }
-// Disabled wrapper: mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+// Disabled wrapper: long mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
 long mq_timedreceive_time64_linux(mqd_t mqdes, char *u_msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec_linux *u_abs_timeout) {
   return Syscall5_linux(NR_mq_timedreceive_time64_linux, mqdes, u_msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);
 }
@@ -966,7 +1015,7 @@ long mq_getsetattr_linux(mqd_t mqdes, const mq_attr *mqstat, mq_attr *omqstat) {
   return Syscall3_linux(NR_mq_getsetattr_linux, mqdes, mqstat, omqstat, 0);
 }
 // 13e. Synchronization Primitives - Futexes
-// Disabled wrapper: futex_linux(u32 *uaddr, int op, u32 val, const __kernel_old_timespec_linux *utime, u32 *uaddr2, u32 val3);
+// Disabled wrapper: long futex_linux(u32 *uaddr, int op, u32 val, const __kernel_old_timespec_linux *utime, u32 *uaddr2, u32 val3);
 long futex_time64_linux(u32 *uaddr, int op, u32 val, const __kernel_timespec_linux *utime, u32 *uaddr2, u32 val3) {
   return Syscall6_linux(NR_futex_time64_linux, uaddr, op, val, utime, uaddr2, val3, 0);
 }
@@ -1048,7 +1097,7 @@ long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, 
 long recvmsg_linux(int fd, user_msghdr *msg, unsigned flags) {
   return Syscall3_linux(NR_recvmsg_linux, fd, msg, flags, 0);
 }
-// Disabled wrapper: recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
+// Disabled wrapper: long recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
 long recvmmsg_time64_linux(int fd, mmsghdr *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout) {
   return Syscall5_linux(NR_recvmmsg_time64_linux, fd, mmsg, vlen, flags, timeout, 0);
 }
@@ -1084,7 +1133,7 @@ long io_cancel_linux(aio_context_t ctx_id, iocb *iocb, io_event *result) {
 long io_getevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout) {
   return Syscall5_linux(NR_io_getevents_linux, ctx_id, min_nr, nr, events, timeout, 0);
 }
-// Disabled wrapper: io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
+// Disabled wrapper: long io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
 long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout, const __aio_sigset *sig) {
   return Syscall6_linux(NR_io_pgetevents_time64_linux, ctx_id, min_nr, nr, events, timeout, sig, 0);
 }
@@ -1108,11 +1157,11 @@ long time_linux(__kernel_old_time_t *tloc) {
 long gettimeofday_linux(__kernel_old_timeval *tv, timezone *tz) {
   return Syscall2_linux(NR_gettimeofday_linux, tv, tz, 0);
 }
-// Disabled wrapper: clock_gettime_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
+// Disabled wrapper: long clock_gettime_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
 long clock_gettime64_linux(clockid_t which_clock, __kernel_timespec_linux *tp) {
   return Syscall2_linux(NR_clock_gettime64_linux, which_clock, tp, 0);
 }
-// Disabled wrapper: clock_getres_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
+// Disabled wrapper: long clock_getres_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
 long clock_getres_time64_linux(clockid_t which_clock, __kernel_timespec_linux *tp) {
   return Syscall2_linux(NR_clock_getres_time64_linux, which_clock, tp, 0);
 }
@@ -1120,7 +1169,7 @@ long clock_getres_time64_linux(clockid_t which_clock, __kernel_timespec_linux *t
 long settimeofday_linux(__kernel_old_timeval *tv, timezone *tz) {
   return Syscall2_linux(NR_settimeofday_linux, tv, tz, 0);
 }
-// Disabled wrapper: clock_settime_linux(clockid_t which_clock, const __kernel_old_timespec_linux *tp);
+// Disabled wrapper: long clock_settime_linux(clockid_t which_clock, const __kernel_old_timespec_linux *tp);
 long clock_settime64_linux(clockid_t which_clock, const __kernel_timespec_linux *tp) {
   return Syscall2_linux(NR_clock_settime64_linux, which_clock, tp, 0);
 }
@@ -1140,7 +1189,7 @@ long clock_adjtime64_linux(clockid_t which_clock, __kernel_timex *tx) {
 long nanosleep_linux(__kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp) {
   return Syscall2_linux(NR_nanosleep_linux, rqtp, rmtp, 0);
 }
-// Disabled wrapper: clock_nanosleep_linux(clockid_t which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
+// Disabled wrapper: long clock_nanosleep_linux(clockid_t which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
 long clock_nanosleep_time64_linux(clockid_t which_clock, int flags, const __kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp) {
   return Syscall4_linux(NR_clock_nanosleep_time64_linux, which_clock, flags, rqtp, rmtp, 0);
 }

@@ -819,19 +819,21 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
 
   // Override architecture dependent sizes
   Get_htable(syscallTable, substring("sched_rr_get_interval"))->prototype = substring("asmlinkage long sys_sched_rr_get_interval(int pid, __kernel_old_timespec *interval);\n");
-  Get_htable(syscallTable, substring("ppoll"))->prototype = substring("long sys_ppoll(pollfd *, unsigned int, __kernel_old_timespec *, const sigset_t *, unsigned long);\n");
-  Get_htable(syscallTable, substring("utimensat"))->prototype = substring("long sys_utimensat(int dfd, const char *filename, __kernel_old_timespec *utimes, int flags);\n");
-  Get_htable(syscallTable, substring("rt_sigtimedwait"))->prototype = substring("long sys_rt_sigtimedwait(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec *uts, unsigned long sigsetsize);\n");
-  Get_htable(syscallTable, substring("semtimedop"))->prototype = substring("long sys_semtimedop(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec *timeout);\n");
-  Get_htable(syscallTable, substring("mq_timedsend"))->prototype = substring("long sys_mq_timedsend(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec *abs_timeout);\n");
-  Get_htable(syscallTable, substring("mq_timedreceive"))->prototype = substring("long sys_mq_timedreceive(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec *abs_timeout);\n");
-  Get_htable(syscallTable, substring("futex"))->prototype = substring("long sys_futex(u32 *uaddr, int op, u32 val, const __kernel_old_timespec *utime, u32 *uaddr2, u32 val3);\n");
-  Get_htable(syscallTable, substring("recvmmsg"))->prototype = substring("long sys_recvmmsg(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec *timeout);\n");
-  Get_htable(syscallTable, substring("io_pgetevents"))->prototype = substring("long sys_io_pgetevents(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec *timeout, const __aio_sigset *sig);\n");
-  Get_htable(syscallTable, substring("clock_gettime"))->prototype = substring("long sys_clock_gettime(clockid_t which_clock, __kernel_old_timespec *tp);\n");
-  Get_htable(syscallTable, substring("clock_getres"))->prototype = substring("long sys_clock_getres(clockid_t which_clock, __kernel_old_timespec *tp);\n");
-  Get_htable(syscallTable, substring("clock_settime"))->prototype = substring("long sys_clock_settime(clockid_t which_clock, const __kernel_old_timespec *tp);\n");
-  Get_htable(syscallTable, substring("clock_nanosleep"))->prototype = substring("long sys_clock_nanosleep(clockid_t which_clock, int flags, const __kernel_old_timespec *rqtp, __kernel_old_timespec *rmtp);\n");
+  Get_htable(syscallTable, substring("ppoll"))->prototype = substring("asmlinkage long sys_ppoll(pollfd *, unsigned int, __kernel_old_timespec *, const sigset_t *, unsigned long);\n");
+  Get_htable(syscallTable, substring("utimensat"))->prototype = substring("asmlinkage long sys_utimensat(int dfd, const char *filename, __kernel_old_timespec *utimes, int flags);\n");
+  Get_htable(syscallTable, substring("rt_sigtimedwait"))->prototype = substring("asmlinkage long sys_rt_sigtimedwait(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec *uts, unsigned long sigsetsize);\n");
+  Get_htable(syscallTable, substring("semtimedop"))->prototype = substring("asmlinkage long sys_semtimedop(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec *timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedsend"))->prototype = substring("asmlinkage long sys_mq_timedsend(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec *abs_timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedreceive"))->prototype = substring("asmlinkage long sys_mq_timedreceive(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec *abs_timeout);\n");
+  Get_htable(syscallTable, substring("futex"))->prototype = substring("asmlinkage long sys_futex(u32 *uaddr, int op, u32 val, const __kernel_old_timespec *utime, u32 *uaddr2, u32 val3);\n");
+  Get_htable(syscallTable, substring("recvmmsg"))->prototype = substring("asmlinkage long sys_recvmmsg(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec *timeout);\n");
+  Get_htable(syscallTable, substring("io_pgetevents"))->prototype = substring("asmlinkage long sys_io_pgetevents(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec *timeout, const __aio_sigset *sig);\n");
+  Get_htable(syscallTable, substring("clock_gettime"))->prototype = substring("asmlinkage long sys_clock_gettime(clockid_t which_clock, __kernel_old_timespec *tp);\n");
+  Get_htable(syscallTable, substring("clock_getres"))->prototype = substring("asmlinkage long sys_clock_getres(clockid_t which_clock, __kernel_old_timespec *tp);\n");
+  Get_htable(syscallTable, substring("clock_settime"))->prototype = substring("asmlinkage long sys_clock_settime(clockid_t which_clock, const __kernel_old_timespec *tp);\n");
+  Get_htable(syscallTable, substring("clock_nanosleep"))->prototype = substring("asmlinkage long sys_clock_nanosleep(clockid_t which_clock, int flags, const __kernel_old_timespec *rqtp, __kernel_old_timespec *rmtp);\n");
+
+  Get_htable(syscallTable, substring("llseek"))->prototype = substring("asmlinkage long sys_llseek(unsigned int fd, unsigned long long offset, long long *result, unsigned int whence)\n");
 
   // Manually add arg names for prototypes that don't have them
   Get_htable(syscallTable, substring("pselect6"))->prototype = substring("long sys_pselect6(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timespec *tsp, void *sig);\n");
@@ -1426,6 +1428,30 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("uffd_msg_linux");
   }
+  else if (Eq_string(linuxType, substring("umode_t")))
+  {
+    out = substring("unsigned short");
+  }
+  else if (Eq_string(linuxType, substring("open_how")))
+  {
+    out = substring("open_how_linux");
+  }
+  else if (Eq_string(linuxType, substring("file_handle")))
+  {
+    out = substring("file_handle_linux");
+  }
+  else if (Eq_string(linuxType, substring("rwf_t")))
+  {
+    out = substring("int");
+  }
+  else if (Eq_string(linuxType, substring("loff_t")))
+  {
+    out = substring("long long");
+  }
+  else if (Eq_string(linuxType, substring("off_t")))
+  {
+    out = substring("long");
+  }
   return out;
 }
 
@@ -1664,6 +1690,101 @@ char* mmap2Wrapper = \
 "  return Syscall6_linux(NR_mmap2_linux, addr, len, prot, flags, fd, pgoff, 0);\n"
 "#endif\n";
 
+char* pread64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_pread64_linux, fd, buf, count, pos, 0);\n"
+"#elif defined(__i386__)\n"
+"  return Syscall5_linux(NR_pread64_linux, fd, buf, count, LO32_bits(pos), HI32_bits(pos), 0);\n"
+"#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))\n"
+"  return Syscall6_linux(NR_pread64_linux, fd, buf, count, 0, LO32_bits(pos), HI32_bits(pos), 0);\n"
+"#endif\n";
+
+char* pwrite64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_pwrite64_linux, fd, buf, count, pos, 0);\n"
+"#elif defined(__i386__)\n"
+"  return Syscall5_linux(NR_pwrite64_linux, fd, buf, count, LO32_bits(pos), HI32_bits(pos), 0);\n"
+"#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))\n"
+"  return Syscall6_linux(NR_pwrite64_linux, fd, buf, count, 0, LO32_bits(pos), HI32_bits(pos), 0);\n"
+"#endif\n";
+
+char* llseekWrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  long ret = Syscall3_linux(NR_lseek_linux, fd, offset, whence, 0);\n"
+"  if (ret >= 0 && result) {\n"
+"    *result = ret;\n"
+"    ret = 0;\n"
+"  }\n"
+"  return ret;\n"
+"#elif defined(__riscv) && (__riscv_xlen == 32)\n"
+"  return Syscall5_linux(NR_llseek_linux, fd, HI32_bits(offset), LO32_bits(offset), result, whence, 0);\n"
+"#else\n"
+"  return Syscall5_linux(NR__llseek_linux, fd, HI32_bits(offset), LO32_bits(offset), result, whence, 0);\n"
+"#endif\n";
+
+char* truncate64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_truncate_linux, path, length, 0);\n"
+"#elif defined(__i386__)\n"
+"  return Syscall3_linux(NR_truncate64_linux, path, LO32_bits(length), HI32_bits(length), 0);\n"
+"#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))\n"
+"  return Syscall4_linux(NR_truncate64_linux, path, 0, LO32_bits(length), HI32_bits(length), 0);\n"
+"#endif\n";
+
+char* ftruncate64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_ftruncate_linux, fd, length, 0);\n"
+"#elif defined(__i386__)\n"
+"  return Syscall3_linux(NR_ftruncate64_linux, fd, LO32_bits(length), HI32_bits(length), 0);\n"
+"#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))\n"
+"  return Syscall4_linux(NR_ftruncate64_linux, fd, 0, LO32_bits(length), HI32_bits(length), 0);\n"
+"#endif\n";
+
+char* sendfile64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_sendfile_linux, out_fd, in_fd, offset, count, 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_sendfile64_linux, out_fd, in_fd, offset, count, 0);\n"
+"#endif\n";
+
+char* fadvise64_64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_fadvise64_linux, fd, offset, len, advice, 0);\n"
+"#elif defined(__i386__)\n"
+"  return Syscall6_linux(NR_fadvise64_64_linux, fd, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), advice, 0);\n"
+"#elif defined(__arm__)\n"
+"  return Syscall6_linux(NR_arm_fadvise64_64_linux, fd, advice, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);\n"
+"#elif defined(__riscv) && (__riscv_xlen == 32)\n"
+"   return Syscall6_linux(NR_fadvise64_64_linux, fd, advice, 0, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);\n"
+"#endif\n";
+
+char* readaheadWrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall3_linux(NR_readahead_linux, fd, offset, count, 0);\n"
+"#elif defined(__i386__)\n"
+"  return Syscall4_linux(NR_readahead_linux, fd, LO32_bits(offset), HI32_bits(offset), count, 0);\n"
+"#elif defined(__arm__) || (defined(__riscv) && (__riscv_xlen == 32))\n"
+"  return Syscall5_linux(NR_readahead_linux, fd, 0, LO32_bits(offset), HI32_bits(offset), count, 0);\n"
+"#endif\n";
+
+char* fallocateWrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_fallocate_linux, fd, mode, offset, len, 0);\n"
+"#else\n"
+"  return Syscall6_linux(NR_fallocate_linux, fd, mode, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);\n"
+"#endif\n";
+
+char* sync_file_rangeWrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_sync_file_range_linux, fd, offset, nbytes, flags, 0);\n"
+"#elif defined(__i386__)\n"
+"  return Syscall6_linux(NR_sync_file_range_linux, fd, LO32_bits(offset), HI32_bits(offset), LO32_bits(nbytes), HI32_bits(nbytes), flags, 0);\n"
+"#elif defined(__arm__)\n"
+"  return Syscall6_linux(NR_arm_sync_file_range_linux, fd, flags, LO32_bits(offset), HI32_bits(offset), LO32_bits(nbytes), HI32_bits(nbytes), 0);\n"
+"#elif defined(__riscv) && (__riscv_xlen == 32)\n"
+"  return Syscall6_linux(NR_sync_file_range_linux, fd, flags, LO32_bits(offset), HI32_bits(offset), LO32_bits(nbytes), HI32_bits(nbytes), 0);\n"
+"#endif\n";
+
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
   int maxSysIdSize = 0;
@@ -1826,15 +1947,16 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("userfaultfd");
   PRINT("process_mrelease");
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("membarrier");
 
   PrintSection(&printer, "FILE I/O OPERATIONS", NULL);
   PrintSubsection(&printer, "Opening, creating, and closing files");
 
+  printer.customWrapper = "  return openat_linux(AT_FDCWD_linux, filename, flags, mode);\n";
   PRINT("open");
   PRINT("openat");
   PRINT("openat2");
+  printer.customWrapper = "  return open_linux(pathname, O_CREAT_linux | O_WRONLY_linux | O_TRUNC_linux, mode);\n";
   PRINT("creat");
   PRINT("close");
   PRINT("close_range");
@@ -1847,7 +1969,9 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("write");
   PRINT("readv");
   PRINT("writev");
+  printer.customWrapper = pread64Wrapper;
   PRINT("pread64");
+  printer.customWrapper = pwrite64Wrapper;
   PRINT("pwrite64");
   PRINT("preadv");
   PRINT("pwritev");
@@ -1856,17 +1980,26 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Seeking and truncating files");
 
+  printer.disabledWrapper = true;
   PRINT("lseek");
+  printer.customWrapper = llseekWrapper;
   PRINT("llseek");
+  printer.disabledWrapper = true;
   PRINT("_llseek");
+  printer.disabledWrapper = true;
   PRINT("truncate");
+  printer.customWrapper = truncate64Wrapper;
   PRINT("truncate64");
+  printer.disabledWrapper = true;
   PRINT("ftruncate");
+  printer.customWrapper = ftruncate64Wrapper;
   PRINT("ftruncate64");
 
   PrintSubsection(&printer, "Zero-copy and specialized I/O");
 
+  printer.disabledWrapper = true;
   PRINT("sendfile");
+  printer.customWrapper = sendfile64Wrapper;
   PRINT("sendfile64");
   PRINT("splice");
   PRINT("tee");
@@ -1875,10 +2008,15 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "I/O hints and space allocation");
 
+  printer.disabledWrapper = true;
   PRINT("fadvise64");
+  printer.customWrapper = fadvise64_64Wrapper;
   PRINT("fadvise64_64");
+  printer.disabledWrapper = true;
   PRINT("arm_fadvise64_64");
+  printer.customWrapper = readaheadWrapper;
   PRINT("readahead");
+  printer.customWrapper = fallocateWrapper;
   PRINT("fallocate");
 
   PrintSubsection(&printer, "Flushing file data to storage");
@@ -1887,7 +2025,10 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("syncfs");
   PRINT("fsync");
   PRINT("fdatasync");
+  printer.customWrapper = sync_file_rangeWrapper;
   PRINT("sync_file_range");
+  printer.disabledWrapper = true;
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("arm_sync_file_range");
 
   PrintSection(&printer, "FILE DESCRIPTOR MANAGEMENT", NULL);

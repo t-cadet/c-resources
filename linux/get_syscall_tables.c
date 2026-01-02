@@ -858,7 +858,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("modify_ldt"))->prototype = substring("asmlinkage long sys_modify_ldt(int func, void __user *ptr, unsigned long bytecount);\n");
   Get_htable(syscallTable, substring("set_thread_area"))->prototype = substring("asmlinkage long sys_set_thread_area(struct user_desc __user *u_info);\n");
   Get_htable(syscallTable, substring("get_thread_area"))->prototype = substring("asmlinkage long sys_get_thread_area(struct user_desc __user *u_info);\n");
-  Get_htable(syscallTable, substring("mmap"))->prototype = substring("asmlinkage long sys_mmap(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long off);\n");
+  Get_htable(syscallTable, substring("mmap"))->prototype = substring("asmlinkage long sys_mmap(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off);\n");
   Get_htable(syscallTable, substring("mmap2"))->prototype = substring("asmlinkage long sys_mmap2(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);\n");
   Get_htable(syscallTable, substring("arm_fadvise64_64"))->prototype = substring("asmlinkage long sys_arm_fadvise64_64(int fd, int advice, loff_t offset, loff_t len);\n");
   Get_htable(syscallTable, substring("rt_sigtimedwait_time64"))->prototype = substring("asmlinkage long sys_rt_sigtimedwait_time64(compat_sigset_t __user *uthese, struct compat_siginfo __user *uinfo, struct __kernel_timespec __user *uts, compat_size_t sigsetsize);\n");
@@ -1250,6 +1250,8 @@ struct table_printer
 
   bool disabledWrapper;
   char* customWrapper;
+  char* beforeSyscall;
+  char* afterSyscall;
 } table_printer;
 
 void PushSectionTitle(table_printer* printer, char* title)
@@ -1416,6 +1418,14 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("sched_param_linux");
   }
+  else if (Eq_string(linuxType, substring("iovec")))
+  {
+    out = substring("iovec_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffd_msg")))
+  {
+    out = substring("uffd_msg_linux");
+  }
   return out;
 }
 
@@ -1433,6 +1443,13 @@ void PrintSyscallLine(table_printer* printer, char* s) {
     }
     else
     {
+      if (printer->beforeSyscall)
+      {
+        fprintf(printer->wrapperPrototypesFile, "%s", printer->beforeSyscall);
+        fprintf(printer->wrapperImplementationFile, "%s", printer->beforeSyscall);
+        printer->beforeSyscall = 0;
+      }
+
       if (printer->disabledWrapper)
       {
         fprintf(printer->wrapperPrototypesFile, "// Disabled wrapper: ");
@@ -1563,6 +1580,12 @@ void PrintSyscallLine(table_printer* printer, char* s) {
         }
         fprintf(printer->wrapperImplementationFile, "}\n");
       }
+      if (printer->afterSyscall)
+      {
+        fprintf(printer->wrapperPrototypesFile, "%s", printer->afterSyscall);
+        fprintf(printer->wrapperImplementationFile, "%s", printer->afterSyscall);
+        printer->afterSyscall = 0;
+      }
     }
   }
 
@@ -1626,6 +1649,20 @@ char* niceWrapper = \
 "  long ret = getpriority_linux(PRIO_PROCESS_linux, 0);\n"
 "  if (ret < 0) return ret;\n"
 "  return setpriority_linux(PRIO_PROCESS_linux, 0, (int)(20 - ret + increment));\n";
+
+char* mmapWrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall6_linux(NR_mmap_linux, addr, len, prot, flags, fd, off, 0);\n"
+"#else\n"
+"  return Syscall6_linux(NR_mmap2_linux, addr, len, prot, flags, fd, off / 4096, 0);\n"
+"#endif\n";
+
+char* mmap2Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall6_linux(NR_mmap_linux, addr, len, prot, flags, fd, pgoff * 4096, 0);\n"
+"#else\n"
+"  return Syscall6_linux(NR_mmap2_linux, addr, len, prot, flags, fd, pgoff, 0);\n"
+"#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
@@ -1737,7 +1774,9 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Memory mapping, allocation, and unmapping");
 
   PRINT("brk");
+  printer.customWrapper = mmapWrapper;
   PRINT("mmap");
+  printer.customWrapper = mmap2Wrapper;
   PRINT("mmap2");
   PRINT("munmap");
   PRINT("mremap");
@@ -1770,6 +1809,8 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Anonymous file-backed memory regions");
 
   PRINT("memfd_create");
+  printer.beforeSyscall = "#if !defined(__arm__)\n";
+  printer.afterSyscall = "#endif\n";
   PRINT("memfd_secret");
 
   PrintSubsection(&printer, "Memory protection key management");
@@ -1785,6 +1826,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("userfaultfd");
   PRINT("process_mrelease");
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("membarrier");
 
   PrintSection(&printer, "FILE I/O OPERATIONS", NULL);
@@ -2512,6 +2554,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("tuxcall");
   PRINT("vserver");
   PRINT("bdflush");
+  printer.afterSyscall = "#endif // WIP\n";
   PRINT("uselib");
 
   PrintTableSeparatorLine(file, "═", &dimensions);

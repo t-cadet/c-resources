@@ -174,11 +174,19 @@ long getpriority_linux(int which, int who) {
 long brk_linux(unsigned long brk) {
   return Syscall1_linux(NR_brk_linux, brk, 0);
 }
-long mmap_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long off) {
+long mmap_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall6_linux(NR_mmap_linux, addr, len, prot, flags, fd, off, 0);
+#else
+  return Syscall6_linux(NR_mmap2_linux, addr, len, prot, flags, fd, off / 4096, 0);
+#endif
 }
 long mmap2_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall6_linux(NR_mmap_linux, addr, len, prot, flags, fd, pgoff * 4096, 0);
+#else
   return Syscall6_linux(NR_mmap2_linux, addr, len, prot, flags, fd, pgoff, 0);
+#endif
 }
 long munmap_linux(unsigned long addr, unsigned long len) {
   return Syscall2_linux(NR_munmap_linux, addr, len, 0);
@@ -199,7 +207,7 @@ long pkey_mprotect_linux(unsigned long start, unsigned long len, unsigned long p
 long madvise_linux(unsigned long start, unsigned long len, int behavior) {
   return Syscall3_linux(NR_madvise_linux, start, len, behavior, 0);
 }
-long process_madvise_linux(int pidfd, const iovec *vec, unsigned long vlen, int behavior, unsigned int flags) {
+long process_madvise_linux(int pidfd, const iovec_linux *vec, unsigned long vlen, int behavior, unsigned int flags) {
   return Syscall5_linux(NR_process_madvise_linux, pidfd, vec, vlen, behavior, flags, 0);
 }
 long mlock_linux(unsigned long start, unsigned long len) {
@@ -249,9 +257,11 @@ long move_pages_linux(int pid, unsigned long nr_pages, const void * *pages, cons
 long memfd_create_linux(const char *uname_ptr, unsigned int flags) {
   return Syscall2_linux(NR_memfd_create_linux, uname_ptr, flags, 0);
 }
+#if !defined(__arm__)
 long memfd_secret_linux(unsigned int flags) {
   return Syscall1_linux(NR_memfd_secret_linux, flags, 0);
 }
+#endif
 // 4e. Memory protection key management
 long pkey_alloc_linux(unsigned long flags, unsigned long init_val) {
   return Syscall2_linux(NR_pkey_alloc_linux, flags, init_val, 0);
@@ -273,6 +283,7 @@ long process_mrelease_linux(int pidfd, unsigned int flags) {
 long membarrier_linux(int cmd, unsigned int flags, int cpu_id) {
   return Syscall3_linux(NR_membarrier_linux, cmd, flags, cpu_id, 0);
 }
+#if 0 // WIP
 //
 // 5. FILE I/O OPERATIONS
 //
@@ -308,10 +319,10 @@ long read_linux(unsigned int fd, char *buf, unsigned long count) {
 long write_linux(unsigned int fd, const char *buf, unsigned long count) {
   return Syscall3_linux(NR_write_linux, fd, buf, count, 0);
 }
-long readv_linux(unsigned long fd, const iovec *vec, unsigned long vlen) {
+long readv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen) {
   return Syscall3_linux(NR_readv_linux, fd, vec, vlen, 0);
 }
-long writev_linux(unsigned long fd, const iovec *vec, unsigned long vlen) {
+long writev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen) {
   return Syscall3_linux(NR_writev_linux, fd, vec, vlen, 0);
 }
 long pread64_linux(unsigned int fd, char *buf, unsigned long count, loff_t pos) {
@@ -320,16 +331,16 @@ long pread64_linux(unsigned int fd, char *buf, unsigned long count, loff_t pos) 
 long pwrite64_linux(unsigned int fd, const char *buf, unsigned long count, loff_t pos) {
   return Syscall4_linux(NR_pwrite64_linux, fd, buf, count, pos, 0);
 }
-long preadv_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h) {
+long preadv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h) {
   return Syscall5_linux(NR_preadv_linux, fd, vec, vlen, pos_l, pos_h, 0);
 }
-long pwritev_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h) {
+long pwritev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h) {
   return Syscall5_linux(NR_pwritev_linux, fd, vec, vlen, pos_l, pos_h, 0);
 }
-long preadv2_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags) {
+long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags) {
   return Syscall6_linux(NR_preadv2_linux, fd, vec, vlen, pos_l, pos_h, flags, 0);
 }
-long pwritev2_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags) {
+long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags) {
   return Syscall6_linux(NR_pwritev2_linux, fd, vec, vlen, pos_l, pos_h, flags, 0);
 }
 // 5c. Seeking and truncating files
@@ -367,7 +378,7 @@ long splice_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsign
 long tee_linux(int fdin, int fdout, unsigned long len, unsigned int flags) {
   return Syscall4_linux(NR_tee_linux, fdin, fdout, len, flags, 0);
 }
-long vmsplice_linux(int fd, const iovec *iov, unsigned long nr_segs, unsigned int flags) {
+long vmsplice_linux(int fd, const iovec_linux *iov, unsigned long nr_segs, unsigned int flags) {
   return Syscall4_linux(NR_vmsplice_linux, fd, iov, nr_segs, flags, 0);
 }
 long copy_file_range_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsigned long len, unsigned int flags) {
@@ -1388,10 +1399,10 @@ long pidfd_send_signal_linux(int pidfd, int sig, siginfo_t *info, unsigned int f
   return Syscall4_linux(NR_pidfd_send_signal_linux, pidfd, sig, info, flags, 0);
 }
 // 22c. Process memory access
-long process_vm_readv_linux(int pid, const iovec *lvec, unsigned long liovcnt, const iovec *rvec, unsigned long riovcnt, unsigned long flags) {
+long process_vm_readv_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags) {
   return Syscall6_linux(NR_process_vm_readv_linux, pid, lvec, liovcnt, rvec, riovcnt, flags, 0);
 }
-long process_vm_writev_linux(int pid, const iovec *lvec, unsigned long liovcnt, const iovec *rvec, unsigned long riovcnt, unsigned long flags) {
+long process_vm_writev_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags) {
   return Syscall6_linux(NR_process_vm_writev_linux, pid, lvec, liovcnt, rvec, riovcnt, flags, 0);
 }
 // 22d. Process tracing
@@ -1646,3 +1657,4 @@ long bdflush_linux(int func, long data) {
 long uselib_linux(const char *library) {
   return Syscall1_linux(NR_uselib_linux, library, 0);
 }
+#endif // WIP

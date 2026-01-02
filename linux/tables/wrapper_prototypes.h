@@ -52,7 +52,7 @@ long getpriority_linux(int which, int who);
 //
 // 4a. Memory mapping, allocation, and unmapping
 long brk_linux(unsigned long brk);
-long mmap_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long off);
+long mmap_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off);
 long mmap2_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);
 long munmap_linux(unsigned long addr, unsigned long len);
 long mremap_linux(unsigned long addr, unsigned long old_len, unsigned long new_len, unsigned long flags, unsigned long new_addr);
@@ -61,7 +61,7 @@ long remap_file_pages_linux(unsigned long start, unsigned long size, unsigned lo
 long mprotect_linux(unsigned long start, unsigned long len, unsigned long prot);
 long pkey_mprotect_linux(unsigned long start, unsigned long len, unsigned long prot, int pkey);
 long madvise_linux(unsigned long start, unsigned long len, int behavior);
-long process_madvise_linux(int pidfd, const iovec *vec, unsigned long vlen, int behavior, unsigned int flags);
+long process_madvise_linux(int pidfd, const iovec_linux *vec, unsigned long vlen, int behavior, unsigned int flags);
 long mlock_linux(unsigned long start, unsigned long len);
 long mlock2_linux(unsigned long start, unsigned long len, int flags);
 long munlock_linux(unsigned long start, unsigned long len);
@@ -79,7 +79,9 @@ long migrate_pages_linux(int pid, unsigned long maxnode, const unsigned long *fr
 long move_pages_linux(int pid, unsigned long nr_pages, const void * *pages, const int *nodes, int *status, int flags);
 // 4d. Anonymous file-backed memory regions
 long memfd_create_linux(const char *uname_ptr, unsigned int flags);
+#if !defined(__arm__)
 long memfd_secret_linux(unsigned int flags);
+#endif
 // 4e. Memory protection key management
 long pkey_alloc_linux(unsigned long flags, unsigned long init_val);
 long pkey_free_linux(int pkey);
@@ -89,6 +91,7 @@ long map_shadow_stack_linux(unsigned long addr, unsigned long size, unsigned int
 long userfaultfd_linux(int flags);
 long process_mrelease_linux(int pidfd, unsigned int flags);
 long membarrier_linux(int cmd, unsigned int flags, int cpu_id);
+#if 0 // WIP
 //
 // 5. FILE I/O OPERATIONS
 //
@@ -104,14 +107,14 @@ long name_to_handle_at_linux(int dfd, const char *name, file_handle *handle, voi
 // 5b. Reading and writing file data
 long read_linux(unsigned int fd, char *buf, unsigned long count);
 long write_linux(unsigned int fd, const char *buf, unsigned long count);
-long readv_linux(unsigned long fd, const iovec *vec, unsigned long vlen);
-long writev_linux(unsigned long fd, const iovec *vec, unsigned long vlen);
+long readv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen);
+long writev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen);
 long pread64_linux(unsigned int fd, char *buf, unsigned long count, loff_t pos);
 long pwrite64_linux(unsigned int fd, const char *buf, unsigned long count, loff_t pos);
-long preadv_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
-long pwritev_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
-long preadv2_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags);
-long pwritev2_linux(unsigned long fd, const iovec *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags);
+long preadv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
+long pwritev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
+long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags);
+long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, rwf_t flags);
 // 5c. Seeking and truncating files
 long lseek_linux(unsigned int fd, off_t offset, unsigned int whence);
 long llseek_linux(unsigned int fd, unsigned long offset_high, unsigned long offset_low, loff_t *result, unsigned int whence);
@@ -125,7 +128,7 @@ long sendfile_linux(int out_fd, int in_fd, off_t *offset, unsigned long count);
 long sendfile64_linux(int out_fd, int in_fd, loff_t *offset, unsigned long count);
 long splice_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsigned long len, unsigned int flags);
 long tee_linux(int fdin, int fdout, unsigned long len, unsigned int flags);
-long vmsplice_linux(int fd, const iovec *iov, unsigned long nr_segs, unsigned int flags);
+long vmsplice_linux(int fd, const iovec_linux *iov, unsigned long nr_segs, unsigned int flags);
 long copy_file_range_linux(int fd_in, loff_t *off_in, int fd_out, loff_t *off_out, unsigned long len, unsigned int flags);
 // 5e. I/O hints and space allocation
 long fadvise64_linux(int fd, loff_t offset, unsigned long len, int advice);
@@ -550,8 +553,8 @@ long pidfd_open_linux(int pid, unsigned int flags);
 long pidfd_getfd_linux(int pidfd, int fd, unsigned int flags);
 long pidfd_send_signal_linux(int pidfd, int sig, siginfo_t *info, unsigned int flags);
 // 22c. Process memory access
-long process_vm_readv_linux(int pid, const iovec *lvec, unsigned long liovcnt, const iovec *rvec, unsigned long riovcnt, unsigned long flags);
-long process_vm_writev_linux(int pid, const iovec *lvec, unsigned long liovcnt, const iovec *rvec, unsigned long riovcnt, unsigned long flags);
+long process_vm_readv_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags);
+long process_vm_writev_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags);
 // 22d. Process tracing
 long ptrace_linux(long request, long pid, unsigned long addr, unsigned long data);
 //
@@ -668,3 +671,4 @@ long tuxcall_linux(void);
 long vserver_linux(void);
 long bdflush_linux(int func, long data);
 long uselib_linux(const char *library);
+#endif // WIP

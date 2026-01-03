@@ -230,7 +230,6 @@ long fremovexattr_linux(int fd, const char *name);
 long removexattrat_linux(int dfd, const char *path, unsigned int at_flags, const char *name);
 // 7f. Advisory file locking
 long flock_linux(unsigned int fd, unsigned int cmd);
-#if 0 // WIP
 //
 // 8. DIRECTORY & NAMESPACE OPERATIONS
 //
@@ -238,9 +237,9 @@ long flock_linux(unsigned int fd, unsigned int cmd);
 long mkdir_linux(const char *pathname, unsigned int mode);
 long mkdirat_linux(int dfd, const char * pathname, unsigned int mode);
 long rmdir_linux(const char *pathname);
-long getdents_linux(unsigned int fd, linux_dirent *dirent, unsigned int count);
-long getdents64_linux(unsigned int fd, linux_dirent64 *dirent, unsigned int count);
-long readdir_linux(unsigned int fd, old_linux_dirent *dirent, unsigned int count);
+// Disabled wrapper: long getdents_linux(unsigned int fd, linux_dirent_linux *dirent, unsigned int count);
+long getdents64_linux(unsigned int fd, linux_dirent64_linux *dirent, unsigned int count);
+// Disabled wrapper: long readdir_linux(unsigned int fd, old_linux_dirent_linux *dirent, unsigned int count);
 // 8b. Getting and changing current directory
 long getcwd_linux(char *buf, unsigned long size);
 long chdir_linux(const char *filename);
@@ -250,7 +249,7 @@ long link_linux(const char *oldname, const char *newname);
 long linkat_linux(int olddfd, const char *oldname, int newdfd, const char *newname, int flags);
 long unlink_linux(const char *pathname);
 long unlinkat_linux(int dfd, const char * pathname, int flag);
-long symlink_linux(const char *old, const char *new);
+long symlink_linux(const char *old, const char *newname);
 long symlinkat_linux(const char * oldname, int newdfd, const char * newname);
 long readlink_linux(const char *path, char *buf, int bufsiz);
 long readlinkat_linux(int dfd, const char *path, char *buf, int bufsiz);
@@ -269,36 +268,37 @@ long umount_linux(char *name, int flags);
 long umount2_linux(char *name, int flags);
 long pivot_root_linux(const char *new_root, const char *put_old);
 long chroot_linux(const char *filename);
-long mount_setattr_linux(int dfd, const char *path, unsigned int flags, mount_attr *uattr, unsigned long usize);
+long mount_setattr_linux(int dfd, const char *path, unsigned int flags, mount_attr_linux *uattr, unsigned long usize);
 long move_mount_linux(int from_dfd, const char *from_path, int to_dfd, const char *to_path, unsigned int ms_flags);
 long open_tree_linux(int dfd, const char *path, unsigned flags);
-long open_tree_attr_linux(int dfd, const char *path, unsigned flags, mount_attr *uattr, unsigned long usize);
+long open_tree_attr_linux(int dfd, const char *path, unsigned flags, mount_attr_linux *uattr, unsigned long usize);
 long fsconfig_linux(int fs_fd, unsigned int cmd, const char *key, const void *value, int aux);
 long fsmount_linux(int fs_fd, unsigned int flags, unsigned int ms_flags);
 long fsopen_linux(const char *fs_name, unsigned int flags);
 long fspick_linux(int dfd, const char *path, unsigned int flags);
 // 9b. Getting filesystem statistics
-long statfs_linux(const char * path, statfs *buf);
-long fstatfs_linux(unsigned int fd, statfs *buf);
-long statfs64_linux(const char *path, unsigned long sz, statfs64 *buf);
-long fstatfs64_linux(unsigned int fd, unsigned long sz, statfs64 *buf);
-long ustat_linux(unsigned dev, ustat *ubuf);
-long statmount_linux(const mnt_id_req *req, statmount *buf, unsigned long bufsize, unsigned int flags);
-long listmount_linux(const mnt_id_req *req, u64 *mnt_ids, unsigned long nr_mnt_ids, unsigned int flags);
+// Disabled wrapper: long statfs_linux(const char * path, statfs_t_linux *buf);
+// Disabled wrapper: long fstatfs_linux(unsigned int fd, statfs_t_linux *buf);
+long statfs64_linux(const char *path, unsigned long sz, statfs64_t_linux *buf);
+long fstatfs64_linux(unsigned int fd, unsigned long sz, statfs64_t_linux *buf);
+// Disabled wrapper: long ustat_linux(unsigned dev, ustat *ubuf);
+long statmount_linux(const mnt_id_req_linux *req, statmount_t_linux *buf, unsigned long bufsize, unsigned int flags);
+long listmount_linux(const mnt_id_req_linux *req, unsigned long long *mnt_ids, unsigned long nr_mnt_ids, unsigned int flags);
 // 9c. Disk quota control
-long quotactl_linux(unsigned int cmd, const char *special, qid_t id, void *addr);
-long quotactl_fd_linux(unsigned int fd, unsigned int cmd, qid_t id, void *addr);
+long quotactl_linux(unsigned int cmd, const char *special, unsigned int id, void *addr);
+long quotactl_fd_linux(unsigned int fd, unsigned int cmd, unsigned int id, void *addr);
 //
 // 10. FILE SYSTEM MONITORING
 //
 // 10a. Monitoring filesystem events
 long inotify_init_linux(void);
 long inotify_init1_linux(int flags);
-long inotify_add_watch_linux(int fd, const char *path, u32 mask);
-long inotify_rm_watch_linux(int fd, __s32 wd);
+long inotify_add_watch_linux(int fd, const char *path, unsigned int mask);
+long inotify_rm_watch_linux(int fd, int wd);
 // 10b. Filesystem-wide event notification
 long fanotify_init_linux(unsigned int flags, unsigned int event_f_flags);
-long fanotify_mark_linux(int fanotify_fd, unsigned int flags, u64 mask, int fd, const char *pathname);
+long fanotify_mark_linux(int fanotify_fd, unsigned int flags, unsigned long long mask, int fd, const char *pathname);
+#if 0 // WIP
 //
 // 11. SIGNALS
 //
@@ -366,8 +366,8 @@ long mq_timedreceive_time64_linux(mqd_t mqdes, char *u_msg_ptr, unsigned long ms
 long mq_notify_linux(mqd_t mqdes, const sigevent *notification);
 long mq_getsetattr_linux(mqd_t mqdes, const mq_attr *mqstat, mq_attr *omqstat);
 // 13e. Synchronization Primitives - Futexes
-// Disabled wrapper: long futex_linux(u32 *uaddr, int op, u32 val, const __kernel_old_timespec_linux *utime, u32 *uaddr2, u32 val3);
-long futex_time64_linux(u32 *uaddr, int op, u32 val, const __kernel_timespec_linux *utime, u32 *uaddr2, u32 val3);
+// Disabled wrapper: long futex_linux(unsigned int *uaddr, int op, unsigned int val, const __kernel_old_timespec_linux *utime, unsigned int *uaddr2, unsigned int val3);
+long futex_time64_linux(unsigned int *uaddr, int op, unsigned int val, const __kernel_timespec_linux *utime, unsigned int *uaddr2, unsigned int val3);
 long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, __kernel_timespec_linux *timespec, clockid_t clockid);
 long futex_wake_linux(void *uaddr, unsigned long mask, int nr, unsigned int flags);
 long futex_waitv_linux(futex_waitv *waiters, unsigned int nr_futexes, unsigned int flags, __kernel_timespec_linux *timeout, clockid_t clockid);
@@ -417,8 +417,8 @@ long io_getevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *ev
 // Disabled wrapper: long io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
 long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout, const __aio_sigset *sig);
 // 15b. io_uring: high-performance asynchronous I/O
-long io_uring_setup_linux(u32 entries, io_uring_params *p);
-long io_uring_enter_linux(unsigned int fd, u32 to_submit, u32 min_complete, u32 flags, const void *argp, unsigned long argsz);
+long io_uring_setup_linux(unsigned int entries, io_uring_params *p);
+long io_uring_enter_linux(unsigned int fd, unsigned int to_submit, unsigned int min_complete, unsigned int flags, const void *argp, unsigned long argsz);
 long io_uring_register_linux(unsigned int fd, unsigned int op, void *arg, unsigned int nr_args);
 //
 // 16. TIME & CLOCKS
@@ -512,9 +512,9 @@ long capset_linux(cap_user_header_t header, const cap_user_data_t data);
 long seccomp_linux(unsigned int op, unsigned int flags, void *uargs);
 // 19c. Linux Security Module interfaces
 long security_linux(void);
-long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx *ctx, u32 *size, u32 flags);
-long lsm_set_self_attr_linux(unsigned int attr, lsm_ctx *ctx, u32 size, u32 flags);
-long lsm_list_modules_linux(u64 *ids, u32 *size, u32 flags);
+long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int *size, unsigned int flags);
+long lsm_set_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int size, unsigned int flags);
+long lsm_list_modules_linux(unsigned long long *ids, unsigned int *size, unsigned int flags);
 // 19d. Unprivileged access control
 long landlock_create_ruleset_linux(const landlock_ruleset_attr *attr, unsigned long size, __u32 flags);
 long landlock_add_rule_linux(int ruleset_fd, enum landlock_rule_type rule_type, const void *rule_attr, __u32 flags);
@@ -542,7 +542,7 @@ long acct_linux(const char *name);
 //
 long unshare_linux(unsigned long unshare_flags);
 long setns_linux(int fd, int nstype);
-long listns_linux(const ns_id_req *req, u64 *ns_ids, unsigned long nr_ns_ids, unsigned int flags);
+long listns_linux(const ns_id_req *req, unsigned long long *ns_ids, unsigned long nr_ns_ids, unsigned int flags);
 //
 // 22. PROCESS INSPECTION & CONTROL
 //
@@ -649,7 +649,7 @@ long rseq_linux(rseq *rseq, uint32_t rseq_len, int flags, uint32_t sig);
 // 29b. Restart syscall
 long restart_syscall_linux(void);
 // 29c. Directory entry cache
-long lookup_dcookie_linux(u64 cookie64, char *buf, unsigned long len);
+long lookup_dcookie_linux(unsigned long long cookie64, char *buf, unsigned long len);
 //
 // 30. LEGACY, OBSOLETE & UNIMPLEMENTED
 //

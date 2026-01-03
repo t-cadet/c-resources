@@ -668,29 +668,24 @@ long removexattrat_linux(int dfd, const char *path, unsigned int at_flags, const
 long flock_linux(unsigned int fd, unsigned int cmd) {
   return Syscall2_linux(NR_flock_linux, fd, cmd, 0);
 }
-#if 0 // WIP
 //
 // 8. DIRECTORY & NAMESPACE OPERATIONS
 //
 // 8a. Creating, removing, and reading directories
 long mkdir_linux(const char *pathname, unsigned int mode) {
-  return Syscall2_linux(NR_mkdir_linux, pathname, mode, 0);
+  return mkdirat_linux(AT_FDCWD_linux, pathname, mode);
 }
 long mkdirat_linux(int dfd, const char * pathname, unsigned int mode) {
   return Syscall3_linux(NR_mkdirat_linux, dfd, pathname, mode, 0);
 }
 long rmdir_linux(const char *pathname) {
-  return Syscall1_linux(NR_rmdir_linux, pathname, 0);
+  return unlinkat_linux(AT_FDCWD_linux, pathname, AT_REMOVEDIR_linux);
 }
-long getdents_linux(unsigned int fd, linux_dirent *dirent, unsigned int count) {
-  return Syscall3_linux(NR_getdents_linux, fd, dirent, count, 0);
-}
-long getdents64_linux(unsigned int fd, linux_dirent64 *dirent, unsigned int count) {
+// Disabled wrapper: long getdents_linux(unsigned int fd, linux_dirent_linux *dirent, unsigned int count);
+long getdents64_linux(unsigned int fd, linux_dirent64_linux *dirent, unsigned int count) {
   return Syscall3_linux(NR_getdents64_linux, fd, dirent, count, 0);
 }
-long readdir_linux(unsigned int fd, old_linux_dirent *dirent, unsigned int count) {
-  return Syscall3_linux(NR_readdir_linux, fd, dirent, count, 0);
-}
+// Disabled wrapper: long readdir_linux(unsigned int fd, old_linux_dirent_linux *dirent, unsigned int count);
 // 8b. Getting and changing current directory
 long getcwd_linux(char *buf, unsigned long size) {
   return Syscall2_linux(NR_getcwd_linux, buf, size, 0);
@@ -703,41 +698,41 @@ long fchdir_linux(unsigned int fd) {
 }
 // 8c. Creating and managing hard and symbolic links
 long link_linux(const char *oldname, const char *newname) {
-  return Syscall2_linux(NR_link_linux, oldname, newname, 0);
+  return linkat_linux(AT_FDCWD_linux, oldname, AT_FDCWD_linux, newname, 0);
 }
 long linkat_linux(int olddfd, const char *oldname, int newdfd, const char *newname, int flags) {
   return Syscall5_linux(NR_linkat_linux, olddfd, oldname, newdfd, newname, flags, 0);
 }
 long unlink_linux(const char *pathname) {
-  return Syscall1_linux(NR_unlink_linux, pathname, 0);
+  return unlinkat_linux(AT_FDCWD_linux, pathname, 0);
 }
 long unlinkat_linux(int dfd, const char * pathname, int flag) {
   return Syscall3_linux(NR_unlinkat_linux, dfd, pathname, flag, 0);
 }
-long symlink_linux(const char *old, const char *new) {
-  return Syscall2_linux(NR_symlink_linux, old, new, 0);
+long symlink_linux(const char *old, const char *newname) {
+  return symlinkat_linux(old, AT_FDCWD_linux, newname);
 }
 long symlinkat_linux(const char * oldname, int newdfd, const char * newname) {
   return Syscall3_linux(NR_symlinkat_linux, oldname, newdfd, newname, 0);
 }
 long readlink_linux(const char *path, char *buf, int bufsiz) {
-  return Syscall3_linux(NR_readlink_linux, path, buf, bufsiz, 0);
+  return readlinkat_linux(AT_FDCWD_linux, path, buf, bufsiz);
 }
 long readlinkat_linux(int dfd, const char *path, char *buf, int bufsiz) {
   return Syscall4_linux(NR_readlinkat_linux, dfd, path, buf, bufsiz, 0);
 }
 long rename_linux(const char *oldname, const char *newname) {
-  return Syscall2_linux(NR_rename_linux, oldname, newname, 0);
+  return renameat2_linux(AT_FDCWD_linux, oldname, AT_FDCWD_linux, newname, 0);
 }
 long renameat_linux(int olddfd, const char * oldname, int newdfd, const char * newname) {
-  return Syscall4_linux(NR_renameat_linux, olddfd, oldname, newdfd, newname, 0);
+  return renameat2_linux(olddfd, oldname, newdfd, newname, 0);
 }
 long renameat2_linux(int olddfd, const char *oldname, int newdfd, const char *newname, unsigned int flags) {
   return Syscall5_linux(NR_renameat2_linux, olddfd, oldname, newdfd, newname, flags, 0);
 }
 // 8d. Creating device and named pipe nodes
 long mknod_linux(const char *filename, unsigned int mode, unsigned dev) {
-  return Syscall3_linux(NR_mknod_linux, filename, mode, dev, 0);
+  return mknodat_linux(AT_FDCWD_linux, filename, mode, dev);
 }
 long mknodat_linux(int dfd, const char * filename, unsigned int mode, unsigned dev) {
   return Syscall4_linux(NR_mknodat_linux, dfd, filename, mode, dev, 0);
@@ -750,7 +745,7 @@ long mount_linux(char *dev_name, char *dir_name, char *type, unsigned long flags
   return Syscall5_linux(NR_mount_linux, dev_name, dir_name, type, flags, data, 0);
 }
 long umount_linux(char *name, int flags) {
-  return Syscall2_linux(NR_umount_linux, name, flags, 0);
+  return umount2_linux(name, 0);
 }
 long umount2_linux(char *name, int flags) {
   return Syscall2_linux(NR_umount2_linux, name, flags, 0);
@@ -761,7 +756,7 @@ long pivot_root_linux(const char *new_root, const char *put_old) {
 long chroot_linux(const char *filename) {
   return Syscall1_linux(NR_chroot_linux, filename, 0);
 }
-long mount_setattr_linux(int dfd, const char *path, unsigned int flags, mount_attr *uattr, unsigned long usize) {
+long mount_setattr_linux(int dfd, const char *path, unsigned int flags, mount_attr_linux *uattr, unsigned long usize) {
   return Syscall5_linux(NR_mount_setattr_linux, dfd, path, flags, uattr, usize, 0);
 }
 long move_mount_linux(int from_dfd, const char *from_path, int to_dfd, const char *to_path, unsigned int ms_flags) {
@@ -770,7 +765,7 @@ long move_mount_linux(int from_dfd, const char *from_path, int to_dfd, const cha
 long open_tree_linux(int dfd, const char *path, unsigned flags) {
   return Syscall3_linux(NR_open_tree_linux, dfd, path, flags, 0);
 }
-long open_tree_attr_linux(int dfd, const char *path, unsigned flags, mount_attr *uattr, unsigned long usize) {
+long open_tree_attr_linux(int dfd, const char *path, unsigned flags, mount_attr_linux *uattr, unsigned long usize) {
   return Syscall5_linux(NR_open_tree_attr_linux, dfd, path, flags, uattr, usize, 0);
 }
 long fsconfig_linux(int fs_fd, unsigned int cmd, const char *key, const void *value, int aux) {
@@ -786,32 +781,34 @@ long fspick_linux(int dfd, const char *path, unsigned int flags) {
   return Syscall3_linux(NR_fspick_linux, dfd, path, flags, 0);
 }
 // 9b. Getting filesystem statistics
-long statfs_linux(const char * path, statfs *buf) {
+// Disabled wrapper: long statfs_linux(const char * path, statfs_t_linux *buf);
+// Disabled wrapper: long fstatfs_linux(unsigned int fd, statfs_t_linux *buf);
+long statfs64_linux(const char *path, unsigned long sz, statfs64_t_linux *buf) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall2_linux(NR_statfs_linux, path, buf, 0);
-}
-long fstatfs_linux(unsigned int fd, statfs *buf) {
-  return Syscall2_linux(NR_fstatfs_linux, fd, buf, 0);
-}
-long statfs64_linux(const char *path, unsigned long sz, statfs64 *buf) {
+#else
   return Syscall3_linux(NR_statfs64_linux, path, sz, buf, 0);
+#endif
 }
-long fstatfs64_linux(unsigned int fd, unsigned long sz, statfs64 *buf) {
+long fstatfs64_linux(unsigned int fd, unsigned long sz, statfs64_t_linux *buf) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall2_linux(NR_fstatfs_linux, fd, buf, 0);
+#else
   return Syscall3_linux(NR_fstatfs64_linux, fd, sz, buf, 0);
+#endif
 }
-long ustat_linux(unsigned dev, ustat *ubuf) {
-  return Syscall2_linux(NR_ustat_linux, dev, ubuf, 0);
-}
-long statmount_linux(const mnt_id_req *req, statmount *buf, unsigned long bufsize, unsigned int flags) {
+// Disabled wrapper: long ustat_linux(unsigned dev, ustat *ubuf);
+long statmount_linux(const mnt_id_req_linux *req, statmount_t_linux *buf, unsigned long bufsize, unsigned int flags) {
   return Syscall4_linux(NR_statmount_linux, req, buf, bufsize, flags, 0);
 }
-long listmount_linux(const mnt_id_req *req, u64 *mnt_ids, unsigned long nr_mnt_ids, unsigned int flags) {
+long listmount_linux(const mnt_id_req_linux *req, unsigned long long *mnt_ids, unsigned long nr_mnt_ids, unsigned int flags) {
   return Syscall4_linux(NR_listmount_linux, req, mnt_ids, nr_mnt_ids, flags, 0);
 }
 // 9c. Disk quota control
-long quotactl_linux(unsigned int cmd, const char *special, qid_t id, void *addr) {
+long quotactl_linux(unsigned int cmd, const char *special, unsigned int id, void *addr) {
   return Syscall4_linux(NR_quotactl_linux, cmd, special, id, addr, 0);
 }
-long quotactl_fd_linux(unsigned int fd, unsigned int cmd, qid_t id, void *addr) {
+long quotactl_fd_linux(unsigned int fd, unsigned int cmd, unsigned int id, void *addr) {
   return Syscall4_linux(NR_quotactl_fd_linux, fd, cmd, id, addr, 0);
 }
 //
@@ -819,24 +816,29 @@ long quotactl_fd_linux(unsigned int fd, unsigned int cmd, qid_t id, void *addr) 
 //
 // 10a. Monitoring filesystem events
 long inotify_init_linux(void) {
-  return Syscall0_linux(NR_inotify_init_linux, 0);
+  return inotify_init1_linux(0);
 }
 long inotify_init1_linux(int flags) {
   return Syscall1_linux(NR_inotify_init1_linux, flags, 0);
 }
-long inotify_add_watch_linux(int fd, const char *path, u32 mask) {
+long inotify_add_watch_linux(int fd, const char *path, unsigned int mask) {
   return Syscall3_linux(NR_inotify_add_watch_linux, fd, path, mask, 0);
 }
-long inotify_rm_watch_linux(int fd, __s32 wd) {
+long inotify_rm_watch_linux(int fd, int wd) {
   return Syscall2_linux(NR_inotify_rm_watch_linux, fd, wd, 0);
 }
 // 10b. Filesystem-wide event notification
 long fanotify_init_linux(unsigned int flags, unsigned int event_f_flags) {
   return Syscall2_linux(NR_fanotify_init_linux, flags, event_f_flags, 0);
 }
-long fanotify_mark_linux(int fanotify_fd, unsigned int flags, u64 mask, int fd, const char *pathname) {
+long fanotify_mark_linux(int fanotify_fd, unsigned int flags, unsigned long long mask, int fd, const char *pathname) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall5_linux(NR_fanotify_mark_linux, fanotify_fd, flags, mask, fd, pathname, 0);
+#else
+  return Syscall6_linux(NR_fanotify_mark_linux, fanotify_fd, flags, LO32_bits(mask), HI32_bits(mask), fd, pathname, 0);
+#endif
 }
+#if 0 // WIP
 //
 // 11. SIGNALS
 //
@@ -990,8 +992,8 @@ long mq_getsetattr_linux(mqd_t mqdes, const mq_attr *mqstat, mq_attr *omqstat) {
   return Syscall3_linux(NR_mq_getsetattr_linux, mqdes, mqstat, omqstat, 0);
 }
 // 13e. Synchronization Primitives - Futexes
-// Disabled wrapper: long futex_linux(u32 *uaddr, int op, u32 val, const __kernel_old_timespec_linux *utime, u32 *uaddr2, u32 val3);
-long futex_time64_linux(u32 *uaddr, int op, u32 val, const __kernel_timespec_linux *utime, u32 *uaddr2, u32 val3) {
+// Disabled wrapper: long futex_linux(unsigned int *uaddr, int op, unsigned int val, const __kernel_old_timespec_linux *utime, unsigned int *uaddr2, unsigned int val3);
+long futex_time64_linux(unsigned int *uaddr, int op, unsigned int val, const __kernel_timespec_linux *utime, unsigned int *uaddr2, unsigned int val3) {
   return Syscall6_linux(NR_futex_time64_linux, uaddr, op, val, utime, uaddr2, val3, 0);
 }
 long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, __kernel_timespec_linux *timespec, clockid_t clockid) {
@@ -1113,10 +1115,10 @@ long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_e
   return Syscall6_linux(NR_io_pgetevents_time64_linux, ctx_id, min_nr, nr, events, timeout, sig, 0);
 }
 // 15b. io_uring: high-performance asynchronous I/O
-long io_uring_setup_linux(u32 entries, io_uring_params *p) {
+long io_uring_setup_linux(unsigned int entries, io_uring_params *p) {
   return Syscall2_linux(NR_io_uring_setup_linux, entries, p, 0);
 }
-long io_uring_enter_linux(unsigned int fd, u32 to_submit, u32 min_complete, u32 flags, const void *argp, unsigned long argsz) {
+long io_uring_enter_linux(unsigned int fd, unsigned int to_submit, unsigned int min_complete, unsigned int flags, const void *argp, unsigned long argsz) {
   return Syscall6_linux(NR_io_uring_enter_linux, fd, to_submit, min_complete, flags, argp, argsz, 0);
 }
 long io_uring_register_linux(unsigned int fd, unsigned int op, void *arg, unsigned int nr_args) {
@@ -1334,13 +1336,13 @@ long seccomp_linux(unsigned int op, unsigned int flags, void *uargs) {
 long security_linux(void) {
   return Syscall0_linux(NR_security_linux, 0);
 }
-long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx *ctx, u32 *size, u32 flags) {
+long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int *size, unsigned int flags) {
   return Syscall4_linux(NR_lsm_get_self_attr_linux, attr, ctx, size, flags, 0);
 }
-long lsm_set_self_attr_linux(unsigned int attr, lsm_ctx *ctx, u32 size, u32 flags) {
+long lsm_set_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int size, unsigned int flags) {
   return Syscall4_linux(NR_lsm_set_self_attr_linux, attr, ctx, size, flags, 0);
 }
-long lsm_list_modules_linux(u64 *ids, u32 *size, u32 flags) {
+long lsm_list_modules_linux(unsigned long long *ids, unsigned int *size, unsigned int flags) {
   return Syscall3_linux(NR_lsm_list_modules_linux, ids, size, flags, 0);
 }
 // 19d. Unprivileged access control
@@ -1402,7 +1404,7 @@ long unshare_linux(unsigned long unshare_flags) {
 long setns_linux(int fd, int nstype) {
   return Syscall2_linux(NR_setns_linux, fd, nstype, 0);
 }
-long listns_linux(const ns_id_req *req, u64 *ns_ids, unsigned long nr_ns_ids, unsigned int flags) {
+long listns_linux(const ns_id_req *req, unsigned long long *ns_ids, unsigned long nr_ns_ids, unsigned int flags) {
   return Syscall4_linux(NR_listns_linux, req, ns_ids, nr_ns_ids, flags, 0);
 }
 //
@@ -1621,7 +1623,7 @@ long restart_syscall_linux(void) {
   return Syscall0_linux(NR_restart_syscall_linux, 0);
 }
 // 29c. Directory entry cache
-long lookup_dcookie_linux(u64 cookie64, char *buf, unsigned long len) {
+long lookup_dcookie_linux(unsigned long long cookie64, char *buf, unsigned long len) {
   return Syscall3_linux(NR_lookup_dcookie_linux, cookie64, buf, len, 0);
 }
 //

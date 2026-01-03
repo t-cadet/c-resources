@@ -808,6 +808,9 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
 
   fprintf(stderr, "(LoadSyscallPrototypes) INFO: retrieved %d prototypes from the linux file, %d of which have a syscall number,\n", prototypeCount, prototypeCountWithNumber);
 
+  // Avoid cpp keywords
+  Get_htable(syscallTable, substring("symlink"))->prototype = substring("asmlinkage long sys_symlink(const char *old, const char *newname);\n");
+
   // Make exit's prototype noreturn
   Get_htable(syscallTable, substring("exit"))->prototype = substring("asmlinkage __attribute__((noreturn)) void sys_exit(int error_code);\n");
   Get_htable(syscallTable, substring("exit_group"))->prototype = substring("asmlinkage __attribute__((noreturn)) void sys_exit_group(int error_code);\n");
@@ -1656,6 +1659,134 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("xattr_args_linux");
   }
+  else if (Eq_string(linuxType, substring("linux_dirent")))
+  {
+    out = substring("linux_dirent_linux");
+  }
+  else if (Eq_string(linuxType, substring("linux_dirent64")))
+  {
+    out = substring("linux_dirent64_linux");
+  }
+  else if (Eq_string(linuxType, substring("old_linux_dirent")))
+  {
+    out = substring("old_linux_dirent_linux");
+  }
+  else if (Eq_string(linuxType, substring("mount_attr")))
+  {
+    out = substring("mount_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("fsid_t")))
+  {
+    out = substring("fsid_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("statfs")))
+  {
+    out = substring("statfs_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("statfs64")))
+  {
+    out = substring("statfs64_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("statmount")))
+  {
+    out = substring("statmount_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("mnt_id_req")))
+  {
+    out = substring("mnt_id_req_linux");
+  }
+  else if (Eq_string(linuxType, substring("qid_t")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("if_dqblk")))
+  {
+    out = substring("if_dqblk_linux");
+  }
+  else if (Eq_string(linuxType, substring("if_nextdqblk")))
+  {
+    out = substring("if_nextdqblk_linux");
+  }
+  else if (Eq_string(linuxType, substring("if_dqinfo")))
+  {
+    out = substring("if_dqinfo_linux");
+  }
+  else if (Eq_string(linuxType, substring("fs_disk_quota")))
+  {
+    out = substring("fs_disk_quota_linux");
+  }
+  else if (Eq_string(linuxType, substring("fs_qfilestat")))
+  {
+    out = substring("fs_qfilestat_linux");
+  }
+  else if (Eq_string(linuxType, substring("fs_quota_stat")))
+  {
+    out = substring("fs_quota_stat_linux");
+  }
+  else if (Eq_string(linuxType, substring("fs_qfilestatv")))
+  {
+    out = substring("fs_qfilestatv_linux");
+  }
+  else if (Eq_string(linuxType, substring("fs_quota_statv")))
+  {
+    out = substring("fs_quota_statv_linux");
+  }
+  else if (Eq_string(linuxType, substring("inotify_event")))
+  {
+    out = substring("inotify_event_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_event_metadata")))
+  {
+    out = substring("fanotify_event_metadata_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_event_info_header")))
+  {
+    out = substring("fanotify_event_info_header_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_event_info_fid")))
+  {
+    out = substring("fanotify_event_info_fid_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_event_info_pidfd")))
+  {
+    out = substring("fanotify_event_info_pidfd_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_event_info_error")))
+  {
+    out = substring("fanotify_event_info_error_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_event_info_range")))
+  {
+    out = substring("fanotify_event_info_range_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_event_info_mnt")))
+  {
+    out = substring("fanotify_event_info_mnt_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_response")))
+  {
+    out = substring("fanotify_response_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_response_info_header")))
+  {
+    out = substring("fanotify_response_info_header_linux");
+  }
+  else if (Eq_string(linuxType, substring("fanotify_response_info_audit_rule")))
+  {
+    out = substring("fanotify_response_info_audit_rule_linux");
+  }
+  else if (Eq_string(linuxType, substring("u64")))
+  {
+    out = substring("unsigned long long");
+  }
+  else if (Eq_string(linuxType, substring("u32")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("__s32")))
+  {
+    out = substring("int");
+  }
   return out;
 }
 
@@ -2025,6 +2156,27 @@ char* utimensat_time64Wrapper = \
 "  return Syscall4_linux(NR_utimensat_linux, dfd, filename, t, flags, 0);\n"
 "#else\n"
 "  return Syscall4_linux(NR_utimensat_time64_linux, dfd, filename, t, flags, 0);\n"
+"#endif\n";
+
+char* statfs64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_statfs_linux, path, buf, 0);\n"
+"#else\n"
+"  return Syscall3_linux(NR_statfs64_linux, path, sz, buf, 0);\n"
+"#endif\n";
+
+char* fstatfs64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_fstatfs_linux, fd, buf, 0);\n"
+"#else\n"
+"  return Syscall3_linux(NR_fstatfs64_linux, fd, sz, buf, 0);\n"
+"#endif\n";
+
+char* fanotify_markWrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall5_linux(NR_fanotify_mark_linux, fanotify_fd, flags, mask, fd, pathname, 0);\n"
+"#else\n"
+"  return Syscall6_linux(NR_fanotify_mark_linux, fanotify_fd, flags, LO32_bits(mask), HI32_bits(mask), fd, pathname, 0);\n"
 "#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
@@ -2412,17 +2564,20 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Advisory file locking");
 
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("flock");
 
   PrintSection(&printer, "DIRECTORY & NAMESPACE OPERATIONS", NULL);
   PrintSubsection(&printer, "Creating, removing, and reading directories");
 
+  printer.customWrapper = "  return mkdirat_linux(AT_FDCWD_linux, pathname, mode);\n";
   PRINT("mkdir");
   PRINT("mkdirat");
+  printer.customWrapper = "  return unlinkat_linux(AT_FDCWD_linux, pathname, AT_REMOVEDIR_linux);\n";
   PRINT("rmdir");
+  printer.disabledWrapper = true;
   PRINT("getdents");
   PRINT("getdents64");
+  printer.disabledWrapper = true;
   PRINT("readdir");
 
   PrintSubsection(&printer, "Getting and changing current directory");
@@ -2433,20 +2588,27 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Creating and managing hard and symbolic links");
 
+  printer.customWrapper = "  return linkat_linux(AT_FDCWD_linux, oldname, AT_FDCWD_linux, newname, 0);\n";
   PRINT("link");
   PRINT("linkat");
+  printer.customWrapper = "  return unlinkat_linux(AT_FDCWD_linux, pathname, 0);\n";
   PRINT("unlink");
   PRINT("unlinkat");
+  printer.customWrapper = "  return symlinkat_linux(old, AT_FDCWD_linux, newname);\n";
   PRINT("symlink");
   PRINT("symlinkat");
+  printer.customWrapper = "  return readlinkat_linux(AT_FDCWD_linux, path, buf, bufsiz);\n";
   PRINT("readlink");
   PRINT("readlinkat");
+  printer.customWrapper = "  return renameat2_linux(AT_FDCWD_linux, oldname, AT_FDCWD_linux, newname, 0);\n";
   PRINT("rename");
+  printer.customWrapper = "  return renameat2_linux(olddfd, oldname, newdfd, newname, 0);\n";
   PRINT("renameat");
   PRINT("renameat2");
 
   PrintSubsection(&printer, "Creating device and named pipe nodes");
 
+  printer.customWrapper = "  return mknodat_linux(AT_FDCWD_linux, filename, mode, dev);\n";
   PRINT("mknod");
   PRINT("mknodat");
 
@@ -2454,6 +2616,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Mounting filesystems and changing root");
 
   PRINT("mount");
+  printer.customWrapper = "  return umount2_linux(name, 0);\n";
   PRINT("umount");
   PRINT("umount2");
   PRINT("pivot_root");
@@ -2469,10 +2632,15 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Getting filesystem statistics");
 
+  printer.disabledWrapper = true;
   PRINT("statfs");
+  printer.disabledWrapper = true;
   PRINT("fstatfs");
+  printer.customWrapper = statfs64Wrapper;
   PRINT("statfs64");
+  printer.customWrapper = fstatfs64Wrapper;
   PRINT("fstatfs64");
+  printer.disabledWrapper = true;
   PRINT("ustat");
   PRINT("statmount");
   PRINT("listmount");
@@ -2485,6 +2653,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSection(&printer, "FILE SYSTEM MONITORING", NULL);
   PrintSubsection(&printer, "Monitoring filesystem events");
 
+  printer.customWrapper = "  return inotify_init1_linux(0);\n";
   PRINT("inotify_init");
   PRINT("inotify_init1");
   PRINT("inotify_add_watch");
@@ -2493,6 +2662,8 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Filesystem-wide event notification");
 
   PRINT("fanotify_init");
+  printer.customWrapper = fanotify_markWrapper;
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("fanotify_mark");
 
   PrintSection(&printer, "SIGNALS", NULL);

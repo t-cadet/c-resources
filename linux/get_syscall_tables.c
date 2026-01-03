@@ -1430,7 +1430,11 @@ substring ReplaceLinuxType(substring linuxType)
   }
   else if (Eq_string(linuxType, substring("umode_t")))
   {
-    out = substring("unsigned short");
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("mode_t")))
+  {
+    out = substring("unsigned int");
   }
   else if (Eq_string(linuxType, substring("open_how")))
   {
@@ -1466,7 +1470,7 @@ substring ReplaceLinuxType(substring linuxType)
   }
   else if (Eq_string(linuxType, substring("flock")))
   {
-    out = substring("flock_linux");
+    out = substring("flock_t_linux");
   }
   else if (Eq_string(linuxType, substring("flock64")))
   {
@@ -1619,6 +1623,38 @@ substring ReplaceLinuxType(substring linuxType)
   else if (Eq_string(linuxType, substring("fd_set")))
   {
     out = substring("fd_set_linux");
+  }
+  else if (Eq_string(linuxType, substring("stat64")))
+  {
+    out = substring("stat64_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("stat")))
+  {
+    out = substring("stat_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("statx")))
+  {
+    out = substring("statx_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("file_attr")))
+  {
+    out = substring("file_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("uid_t")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("gid_t")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("utimbuf")))
+  {
+    out = substring("utimbuf_linux");
+  }
+  else if (Eq_string(linuxType, substring("xattr_args")))
+  {
+    out = substring("xattr_args_linux");
   }
   return out;
 }
@@ -1984,6 +2020,13 @@ char* ppoll_time64Wrapper = \
 "  return Syscall5_linux(NR_ppoll_time64_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);\n"
 "#endif\n";
 
+char* utimensat_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_utimensat_linux, dfd, filename, t, flags, 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_utimensat_time64_linux, dfd, filename, t, flags, 0);\n"
+"#endif\n";
+
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
   int maxSysIdSize = 0;
@@ -2275,53 +2318,75 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   printer.disabledWrapper = true;
   PRINT("epoll_ctl_old");
   printer.disabledWrapper = true;
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("epoll_wait_old");
 
   PrintSection(&printer, "FILE METADATA", NULL);
   PrintSubsection(&printer, "Getting file attributes and status");
 
+  printer.disabledWrapper = true;
   PRINT("stat");
+  printer.disabledWrapper = true;
   PRINT("fstat");
+  printer.disabledWrapper = true;
   PRINT("lstat");
+  printer.disabledWrapper = true;
   PRINT("stat64");
+  printer.disabledWrapper = true;
   PRINT("fstat64");
+  printer.disabledWrapper = true;
   PRINT("lstat64");
+  printer.disabledWrapper = true;
   PRINT("newfstatat");
+  printer.disabledWrapper = true;
   PRINT("fstatat64");
   PRINT("statx");
+  printer.disabledWrapper = true;
   PRINT("oldstat");
+  printer.disabledWrapper = true;
   PRINT("oldfstat");
+  printer.disabledWrapper = true;
   PRINT("oldlstat");
   PRINT("file_getattr");
 
   PrintSubsection(&printer, "Changing file permissions and ownership");
 
+  printer.customWrapper = "  return fchmodat_linux(AT_FDCWD_linux, filename, mode);\n";
   PRINT("chmod");
   PRINT("fchmod");
   PRINT("fchmodat");
   PRINT("fchmodat2");
   PRINT("umask");
+  printer.disabledWrapper = true;
   PRINT("chown");
+  printer.disabledWrapper = true;
   PRINT("fchown");
+  printer.disabledWrapper = true;
   PRINT("lchown");
+  printer.customWrapper = "  return fchownat_linux(AT_FDCWD_linux, filename, user, group, 0);\n";
   PRINT("chown32");
+  printer.customWrapper = "  return fchownat_linux(fd, \"\", user, group, AT_EMPTY_PATH_linux);\n";
   PRINT("fchown32");
+  printer.customWrapper = "  return fchownat_linux(AT_FDCWD_linux, filename, user, group, AT_SYMLINK_NOFOLLOW_linux);\n";
   PRINT("lchown32");
   PRINT("fchownat");
   PRINT("file_setattr");
 
   PrintSubsection(&printer, "File access and modification times");
 
+  printer.disabledWrapper = true;
   PRINT("utime");
+  printer.disabledWrapper = true;
   PRINT("utimes");
+  printer.disabledWrapper = true;
   PRINT("futimesat");
   printer.disabledWrapper = true;
   PRINT("utimensat");
+  printer.customWrapper = utimensat_time64Wrapper;
   PRINT("utimensat_time64");
 
   PrintSubsection(&printer, "Testing file accessibility");
 
+  printer.customWrapper = "  return faccessat_linux(AT_FDCWD_linux, filename, mode);\n";
   PRINT("access");
   PRINT("faccessat");
   PRINT("faccessat2");
@@ -2347,6 +2412,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Advisory file locking");
 
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("flock");
 
   PrintSection(&printer, "DIRECTORY & NAMESPACE OPERATIONS", NULL);

@@ -467,7 +467,6 @@ long sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned 
 #endif
 }
 // Disabled wrapper: long arm_sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned int flags);
-#if 0 // WIP
 //
 // 6. FILE DESCRIPTOR MANAGEMENT
 //
@@ -475,65 +474,71 @@ long sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned 
 long dup_linux(unsigned int fildes) {
   return Syscall1_linux(NR_dup_linux, fildes, 0);
 }
-long dup2_linux(unsigned int oldfd, unsigned int newfd) {
-  return Syscall2_linux(NR_dup2_linux, oldfd, newfd, 0);
-}
+// Disabled wrapper: long dup2_linux(unsigned int oldfd, unsigned int newfd);
 long dup3_linux(unsigned int oldfd, unsigned int newfd, int flags) {
   return Syscall3_linux(NR_dup3_linux, oldfd, newfd, flags, 0);
 }
-long fcntl_linux(unsigned int fd, unsigned int cmd, unsigned long arg) {
-  return Syscall3_linux(NR_fcntl_linux, fd, cmd, arg, 0);
-}
+// Disabled wrapper: long fcntl_linux(unsigned int fd, unsigned int cmd, unsigned long arg);
 long fcntl64_linux(unsigned int fd, unsigned int cmd, unsigned long arg) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall3_linux(NR_fcntl_linux, fd, cmd, arg, 0);
+#else
   return Syscall3_linux(NR_fcntl64_linux, fd, cmd, arg, 0);
+#endif
 }
 // 6b. Device-specific control operations
 long ioctl_linux(unsigned int fd, unsigned int cmd, unsigned long arg) {
   return Syscall3_linux(NR_ioctl_linux, fd, cmd, arg, 0);
 }
 // 6c. I/O Multiplexing
-long select_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timeval *tvp) {
-  return Syscall5_linux(NR_select_linux, n, inp, outp, exp, tvp, 0);
-}
-long _newselect_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timeval *tvp) {
-  return Syscall5_linux(NR__newselect_linux, n, inp, outp, exp, tvp, 0);
-}
-// Disabled wrapper: pselect6_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timespec_linux *tsp, void *sig);
-long pselect6_time64_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_timespec_linux *tsp, void *sig) {
+// Disabled wrapper: long select_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_old_timeval *tvp);
+// Disabled wrapper: long _newselect_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_old_timeval *tvp);
+// Disabled wrapper: pselect6_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_old_timespec_linux *tsp, void *sig);
+long pselect6_time64_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_timespec_linux *tsp, void *sig) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall6_linux(NR_pselect6_linux, n, inp, outp, exp, tsp, sig, 0);
+#else
   return Syscall6_linux(NR_pselect6_time64_linux, n, inp, outp, exp, tsp, sig, 0);
+#endif
 }
-long poll_linux(pollfd *ufds, unsigned int nfds, int timeout) {
-  return Syscall3_linux(NR_poll_linux, ufds, nfds, timeout, 0);
+long poll_linux(pollfd_linux *ufds, unsigned int nfds, int timeout) {
+  __kernel_timespec_linux ts;
+  __kernel_timespec_linux *tsp = 0;
+  if (timeout >= 0) {
+    ts.tv_sec = timeout / 1000;
+    ts.tv_nsec = (timeout % 1000) * 1000000;
+    tsp = &ts;
+  }
+  return ppoll_time64_linux(ufds, nfds, tsp, 0, _NSIG_WORDS_linux * sizeof(unsigned long));
 }
-// Disabled wrapper: long ppoll_linux(pollfd *, unsigned int, __kernel_old_timespec_linux *, const sigset_t *, unsigned long);
-long ppoll_time64_linux(pollfd *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t *sigmask, unsigned long sigsetsize) {
+// Disabled wrapper: long ppoll_linux(pollfd_linux *, unsigned int, __kernel_old_timespec_linux *, const sigset_t_linux *, unsigned long);
+long ppoll_time64_linux(pollfd_linux *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t_linux *sigmask, unsigned long sigsetsize) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall5_linux(NR_ppoll_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);
+#else
   return Syscall5_linux(NR_ppoll_time64_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);
+#endif
 }
 // 6d. Scalable I/O event notification
-long epoll_create_linux(int size) {
-  return Syscall1_linux(NR_epoll_create_linux, size, 0);
-}
+// Disabled wrapper: long epoll_create_linux(int size);
 long epoll_create1_linux(int flags) {
   return Syscall1_linux(NR_epoll_create1_linux, flags, 0);
 }
-long epoll_ctl_linux(int epfd, int op, int fd, epoll_event *event) {
+long epoll_ctl_linux(int epfd, int op, int fd, epoll_event_linux *event) {
   return Syscall4_linux(NR_epoll_ctl_linux, epfd, op, fd, event, 0);
 }
-long epoll_wait_linux(int epfd, epoll_event *events, int maxevents, int timeout) {
-  return Syscall4_linux(NR_epoll_wait_linux, epfd, events, maxevents, timeout, 0);
+long epoll_wait_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout) {
+  return epoll_pwait_linux(epfd, events, maxevents, timeout, 0, 0);
 }
-long epoll_pwait_linux(int epfd, epoll_event *events, int maxevents, int timeout, const sigset_t *sigmask, unsigned long sigsetsize) {
+long epoll_pwait_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout, const sigset_t_linux *sigmask, unsigned long sigsetsize) {
   return Syscall6_linux(NR_epoll_pwait_linux, epfd, events, maxevents, timeout, sigmask, sigsetsize, 0);
 }
-long epoll_pwait2_linux(int epfd, epoll_event *events, int maxevents, const __kernel_timespec_linux *timeout, const sigset_t *sigmask, unsigned long sigsetsize) {
+long epoll_pwait2_linux(int epfd, epoll_event_linux *events, int maxevents, const __kernel_timespec_linux *timeout, const sigset_t_linux *sigmask, unsigned long sigsetsize) {
   return Syscall6_linux(NR_epoll_pwait2_linux, epfd, events, maxevents, timeout, sigmask, sigsetsize, 0);
 }
-long epoll_ctl_old_linux(int epfd, int op, int fd, epoll_event *event) {
-  return Syscall4_linux(NR_epoll_ctl_old_linux, epfd, op, fd, event, 0);
-}
-long epoll_wait_old_linux(int epfd, epoll_event *events, int maxevents, int timeout) {
-  return Syscall4_linux(NR_epoll_wait_old_linux, epfd, events, maxevents, timeout, 0);
-}
+// Disabled wrapper: long epoll_ctl_old_linux(int epfd, int op, int fd, epoll_event_linux *event);
+// Disabled wrapper: long epoll_wait_old_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout);
+#if 0 // WIP
 //
 // 7. FILE METADATA
 //
@@ -895,7 +900,7 @@ long rt_tgsigqueueinfo_linux(int tgid, int pid, int sig, siginfo_t *uinfo) {
 long sigprocmask_linux(int how, old_sigset_t *set, old_sigset_t *oset) {
   return Syscall3_linux(NR_sigprocmask_linux, how, set, oset, 0);
 }
-long rt_sigprocmask_linux(int how, sigset_t *set, sigset_t *oset, unsigned long sigsetsize) {
+long rt_sigprocmask_linux(int how, sigset_t_linux *set, sigset_t_linux *oset, unsigned long sigsetsize) {
   return Syscall4_linux(NR_rt_sigprocmask_linux, how, set, oset, sigsetsize, 0);
 }
 long sgetmask_linux(void) {
@@ -908,19 +913,19 @@ long ssetmask_linux(int newmask) {
 long sigpending_linux(old_sigset_t *uset) {
   return Syscall1_linux(NR_sigpending_linux, uset, 0);
 }
-long rt_sigpending_linux(sigset_t *set, unsigned long sigsetsize) {
+long rt_sigpending_linux(sigset_t_linux *set, unsigned long sigsetsize) {
   return Syscall2_linux(NR_rt_sigpending_linux, set, sigsetsize, 0);
 }
 long sigsuspend_linux(old_sigset_t mask) {
   return Syscall1_linux(NR_sigsuspend_linux, mask, 0);
 }
-long rt_sigsuspend_linux(sigset_t *unewset, unsigned long sigsetsize) {
+long rt_sigsuspend_linux(sigset_t_linux *unewset, unsigned long sigsetsize) {
   return Syscall2_linux(NR_rt_sigsuspend_linux, unewset, sigsetsize, 0);
 }
 long pause_linux(void) {
   return Syscall0_linux(NR_pause_linux, 0);
 }
-// Disabled wrapper: long rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
+// Disabled wrapper: long rt_sigtimedwait_linux(const sigset_t_linux *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
 long rt_sigtimedwait_time64_linux(compat_sigset_t *uthese, compat_siginfo *uinfo, __kernel_timespec_linux *uts, compat_size_t sigsetsize) {
   return Syscall4_linux(NR_rt_sigtimedwait_time64_linux, uthese, uinfo, uts, sigsetsize, 0);
 }
@@ -935,10 +940,10 @@ long rt_sigreturn_linux(pt_regs *regs) {
   return Syscall1_linux(NR_rt_sigreturn_linux, regs, 0);
 }
 // 11f. Signal delivery via file descriptors
-long signalfd_linux(int ufd, sigset_t *user_mask, unsigned long sizemask) {
+long signalfd_linux(int ufd, sigset_t_linux *user_mask, unsigned long sizemask) {
   return Syscall3_linux(NR_signalfd_linux, ufd, user_mask, sizemask, 0);
 }
-long signalfd4_linux(int ufd, sigset_t *user_mask, unsigned long sizemask, int flags) {
+long signalfd4_linux(int ufd, sigset_t_linux *user_mask, unsigned long sizemask, int flags) {
   return Syscall4_linux(NR_signalfd4_linux, ufd, user_mask, sizemask, flags, 0);
 }
 //
@@ -1054,19 +1059,19 @@ long socket_linux(int family, int type, int protocol) {
 long socketpair_linux(int family, int type, int protocol, int *usockvec) {
   return Syscall4_linux(NR_socketpair_linux, family, type, protocol, usockvec, 0);
 }
-long bind_linux(int fd, sockaddr *umyaddr, int addrlen) {
+long bind_linux(int fd, sockaddr_linux *umyaddr, int addrlen) {
   return Syscall3_linux(NR_bind_linux, fd, umyaddr, addrlen, 0);
 }
 long listen_linux(int fd, int backlog) {
   return Syscall2_linux(NR_listen_linux, fd, backlog, 0);
 }
-long accept_linux(int fd, sockaddr *upeer_sockaddr, int *upeer_addrlen) {
+long accept_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen) {
   return Syscall3_linux(NR_accept_linux, fd, upeer_sockaddr, upeer_addrlen, 0);
 }
-long accept4_linux(int fd, sockaddr *upeer_sockaddr, int *upeer_addrlen, int flags) {
+long accept4_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen, int flags) {
   return Syscall4_linux(NR_accept4_linux, fd, upeer_sockaddr, upeer_addrlen, flags, 0);
 }
-long connect_linux(int fd, sockaddr *uservaddr, int addrlen) {
+long connect_linux(int fd, sockaddr_linux *uservaddr, int addrlen) {
   return Syscall3_linux(NR_connect_linux, fd, uservaddr, addrlen, 0);
 }
 long shutdown_linux(int fd, int how) {
@@ -1079,7 +1084,7 @@ long socketcall_linux(int call, unsigned long *args) {
 long send_linux(int fd, void *buff, unsigned long len, unsigned int flags) {
   return Syscall4_linux(NR_send_linux, fd, buff, len, flags, 0);
 }
-long sendto_linux(int fd, void *buff, unsigned long len, unsigned int flags, sockaddr *addr, int addr_len) {
+long sendto_linux(int fd, void *buff, unsigned long len, unsigned int flags, sockaddr_linux *addr, int addr_len) {
   return Syscall6_linux(NR_sendto_linux, fd, buff, len, flags, addr, addr_len, 0);
 }
 long sendmsg_linux(int fd, user_msghdr *msg, unsigned flags) {
@@ -1091,7 +1096,7 @@ long sendmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags) {
 long recv_linux(int fd, void *ubuf, unsigned long size, unsigned int flags) {
   return Syscall4_linux(NR_recv_linux, fd, ubuf, size, flags, 0);
 }
-long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr *addr, int *addr_len) {
+long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr_linux *addr, int *addr_len) {
   return Syscall6_linux(NR_recvfrom_linux, fd, ubuf, size, flags, addr, addr_len, 0);
 }
 long recvmsg_linux(int fd, user_msghdr *msg, unsigned flags) {
@@ -1108,10 +1113,10 @@ long getsockopt_linux(int fd, int level, int optname, char *optval, int *optlen)
 long setsockopt_linux(int fd, int level, int optname, char *optval, int optlen) {
   return Syscall5_linux(NR_setsockopt_linux, fd, level, optname, optval, optlen, 0);
 }
-long getsockname_linux(int fd, sockaddr *usockaddr, int *usockaddr_len) {
+long getsockname_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len) {
   return Syscall3_linux(NR_getsockname_linux, fd, usockaddr, usockaddr_len, 0);
 }
-long getpeername_linux(int fd, sockaddr *usockaddr, int *usockaddr_len) {
+long getpeername_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len) {
   return Syscall3_linux(NR_getpeername_linux, fd, usockaddr, usockaddr_len, 0);
 }
 //

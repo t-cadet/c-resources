@@ -1452,6 +1452,174 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("long");
   }
+  else if (Eq_string(linuxType, substring("cc_t")))
+  {
+    out = substring("unsigned char");
+  }
+  else if (Eq_string(linuxType, substring("speed_t")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("tcflag_t")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("flock")))
+  {
+    out = substring("flock_linux");
+  }
+  else if (Eq_string(linuxType, substring("flock64")))
+  {
+    out = substring("flock64_linux");
+  }
+  else if (Eq_string(linuxType, substring("f_owner_ex")))
+  {
+    out = substring("f_owner_ex_linux");
+  }
+  else if (Eq_string(linuxType, substring("delegation")))
+  {
+    out = substring("delegation_linux");
+  }
+  else if (Eq_string(linuxType, substring("winsize")))
+  {
+    out = substring("winsize_linux");
+  }
+  else if (Eq_string(linuxType, substring("termios")))
+  {
+    out = substring("termios_linux");
+  }
+  else if (Eq_string(linuxType, substring("termios2")))
+  {
+    out = substring("termios2_linux");
+  }
+  else if (Eq_string(linuxType, substring("fsxattr")))
+  {
+    out = substring("fsxattr_linux");
+  }
+  else if (Eq_string(linuxType, substring("fdset")))
+  {
+    out = substring("fdset_linux");
+  }
+  else if (Eq_string(linuxType, substring("sel_arg_struct")))
+  {
+    out = substring("sel_arg_struct_linux");
+  }
+  else if (Eq_string(linuxType, substring("pollfd")))
+  {
+    out = substring("pollfd_linux");
+  }
+  else if (Eq_string(linuxType, substring("sigset_argpack")))
+  {
+    out = substring("sigset_argpack_linux");
+  }
+  else if (Eq_string(linuxType, substring("epoll_event")))
+  {
+    out = substring("epoll_event_linux");
+  }
+  else if (Eq_string(linuxType, substring("file_dedupe_range")))
+  {
+    out = substring("file_dedupe_range_linux");
+  }
+  else if (Eq_string(linuxType, substring("file_clone_range")))
+  {
+    out = substring("file_clone_range_linux");
+  }
+  else if (Eq_string(linuxType, substring("fiemap_extent")))
+  {
+    out = substring("fiemap_extent_linux");
+  }
+  else if (Eq_string(linuxType, substring("fiemap")))
+  {
+    out = substring("fiemap_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_range")))
+  {
+    out = substring("uffdio_range_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_api")))
+  {
+    out = substring("uffdio_api_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_register")))
+  {
+    out = substring("uffdio_register_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_copy")))
+  {
+    out = substring("uffdio_copy_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_zeropage")))
+  {
+    out = substring("uffdio_zeropage_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_writeprotect")))
+  {
+    out = substring("uffdio_writeprotect_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_continue")))
+  {
+    out = substring("uffdio_continue_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_poison")))
+  {
+    out = substring("uffdio_poison_linux");
+  }
+  else if (Eq_string(linuxType, substring("uffdio_move")))
+  {
+    out = substring("uffdio_move_linux");
+  }
+  else if (Eq_string(linuxType, substring("pidfd_info")))
+  {
+    out = substring("pidfd_info_linux");
+  }
+  else if (Eq_string(linuxType, substring("sockaddr")))
+  {
+    out = substring("sockaddr_linux");
+  }
+  else if (Eq_string(linuxType, substring("sockaddr_storage")))
+  {
+    out = substring("sockaddr_storage_linux");
+  }
+  else if (Eq_string(linuxType, substring("ifmap")))
+  {
+    out = substring("ifmap_linux");
+  }
+  else if (Eq_string(linuxType, substring("if_settings")))
+  {
+    out = substring("if_settings_linux");
+  }
+  else if (Eq_string(linuxType, substring("ifreq")))
+  {
+    out = substring("ifreq_linux");
+  }
+  else if (Eq_string(linuxType, substring("ifconf")))
+  {
+    out = substring("ifconf_linux");
+  }
+  else if (Eq_string(linuxType, substring("loop_info64")))
+  {
+    out = substring("loop_info64_linux");
+  }
+  else if (Eq_string(linuxType, substring("loop_config")))
+  {
+    out = substring("loop_config_linux");
+  }
+  else if (Eq_string(linuxType, substring("tun_pi")))
+  {
+    out = substring("tun_pi_linux");
+  }
+  else if (Eq_string(linuxType, substring("epoll_params")))
+  {
+    out = substring("epoll_params_linux");
+  }
+  else if (Eq_string(linuxType, substring("sigset_t")))
+  {
+    out = substring("sigset_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("fd_set")))
+  {
+    out = substring("fd_set_linux");
+  }
   return out;
 }
 
@@ -1785,6 +1953,37 @@ char* sync_file_rangeWrapper = \
 "  return Syscall6_linux(NR_sync_file_range_linux, fd, flags, LO32_bits(offset), HI32_bits(offset), LO32_bits(nbytes), HI32_bits(nbytes), 0);\n"
 "#endif\n";
 
+char* fcntl64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall3_linux(NR_fcntl_linux, fd, cmd, arg, 0);\n"
+"#else\n"
+"  return Syscall3_linux(NR_fcntl64_linux, fd, cmd, arg, 0);\n"
+"#endif\n";
+
+char*  pselect6_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall6_linux(NR_pselect6_linux, n, inp, outp, exp, tsp, sig, 0);\n"
+"#else\n"
+"  return Syscall6_linux(NR_pselect6_time64_linux, n, inp, outp, exp, tsp, sig, 0);\n"
+"#endif\n";
+
+char* pollWrapper = \
+"  __kernel_timespec_linux ts;\n"
+"  __kernel_timespec_linux *tsp = 0;\n"
+"  if (timeout >= 0) {\n"
+"    ts.tv_sec = timeout / 1000;\n"
+"    ts.tv_nsec = (timeout % 1000) * 1000000;\n"
+"    tsp = &ts;\n"
+"  }\n"
+"  return ppoll_time64_linux(ufds, nfds, tsp, 0, _NSIG_WORDS_linux * sizeof(unsigned long));\n";
+
+char* ppoll_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall5_linux(NR_ppoll_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);\n"
+"#else\n"
+"  return Syscall5_linux(NR_ppoll_time64_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);\n"
+"#endif\n";
+
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
   int maxSysIdSize = 0;
@@ -2028,16 +2227,18 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   printer.customWrapper = sync_file_rangeWrapper;
   PRINT("sync_file_range");
   printer.disabledWrapper = true;
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("arm_sync_file_range");
 
   PrintSection(&printer, "FILE DESCRIPTOR MANAGEMENT", NULL);
   PrintSubsection(&printer, "Duplicating and controlling file descriptors");
 
   PRINT("dup");
+  printer.disabledWrapper = true;
   PRINT("dup2");
   PRINT("dup3");
+  printer.disabledWrapper = true;
   PRINT("fcntl");
+  printer.customWrapper = fcntl64Wrapper;
   PRINT("fcntl64");
 
   PrintSubsection(&printer, "Device-specific control operations");
@@ -2046,25 +2247,35 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "I/O Multiplexing");
 
+  printer.disabledWrapper = true;
   PRINT("select");
+  printer.disabledWrapper = true;
   PRINT("_newselect");
   printer.disabledWrapper = true;
   PRINT("pselect6");
+  printer.customWrapper = pselect6_time64Wrapper;
   PRINT("pselect6_time64");
+  printer.customWrapper = pollWrapper;
   PRINT("poll");
   printer.disabledWrapper = true;
   PRINT("ppoll");
+  printer.customWrapper = ppoll_time64Wrapper;
   PRINT("ppoll_time64");
 
   PrintSubsection(&printer, "Scalable I/O event notification");
 
+  printer.disabledWrapper = true;
   PRINT("epoll_create");
   PRINT("epoll_create1");
   PRINT("epoll_ctl");
+  printer.customWrapper = "  return epoll_pwait_linux(epfd, events, maxevents, timeout, 0, 0);\n";
   PRINT("epoll_wait");
   PRINT("epoll_pwait");
   PRINT("epoll_pwait2");
+  printer.disabledWrapper = true;
   PRINT("epoll_ctl_old");
+  printer.disabledWrapper = true;
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("epoll_wait_old");
 
   PrintSection(&printer, "FILE METADATA", NULL);

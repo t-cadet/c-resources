@@ -142,35 +142,35 @@ long fsync_linux(unsigned int fd);
 long fdatasync_linux(unsigned int fd);
 long sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned int flags);
 // Disabled wrapper: long arm_sync_file_range_linux(int fd, long long offset, long long nbytes, unsigned int flags);
-#if 0 // WIP
 //
 // 6. FILE DESCRIPTOR MANAGEMENT
 //
 // 6a. Duplicating and controlling file descriptors
 long dup_linux(unsigned int fildes);
-long dup2_linux(unsigned int oldfd, unsigned int newfd);
+// Disabled wrapper: long dup2_linux(unsigned int oldfd, unsigned int newfd);
 long dup3_linux(unsigned int oldfd, unsigned int newfd, int flags);
-long fcntl_linux(unsigned int fd, unsigned int cmd, unsigned long arg);
+// Disabled wrapper: long fcntl_linux(unsigned int fd, unsigned int cmd, unsigned long arg);
 long fcntl64_linux(unsigned int fd, unsigned int cmd, unsigned long arg);
 // 6b. Device-specific control operations
 long ioctl_linux(unsigned int fd, unsigned int cmd, unsigned long arg);
 // 6c. I/O Multiplexing
-long select_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timeval *tvp);
-long _newselect_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timeval *tvp);
-// Disabled wrapper: pselect6_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timespec_linux *tsp, void *sig);
-long pselect6_time64_linux(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_timespec_linux *tsp, void *sig);
-long poll_linux(pollfd *ufds, unsigned int nfds, int timeout);
-// Disabled wrapper: long ppoll_linux(pollfd *, unsigned int, __kernel_old_timespec_linux *, const sigset_t *, unsigned long);
-long ppoll_time64_linux(pollfd *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t *sigmask, unsigned long sigsetsize);
+// Disabled wrapper: long select_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_old_timeval *tvp);
+// Disabled wrapper: long _newselect_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_old_timeval *tvp);
+// Disabled wrapper: pselect6_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_old_timespec_linux *tsp, void *sig);
+long pselect6_time64_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_timespec_linux *tsp, void *sig);
+long poll_linux(pollfd_linux *ufds, unsigned int nfds, int timeout);
+// Disabled wrapper: long ppoll_linux(pollfd_linux *, unsigned int, __kernel_old_timespec_linux *, const sigset_t_linux *, unsigned long);
+long ppoll_time64_linux(pollfd_linux *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t_linux *sigmask, unsigned long sigsetsize);
 // 6d. Scalable I/O event notification
-long epoll_create_linux(int size);
+// Disabled wrapper: long epoll_create_linux(int size);
 long epoll_create1_linux(int flags);
-long epoll_ctl_linux(int epfd, int op, int fd, epoll_event *event);
-long epoll_wait_linux(int epfd, epoll_event *events, int maxevents, int timeout);
-long epoll_pwait_linux(int epfd, epoll_event *events, int maxevents, int timeout, const sigset_t *sigmask, unsigned long sigsetsize);
-long epoll_pwait2_linux(int epfd, epoll_event *events, int maxevents, const __kernel_timespec_linux *timeout, const sigset_t *sigmask, unsigned long sigsetsize);
-long epoll_ctl_old_linux(int epfd, int op, int fd, epoll_event *event);
-long epoll_wait_old_linux(int epfd, epoll_event *events, int maxevents, int timeout);
+long epoll_ctl_linux(int epfd, int op, int fd, epoll_event_linux *event);
+long epoll_wait_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout);
+long epoll_pwait_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout, const sigset_t_linux *sigmask, unsigned long sigsetsize);
+long epoll_pwait2_linux(int epfd, epoll_event_linux *events, int maxevents, const __kernel_timespec_linux *timeout, const sigset_t_linux *sigmask, unsigned long sigsetsize);
+// Disabled wrapper: long epoll_ctl_old_linux(int epfd, int op, int fd, epoll_event_linux *event);
+// Disabled wrapper: long epoll_wait_old_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout);
+#if 0 // WIP
 //
 // 7. FILE METADATA
 //
@@ -314,24 +314,24 @@ long rt_sigqueueinfo_linux(int pid, int sig, siginfo_t *uinfo);
 long rt_tgsigqueueinfo_linux(int tgid, int pid, int sig, siginfo_t *uinfo);
 // 11c. Blocking and unblocking signals
 long sigprocmask_linux(int how, old_sigset_t *set, old_sigset_t *oset);
-long rt_sigprocmask_linux(int how, sigset_t *set, sigset_t *oset, unsigned long sigsetsize);
+long rt_sigprocmask_linux(int how, sigset_t_linux *set, sigset_t_linux *oset, unsigned long sigsetsize);
 long sgetmask_linux(void);
 long ssetmask_linux(int newmask);
 // 11d. Waiting for and querying signals
 long sigpending_linux(old_sigset_t *uset);
-long rt_sigpending_linux(sigset_t *set, unsigned long sigsetsize);
+long rt_sigpending_linux(sigset_t_linux *set, unsigned long sigsetsize);
 long sigsuspend_linux(old_sigset_t mask);
-long rt_sigsuspend_linux(sigset_t *unewset, unsigned long sigsetsize);
+long rt_sigsuspend_linux(sigset_t_linux *unewset, unsigned long sigsetsize);
 long pause_linux(void);
-// Disabled wrapper: long rt_sigtimedwait_linux(const sigset_t *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
+// Disabled wrapper: long rt_sigtimedwait_linux(const sigset_t_linux *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
 long rt_sigtimedwait_time64_linux(compat_sigset_t *uthese, compat_siginfo *uinfo, __kernel_timespec_linux *uts, compat_size_t sigsetsize);
 // 11e. Alternate signal stack and return from handlers
 long sigaltstack_linux(const sigaltstack *uss, sigaltstack *uoss);
 long sigreturn_linux(pt_regs *regs);
 long rt_sigreturn_linux(pt_regs *regs);
 // 11f. Signal delivery via file descriptors
-long signalfd_linux(int ufd, sigset_t *user_mask, unsigned long sizemask);
-long signalfd4_linux(int ufd, sigset_t *user_mask, unsigned long sizemask, int flags);
+long signalfd_linux(int ufd, sigset_t_linux *user_mask, unsigned long sizemask);
+long signalfd4_linux(int ufd, sigset_t_linux *user_mask, unsigned long sizemask, int flags);
 //
 // 12. PIPES & FIFOs
 //
@@ -383,28 +383,28 @@ long eventfd2_linux(unsigned int count, int flags);
 // 14a. Creating and configuring sockets
 long socket_linux(int family, int type, int protocol);
 long socketpair_linux(int family, int type, int protocol, int *usockvec);
-long bind_linux(int fd, sockaddr *umyaddr, int addrlen);
+long bind_linux(int fd, sockaddr_linux *umyaddr, int addrlen);
 long listen_linux(int fd, int backlog);
-long accept_linux(int fd, sockaddr *upeer_sockaddr, int *upeer_addrlen);
-long accept4_linux(int fd, sockaddr *upeer_sockaddr, int *upeer_addrlen, int flags);
-long connect_linux(int fd, sockaddr *uservaddr, int addrlen);
+long accept_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen);
+long accept4_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen, int flags);
+long connect_linux(int fd, sockaddr_linux *uservaddr, int addrlen);
 long shutdown_linux(int fd, int how);
 long socketcall_linux(int call, unsigned long *args);
 // 14b. Sending and receiving data on sockets
 long send_linux(int fd, void *buff, unsigned long len, unsigned int flags);
-long sendto_linux(int fd, void *buff, unsigned long len, unsigned int flags, sockaddr *addr, int addr_len);
+long sendto_linux(int fd, void *buff, unsigned long len, unsigned int flags, sockaddr_linux *addr, int addr_len);
 long sendmsg_linux(int fd, user_msghdr *msg, unsigned flags);
 long sendmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags);
 long recv_linux(int fd, void *ubuf, unsigned long size, unsigned int flags);
-long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr *addr, int *addr_len);
+long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr_linux *addr, int *addr_len);
 long recvmsg_linux(int fd, user_msghdr *msg, unsigned flags);
 // Disabled wrapper: long recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
 long recvmmsg_time64_linux(int fd, mmsghdr *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout);
 // 14c. Getting and setting socket options
 long getsockopt_linux(int fd, int level, int optname, char *optval, int *optlen);
 long setsockopt_linux(int fd, int level, int optname, char *optval, int optlen);
-long getsockname_linux(int fd, sockaddr *usockaddr, int *usockaddr_len);
-long getpeername_linux(int fd, sockaddr *usockaddr, int *usockaddr_len);
+long getsockname_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len);
+long getpeername_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len);
 //
 // 15. ASYNCHRONOUS I/O
 //

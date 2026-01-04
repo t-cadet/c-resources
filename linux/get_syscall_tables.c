@@ -808,6 +808,11 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
 
   fprintf(stderr, "(LoadSyscallPrototypes) INFO: retrieved %d prototypes from the linux file, %d of which have a syscall number,\n", prototypeCount, prototypeCountWithNumber);
 
+  // Const
+  Get_htable(syscallTable, substring("futex_wait"))->prototype = substring("asmlinkage long sys_futex_wait(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, const __kernel_timespec_linux *timespec, clockid_t clockid);\n");
+  Get_htable(syscallTable, substring("futex_waitv"))->prototype = substring("asmlinkage long sys_futex_waitv(const futex_waitv *waiters, unsigned int nr_futexes, unsigned int flags, const __kernel_timespec_linux *timeout, clockid_t clockid);\n");
+  Get_htable(syscallTable, substring("futex_requeue"))->prototype = substring("asmlinkage long sys_futex_requeue(const futex_waitv *waiters, unsigned int flags, int nr_wake, int nr_requeue);\n");
+
   // Change pointer types
   Get_htable(syscallTable, substring("munmap"))->prototype = substring("asmlinkage long sys_munmap(void *addr, unsigned long len);\n");
   Get_htable(syscallTable, substring("mremap"))->prototype = substring("asmlinkage long sys_mremap(void *addr, unsigned long old_len, unsigned long new_len, unsigned long flags, void *new_addr);\n");
@@ -824,12 +829,18 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("set_mempolicy_home_node"))->prototype = substring("asmlinkage long sys_set_mempolicy_home_node(void *start, unsigned long len, unsigned long home_node, unsigned long flags);\n");
   Get_htable(syscallTable, substring("map_shadow_stack"))->prototype = substring("asmlinkage long sys_map_shadow_stack(void *addr, unsigned long size, unsigned int flags);\n");
   Get_htable(syscallTable, substring("brk"))->prototype = substring("asmlinkage long sys_brk(void* brk);\n");
+  Get_htable(syscallTable, substring("set_robust_list"))->prototype = substring("asmlinkage long sys_set_robust_list(robust_list_head *head);\n");
 
   Get_htable(syscallTable, substring("read"))->prototype = substring("asmlinkage long sys_read(unsigned int fd, void *buf, unsigned long count);\n");
   Get_htable(syscallTable, substring("pread64"))->prototype = substring("asmlinkage long sys_pread64(unsigned int fd, void *buf, unsigned long count, long long pos);\n");
   Get_htable(syscallTable, substring("write"))->prototype = substring("asmlinkage long sys_write(unsigned int fd, const void *buf, unsigned long count);\n");
   Get_htable(syscallTable, substring("pwrite64"))->prototype = substring("asmlinkage long sys_pwrite64(unsigned int fd, const void *buf, unsigned long count, long long pos);\n");
   Get_htable(syscallTable, substring("mincore"))->prototype = substring("asmlinkage long sys_mincore(const void* start, unsigned long len, void *vec);\n");
+
+  Get_htable(syscallTable, substring("shmat"))->prototype = substring("asmlinkage long sys_shmat(int shmid, const void *shmaddr, int shmflg);\n");
+  Get_htable(syscallTable, substring("shmdt"))->prototype = substring("asmlinkage long sys_shmdt(const void *shmaddr);\n");
+  Get_htable(syscallTable, substring("msgsnd"))->prototype = substring("asmlinkage long sys_msgsnd(int msqid, const void *msgp, unsigned long msgsz, int msgflg);\n");
+  Get_htable(syscallTable, substring("msgrcv"))->prototype = substring("asmlinkage long sys_msgrcv(int msqid, void *msgp, unsigned long msgsz, long msgtyp, int msgflg);\n");
 
   // infer sigsetsize from mask arg
   Get_htable(syscallTable, substring("epoll_pwait"))->prototype = substring("asmlinkage long sys_epoll_pwait(int epfd, epoll_event_linux *events, int maxevents, int timeout, const unsigned long long *sigmask);\n");
@@ -941,8 +952,8 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("readdir"))->prototype = substring("asmlinkage long sys_readdir(unsigned int fd, struct old_linux_dirent __user *dirent, unsigned int count);\n");
   Get_htable(syscallTable, substring("umount2"))->prototype = substring("asmlinkage long sys_umount2(char __user *name, int flags);\n");
   Get_htable(syscallTable, substring("semtimedop_time64"))->prototype = substring("asmlinkage long sys_semtimedop_time64(int semid, struct sembuf __user *tsops, unsigned int nsops, const struct __kernel_timespec __user *timeout);\n");
-  Get_htable(syscallTable, substring("mq_timedsend_time64"))->prototype = substring("asmlinkage long sys_mq_timedsend_time64(mqd_t mqdes, const char __user *u_msg_ptr, size_t msg_len, unsigned int msg_prio, const struct __kernel_timespec __user *u_abs_timeout);\n");
-  Get_htable(syscallTable, substring("mq_timedreceive_time64"))->prototype = substring("asmlinkage long sys_mq_timedreceive_time64(mqd_t mqdes, char __user *u_msg_ptr, size_t msg_len, unsigned int __user *u_msg_prio, const struct __kernel_timespec __user *u_abs_timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedsend_time64"))->prototype = substring("asmlinkage long sys_mq_timedsend_time64(mqd_t mqdes, const void __user *msg_ptr, size_t msg_len, unsigned int msg_prio, const struct __kernel_timespec __user *u_abs_timeout);\n");
+  Get_htable(syscallTable, substring("mq_timedreceive_time64"))->prototype = substring("asmlinkage long sys_mq_timedreceive_time64(mqd_t mqdes, void __user *msg_ptr, size_t msg_len, unsigned int __user *u_msg_prio, const struct __kernel_timespec __user *u_abs_timeout);\n");
   Get_htable(syscallTable, substring("futex_time64"))->prototype = substring("asmlinkage long sys_futex_time64(u32 __user *uaddr, int op, u32 val, const struct __kernel_timespec __user *utime, u32 __user *uaddr2, u32 val3);\n");
   Get_htable(syscallTable, substring("recvmmsg_time64"))->prototype = substring("asmlinkage long sys_recvmmsg_time64(int fd, struct mmsghdr __user *mmsg, unsigned int vlen, unsigned int flags, struct __kernel_timespec __user *timeout);\n");
   Get_htable(syscallTable, substring("io_pgetevents_time64"))->prototype = substring("asmlinkage long sys_io_pgetevents_time64(aio_context_t ctx_id, long min_nr, long nr, struct io_event __user *events, struct __kernel_timespec __user *timeout, const struct __aio_sigset __user *sig);\n");
@@ -1878,6 +1889,70 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("stack_t_linux");
   }
+  else if (Eq_string(linuxType, substring("key_t")))
+  {
+    out = substring("int");
+  }
+  else if (Eq_string(linuxType, substring("ipc_perm")))
+  {
+    out = substring("ipc_perm_linux");
+  }
+  else if (Eq_string(linuxType, substring("shmid_ds")))
+  {
+    out = substring("shmid_ds_linux");
+  }
+  else if (Eq_string(linuxType, substring("shminfo")))
+  {
+    out = substring("shminfo_linux");
+  }
+  else if (Eq_string(linuxType, substring("shm_info")))
+  {
+    out = substring("shm_info_linux");
+  }
+  else if (Eq_string(linuxType, substring("msqid_ds")))
+  {
+    out = substring("msqid_ds_linux");
+  }
+  else if (Eq_string(linuxType, substring("msginfo")))
+  {
+    out = substring("msginfo_linux");
+  }
+  else if (Eq_string(linuxType, substring("sembuf")))
+  {
+    out = substring("sembuf_linux");
+  }
+  else if (Eq_string(linuxType, substring("sembuf")))
+  {
+    out = substring("sembuf_linux");
+  }
+  else if (Eq_string(linuxType, substring("semid_ds")))
+  {
+    out = substring("semid_ds_linux");
+  }
+  else if (Eq_string(linuxType, substring("seminfo")))
+  {
+    out = substring("seminfo_linux");
+  }
+  else if (Eq_string(linuxType, substring("mq_attr")))
+  {
+    out = substring("mq_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("futex_waitv")))
+  {
+    out = substring("futex_waitv_linux");
+  }
+  else if (Eq_string(linuxType, substring("robust_list")))
+  {
+    out = substring("robust_list_linux");
+  }
+  else if (Eq_string(linuxType, substring("robust_list_head")))
+  {
+    out = substring("robust_list_head_linux");
+  }
+  else if (Eq_string(linuxType, substring("clockid_t")))
+  {
+    out = substring("int");
+  }
   return out;
 }
 
@@ -2309,6 +2384,34 @@ char* rt_sigtimedwait_time64Wrapper = \
 "#else\n"
 "  return Syscall4_linux(NR_rt_sigtimedwait_time64_linux, uthese, uinfo, uts, sizeof(*uthese), 0);\n"
 "#endif\n";
+
+char* semtimedop_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_semtimedop_linux, semid, tsops, nsops, timeout, 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_semtimedop_time64_linux, semid, tsops, nsops, timeout, 0);\n"
+"#endif\n";
+
+char* mq_timedsend_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall5_linux(NR_mq_timedsend_linux, mqdes, u_msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);\n"
+"#else\n"
+"  return Syscall5_linux(NR_mq_timedsend_time64_linux, mqdes, u_msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);\n"
+"#endif\n";
+
+char* mq_timedreceive_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall5_linux(NR_mq_timedreceive_linux, mqdes, u_msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);\n"
+"#else\n"
+"  return Syscall5_linux(NR_mq_timedreceive_time64_linux, mqdes, u_msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);\n"
+"#endif\n";
+
+char* futex_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall6_linux(NR_futex_linux, uaddr, op, val, utime, uaddr2, val3, 0);\n"
+"#endif\n"
+"  return Syscall6_linux(NR_futex_time64_linux, uaddr, op, val, utime, uaddr2, val3, 0);\n"
+"#end\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
@@ -2877,6 +2980,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSection(&printer, "PIPES & FIFOs", NULL);
 
+  printer.customWrapper = "  return pipe2_linux(fildes, 0);\n";
   PRINT("pipe");
   PRINT("pipe2");
 
@@ -2886,6 +2990,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("shmget");
   PRINT("shmat");
   PRINT("shmdt");
+  printer.customWrapper = "  return Syscall3_linux(NR_shmctl_linux, shmid, cmd | IPC_64_linux, buf, 0);\n";
   PRINT("shmctl");
 
   PrintSubsection(&printer, "System V IPC - Message Queues");
@@ -2893,15 +2998,19 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("msgget");
   PRINT("msgsnd");
   PRINT("msgrcv");
+  printer.customWrapper = "  return Syscall3_linux(NR_msgctl_linux, msqid, cmd | IPC_64_linux, buf, 0);\n";
   PRINT("msgctl");
 
   PrintSubsection(&printer, "System V IPC - Semaphores");
 
   PRINT("semget");
+  printer.customWrapper = "  return semtimedop_time64_linux(semid, sops, nsops, 0);\n";
   PRINT("semop");
+  printer.customWrapper = "  return Syscall4_linux(NR_semctl_linux, semid, semnum, cmd | IPC_64_linux, arg, 0);\n";
   PRINT("semctl");
   printer.disabledWrapper = true;
   PRINT("semtimedop");
+  printer.customWrapper = semtimedop_time64Wrapper;
   PRINT("semtimedop_time64");
 
   PrintSubsection(&printer, "POSIX Message Queues");
@@ -2910,9 +3019,11 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("mq_unlink");
   printer.disabledWrapper = true;
   PRINT("mq_timedsend");
+  printer.customWrapper = mq_timedsend_time64Wrapper;
   PRINT("mq_timedsend_time64");
   printer.disabledWrapper = true;
   PRINT("mq_timedreceive");
+  printer.customWrapper = mq_timedreceive_time64Wrapper;
   PRINT("mq_timedreceive_time64");
   PRINT("mq_notify");
   PRINT("mq_getsetattr");
@@ -2921,16 +3032,19 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   printer.disabledWrapper = true;
   PRINT("futex");
+  printer.customWrapper = futex_time64Wrapper;
   PRINT("futex_time64");
   PRINT("futex_wait");
   PRINT("futex_wake");
   PRINT("futex_waitv");
   PRINT("futex_requeue");
+  printer.customWrapper = "  return Syscall2_linux(NR_set_robust_list_linux, head, sizeof(*head), 0);\n";
   PRINT("set_robust_list");
   PRINT("get_robust_list");
 
   PrintSubsection(&printer, "Synchronization Primitives - Event Notification");
 
+  printer.customWrapper = "  return eventfd2_linux(count, 0);\n";
   PRINT("eventfd");
   PRINT("eventfd2");
 

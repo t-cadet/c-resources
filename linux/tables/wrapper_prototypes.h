@@ -341,39 +341,39 @@ long pipe2_linux(int *fildes, int flags);
 // 13. INTER-PROCESS COMMUNICATION
 //
 // 13a. System V IPC - Shared Memory
-long shmget_linux(key_t key, unsigned long size, int flag);
-long shmat_linux(int shmid, char *shmaddr, int shmflg);
-long shmdt_linux(char *shmaddr);
-long shmctl_linux(int shmid, int cmd, shmid_ds *buf);
+long shmget_linux(int key, unsigned long size, int flag);
+long shmat_linux(int shmid, const void *shmaddr, int shmflg);
+long shmdt_linux(const void *shmaddr);
+long shmctl_linux(int shmid, int cmd, shmid_ds_linux *buf);
 // 13b. System V IPC - Message Queues
-long msgget_linux(key_t key, int msgflg);
-long msgsnd_linux(int msqid, msgbuf *msgp, unsigned long msgsz, int msgflg);
-long msgrcv_linux(int msqid, msgbuf *msgp, unsigned long msgsz, long msgtyp, int msgflg);
-long msgctl_linux(int msqid, int cmd, msqid_ds *buf);
+long msgget_linux(int key, int msgflg);
+long msgsnd_linux(int msqid, const void *msgp, unsigned long msgsz, int msgflg);
+long msgrcv_linux(int msqid, void *msgp, unsigned long msgsz, long msgtyp, int msgflg);
+long msgctl_linux(int msqid, int cmd, msqid_ds_linux *buf);
 // 13c. System V IPC - Semaphores
-long semget_linux(key_t key, int nsems, int semflg);
-long semop_linux(int semid, sembuf *sops, unsigned nsops);
+long semget_linux(int key, int nsems, int semflg);
+long semop_linux(int semid, sembuf_linux *sops, unsigned nsops);
 long semctl_linux(int semid, int semnum, int cmd, unsigned long arg);
-// Disabled wrapper: long semtimedop_linux(int semid, sembuf *sops, unsigned nsops, const __kernel_old_timespec_linux *timeout);
-long semtimedop_time64_linux(int semid, sembuf *tsops, unsigned int nsops, const __kernel_timespec_linux *timeout);
+// Disabled wrapper: long semtimedop_linux(int semid, sembuf_linux *sops, unsigned nsops, const __kernel_old_timespec_linux *timeout);
+long semtimedop_time64_linux(int semid, sembuf_linux *tsops, unsigned int nsops, const __kernel_timespec_linux *timeout);
 // 13d. POSIX Message Queues
-long mq_open_linux(const char *name, int oflag, unsigned int mode, mq_attr *attr);
+long mq_open_linux(const char *name, int oflag, unsigned int mode, mq_attr_linux *attr);
 long mq_unlink_linux(const char *name);
 // Disabled wrapper: long mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
-long mq_timedsend_time64_linux(mqd_t mqdes, const char *u_msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec_linux *u_abs_timeout);
+long mq_timedsend_time64_linux(mqd_t mqdes, const void *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec_linux *u_abs_timeout);
 // Disabled wrapper: long mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
-long mq_timedreceive_time64_linux(mqd_t mqdes, char *u_msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec_linux *u_abs_timeout);
+long mq_timedreceive_time64_linux(mqd_t mqdes, void *msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec_linux *u_abs_timeout);
 long mq_notify_linux(mqd_t mqdes, const sigevent *notification);
-long mq_getsetattr_linux(mqd_t mqdes, const mq_attr *mqstat, mq_attr *omqstat);
+long mq_getsetattr_linux(mqd_t mqdes, const mq_attr_linux *mqstat, mq_attr_linux *omqstat);
 // 13e. Synchronization Primitives - Futexes
 // Disabled wrapper: long futex_linux(unsigned int *uaddr, int op, unsigned int val, const __kernel_old_timespec_linux *utime, unsigned int *uaddr2, unsigned int val3);
 long futex_time64_linux(unsigned int *uaddr, int op, unsigned int val, const __kernel_timespec_linux *utime, unsigned int *uaddr2, unsigned int val3);
-long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, __kernel_timespec_linux *timespec, clockid_t clockid);
+long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, const __kernel_timespec_linux *timespec, int clockid);
 long futex_wake_linux(void *uaddr, unsigned long mask, int nr, unsigned int flags);
-long futex_waitv_linux(futex_waitv *waiters, unsigned int nr_futexes, unsigned int flags, __kernel_timespec_linux *timeout, clockid_t clockid);
-long futex_requeue_linux(futex_waitv *waiters, unsigned int flags, int nr_wake, int nr_requeue);
-long set_robust_list_linux(robust_list_head *head, unsigned long len);
-long get_robust_list_linux(int pid, robust_list_head * *head_ptr, unsigned long *len_ptr);
+long futex_waitv_linux(const futex_waitv_linux *waiters, unsigned int nr_futexes, unsigned int flags, const __kernel_timespec_linux *timeout, int clockid);
+long futex_requeue_linux(const futex_waitv_linux *waiters, unsigned int flags, int nr_wake, int nr_requeue);
+long set_robust_list_linux(robust_list_head_linux *head);
+long get_robust_list_linux(int pid, robust_list_head_linux * *head_ptr, unsigned long *len_ptr);
 // 13f. Synchronization Primitives - Event Notification
 long eventfd_linux(unsigned int count);
 long eventfd2_linux(unsigned int count, int flags);
@@ -426,28 +426,28 @@ long io_uring_register_linux(unsigned int fd, unsigned int op, void *arg, unsign
 // 16a. Reading current time from various clocks
 long time_linux(__kernel_old_time_t *tloc);
 long gettimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
-// Disabled wrapper: long clock_gettime_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
-long clock_gettime64_linux(clockid_t which_clock, __kernel_timespec_linux *tp);
-// Disabled wrapper: long clock_getres_linux(clockid_t which_clock, __kernel_old_timespec_linux *tp);
-long clock_getres_time64_linux(clockid_t which_clock, __kernel_timespec_linux *tp);
+// Disabled wrapper: long clock_gettime_linux(int which_clock, __kernel_old_timespec_linux *tp);
+long clock_gettime64_linux(int which_clock, __kernel_timespec_linux *tp);
+// Disabled wrapper: long clock_getres_linux(int which_clock, __kernel_old_timespec_linux *tp);
+long clock_getres_time64_linux(int which_clock, __kernel_timespec_linux *tp);
 // 16b. Setting system time and adjusting clocks
 long settimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
-// Disabled wrapper: long clock_settime_linux(clockid_t which_clock, const __kernel_old_timespec_linux *tp);
-long clock_settime64_linux(clockid_t which_clock, const __kernel_timespec_linux *tp);
+// Disabled wrapper: long clock_settime_linux(int which_clock, const __kernel_old_timespec_linux *tp);
+long clock_settime64_linux(int which_clock, const __kernel_timespec_linux *tp);
 long stime_linux(__kernel_old_time_t *tptr);
 long adjtimex_linux(__kernel_timex *txc_p);
-long clock_adjtime_linux(clockid_t which_clock, __kernel_timex *tx);
-long clock_adjtime64_linux(clockid_t which_clock, __kernel_timex *tx);
+long clock_adjtime_linux(int which_clock, __kernel_timex *tx);
+long clock_adjtime64_linux(int which_clock, __kernel_timex *tx);
 // 16c. Suspending execution for a period of time
 long nanosleep_linux(__kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
-// Disabled wrapper: long clock_nanosleep_linux(clockid_t which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
-long clock_nanosleep_time64_linux(clockid_t which_clock, int flags, const __kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
+// Disabled wrapper: long clock_nanosleep_linux(int which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
+long clock_nanosleep_time64_linux(int which_clock, int flags, const __kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
 // 16d. Setting periodic or one-shot timers
 long alarm_linux(unsigned int seconds);
 long setitimer_linux(int which, __kernel_old_itimerval *value, __kernel_old_itimerval *ovalue);
 long getitimer_linux(int which, __kernel_old_itimerval *value);
 // 16e. Per-process timers with precise control
-long timer_create_linux(clockid_t which_clock, sigevent *timer_event_spec, timer_t * created_timer_id);
+long timer_create_linux(int which_clock, sigevent *timer_event_spec, timer_t * created_timer_id);
 // Disabled wrapper: long timer_settime_linux(timer_t timer_id, int flags, const __kernel_itimerspec *new_setting, __kernel_itimerspec *old_setting);
 long timer_settime64_linux(timer_t timerid, int flags, const __kernel_timespec_linux *new_setting, __kernel_timespec_linux *old_setting);
 // Disabled wrapper: long timer_gettime_linux(timer_t timer_id, __kernel_itimerspec *setting);

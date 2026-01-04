@@ -4,7 +4,7 @@
 long fork_linux(void);
 long vfork_linux(void);
 long clone_linux(unsigned long clone_flags, unsigned long newsp, int *parent_tidptr, int *child_tidptr, unsigned long tls);
-long clone3_linux(clone_args_linux *uargs, unsigned long size);
+long clone3_linux(clone_args_linux *uargs);
 long execve_linux(const char *filename, const char *const *argv, const char *const *envp);
 long execveat_linux(int dfd, const char *filename, const char *const *argv, const char *const *envp, int flags);
 __attribute__((noreturn)) void exit_linux(int error_code);
@@ -36,7 +36,7 @@ long sched_getscheduler_linux(int pid);
 long sched_setparam_linux(int pid, sched_param_linux *param);
 long sched_getparam_linux(int pid, sched_param_linux *param);
 long sched_setattr_linux(int pid, sched_attr_linux *attr, unsigned int flags);
-long sched_getattr_linux(int pid, sched_attr_linux *attr, unsigned int size, unsigned int flags);
+long sched_getattr_linux(int pid, sched_attr_linux *attr, unsigned int flags);
 long sched_yield_linux(void);
 long sched_get_priority_max_linux(int policy);
 long sched_get_priority_min_linux(int policy);
@@ -51,30 +51,30 @@ long getpriority_linux(int which, int who);
 // 4. MEMORY MANAGEMENT
 //
 // 4a. Memory mapping, allocation, and unmapping
-long brk_linux(unsigned long brk);
-long mmap_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off);
-long mmap2_linux(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);
-long munmap_linux(unsigned long addr, unsigned long len);
-long mremap_linux(unsigned long addr, unsigned long old_len, unsigned long new_len, unsigned long flags, unsigned long new_addr);
-long remap_file_pages_linux(unsigned long start, unsigned long size, unsigned long prot, unsigned long pgoff, unsigned long flags);
+long brk_linux(void* brk);
+long mmap_linux(void *addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off);
+long mmap2_linux(void *addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);
+long munmap_linux(void *addr, unsigned long len);
+long mremap_linux(void *addr, unsigned long old_len, unsigned long new_len, unsigned long flags, void *new_addr);
+long remap_file_pages_linux(void *start, unsigned long size, unsigned long prot, unsigned long pgoff, unsigned long flags);
 // 4b. Memory protection, locking, and usage hints
-long mprotect_linux(unsigned long start, unsigned long len, unsigned long prot);
-long pkey_mprotect_linux(unsigned long start, unsigned long len, unsigned long prot, int pkey);
-long madvise_linux(unsigned long start, unsigned long len, int behavior);
+long mprotect_linux(void *start, unsigned long len, unsigned long prot);
+long pkey_mprotect_linux(void* start, unsigned long len, unsigned long prot, int pkey);
+long madvise_linux(void *start, unsigned long len, int behavior);
 long process_madvise_linux(int pidfd, const iovec_linux *vec, unsigned long vlen, int behavior, unsigned int flags);
-long mlock_linux(unsigned long start, unsigned long len);
-long mlock2_linux(unsigned long start, unsigned long len, int flags);
-long munlock_linux(unsigned long start, unsigned long len);
+long mlock_linux(void *start, unsigned long len);
+long mlock2_linux(void *start, unsigned long len, int flags);
+long munlock_linux(void *start, unsigned long len);
 long mlockall_linux(int flags);
 long munlockall_linux(void);
-long mincore_linux(unsigned long start, unsigned long len, unsigned char * vec);
-long msync_linux(unsigned long start, unsigned long len, int flags);
-long mseal_linux(unsigned long start, unsigned long len, unsigned long flags);
+long mincore_linux(const void* start, unsigned long len, void *vec);
+long msync_linux(void *start, unsigned long len, int flags);
+long mseal_linux(void *start, unsigned long len, unsigned long flags);
 // 4c. NUMA memory policy and page migration
-long mbind_linux(unsigned long start, unsigned long len, unsigned long mode, const unsigned long *nmask, unsigned long maxnode, unsigned flags);
+long mbind_linux(void* start, unsigned long len, unsigned long mode, const unsigned long *nmask, unsigned long maxnode, unsigned flags);
 long set_mempolicy_linux(int mode, const unsigned long *nmask, unsigned long maxnode);
 long get_mempolicy_linux(int *policy, unsigned long *nmask, unsigned long maxnode, unsigned long addr, unsigned long flags);
-long set_mempolicy_home_node_linux(unsigned long start, unsigned long len, unsigned long home_node, unsigned long flags);
+long set_mempolicy_home_node_linux(void *start, unsigned long len, unsigned long home_node, unsigned long flags);
 long migrate_pages_linux(int pid, unsigned long maxnode, const unsigned long *from, const unsigned long *to);
 long move_pages_linux(int pid, unsigned long nr_pages, const void * *pages, const int *nodes, int *status, int flags);
 // 4d. Anonymous file-backed memory regions
@@ -86,7 +86,7 @@ long memfd_secret_linux(unsigned int flags);
 long pkey_alloc_linux(unsigned long flags, unsigned long init_val);
 long pkey_free_linux(int pkey);
 // 4f. Control-flow integrity, shadow stack mapping
-long map_shadow_stack_linux(unsigned long addr, unsigned long size, unsigned int flags);
+long map_shadow_stack_linux(void *addr, unsigned long size, unsigned int flags);
 // 4g. Advanced memory operations
 long userfaultfd_linux(int flags);
 long process_mrelease_linux(int pidfd, unsigned int flags);
@@ -97,23 +97,23 @@ long membarrier_linux(int cmd, unsigned int flags, int cpu_id);
 // 5a. Opening, creating, and closing files
 long open_linux(const char *filename, int flags, unsigned int mode);
 long openat_linux(int dfd, const char *filename, int flags, unsigned int mode);
-long openat2_linux(int dfd, const char *filename, open_how_linux *how, unsigned long size);
+long openat2_linux(int dfd, const char *filename, open_how_linux *how);
 long creat_linux(const char *pathname, unsigned int mode);
 long close_linux(unsigned int fd);
 long close_range_linux(unsigned int fd, unsigned int max_fd, unsigned int flags);
 long open_by_handle_at_linux(int mountdirfd, file_handle_linux *handle, int flags);
 long name_to_handle_at_linux(int dfd, const char *name, file_handle_linux *handle, void *mnt_id, int flag);
 // 5b. Reading and writing file data
-long read_linux(unsigned int fd, char *buf, unsigned long count);
-long write_linux(unsigned int fd, const char *buf, unsigned long count);
+long read_linux(unsigned int fd, void *buf, unsigned long count);
+long write_linux(unsigned int fd, const void *buf, unsigned long count);
 long readv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen);
 long writev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen);
-long pread64_linux(unsigned int fd, char *buf, unsigned long count, long long pos);
-long pwrite64_linux(unsigned int fd, const char *buf, unsigned long count, long long pos);
-long preadv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
-long pwritev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h);
-long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, int flags);
-long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long pos_l, unsigned long pos_h, int flags);
+long pread64_linux(unsigned int fd, void *buf, unsigned long count, long long pos);
+long pwrite64_linux(unsigned int fd, const void *buf, unsigned long count, long long pos);
+long preadv_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos);
+long pwritev_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos);
+long preadv2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos, int flags);
+long pwritev2_linux(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos, int flags);
 // 5c. Seeking and truncating files
 // Disabled wrapper: long lseek_linux(unsigned int fd, long offset, unsigned int whence);
 long llseek_linux(unsigned int fd, unsigned long long offset, long long *result, unsigned int whence);
@@ -159,15 +159,15 @@ long ioctl_linux(unsigned int fd, unsigned int cmd, unsigned long arg);
 // Disabled wrapper: pselect6_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_old_timespec_linux *tsp, void *sig);
 long pselect6_time64_linux(int n, fd_set_linux *inp, fd_set_linux *outp, fd_set_linux *exp, __kernel_timespec_linux *tsp, void *sig);
 long poll_linux(pollfd_linux *ufds, unsigned int nfds, int timeout);
-// Disabled wrapper: long ppoll_linux(pollfd_linux *, unsigned int, __kernel_old_timespec_linux *, const sigset_t_linux *, unsigned long);
-long ppoll_time64_linux(pollfd_linux *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const sigset_t_linux *sigmask, unsigned long sigsetsize);
+// Disabled wrapper: long ppoll_linux(pollfd_linux *, unsigned int, __kernel_old_timespec_linux *, const unsigned long long *, unsigned long);
+long ppoll_time64_linux(pollfd_linux *ufds, unsigned int nfds, __kernel_timespec_linux *tsp, const unsigned long long *sigmask);
 // 6d. Scalable I/O event notification
 // Disabled wrapper: long epoll_create_linux(int size);
 long epoll_create1_linux(int flags);
 long epoll_ctl_linux(int epfd, int op, int fd, epoll_event_linux *event);
 long epoll_wait_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout);
-long epoll_pwait_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout, const sigset_t_linux *sigmask, unsigned long sigsetsize);
-long epoll_pwait2_linux(int epfd, epoll_event_linux *events, int maxevents, const __kernel_timespec_linux *timeout, const sigset_t_linux *sigmask, unsigned long sigsetsize);
+long epoll_pwait_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout, const unsigned long long *sigmask);
+long epoll_pwait2_linux(int epfd, epoll_event_linux *events, int maxevents, const __kernel_timespec_linux *timeout, const unsigned long long *sigmask);
 // Disabled wrapper: long epoll_ctl_old_linux(int epfd, int op, int fd, epoll_event_linux *event);
 // Disabled wrapper: long epoll_wait_old_linux(int epfd, epoll_event_linux *events, int maxevents, int timeout);
 //
@@ -186,7 +186,7 @@ long statx_linux(int dfd, const char *path, unsigned flags, unsigned mask, statx
 // Disabled wrapper: long oldstat_linux(const char *filename, __old_kernel_stat *statbuf);
 // Disabled wrapper: long oldfstat_linux(unsigned int fd, __old_kernel_stat *statbuf);
 // Disabled wrapper: long oldlstat_linux(const char *filename, __old_kernel_stat *statbuf);
-long file_getattr_linux(int dfd, const char *filename, file_attr_linux *attr, unsigned long usize, unsigned int at_flags);
+long file_getattr_linux(int dfd, const char *filename, file_attr_linux *attr, unsigned int at_flags);
 // 7b. Changing file permissions and ownership
 long chmod_linux(const char *filename, unsigned int mode);
 long fchmod_linux(unsigned int fd, unsigned int mode);
@@ -200,7 +200,7 @@ long chown32_linux(const char *filename, unsigned int user, unsigned int group);
 long fchown32_linux(unsigned int fd, unsigned int user, unsigned int group);
 long lchown32_linux(const char *filename, unsigned int user, unsigned int group);
 long fchownat_linux(int dfd, const char *filename, unsigned int user, unsigned int group, int flag);
-long file_setattr_linux(int dfd, const char *filename, file_attr_linux *attr, unsigned long usize, unsigned int at_flags);
+long file_setattr_linux(int dfd, const char *filename, file_attr_linux *attr, unsigned int at_flags);
 // 7c. File access and modification times
 // Disabled wrapper: long utime_linux(char *filename, utimbuf_linux *times);
 // Disabled wrapper: long utimes_linux(char *filename, __kernel_old_timeval *utimes);
@@ -268,10 +268,10 @@ long umount_linux(char *name, int flags);
 long umount2_linux(char *name, int flags);
 long pivot_root_linux(const char *new_root, const char *put_old);
 long chroot_linux(const char *filename);
-long mount_setattr_linux(int dfd, const char *path, unsigned int flags, mount_attr_linux *uattr, unsigned long usize);
+long mount_setattr_linux(int dfd, const char *path, unsigned int flags, mount_attr_linux *uattr);
 long move_mount_linux(int from_dfd, const char *from_path, int to_dfd, const char *to_path, unsigned int ms_flags);
 long open_tree_linux(int dfd, const char *path, unsigned flags);
-long open_tree_attr_linux(int dfd, const char *path, unsigned flags, mount_attr_linux *uattr, unsigned long usize);
+long open_tree_attr_linux(int dfd, const char *path, unsigned flags, mount_attr_linux *uattr);
 long fsconfig_linux(int fs_fd, unsigned int cmd, const char *key, const void *value, int aux);
 long fsmount_linux(int fs_fd, unsigned int flags, unsigned int ms_flags);
 long fsopen_linux(const char *fs_name, unsigned int flags);
@@ -279,8 +279,8 @@ long fspick_linux(int dfd, const char *path, unsigned int flags);
 // 9b. Getting filesystem statistics
 // Disabled wrapper: long statfs_linux(const char * path, statfs_t_linux *buf);
 // Disabled wrapper: long fstatfs_linux(unsigned int fd, statfs_t_linux *buf);
-long statfs64_linux(const char *path, unsigned long sz, statfs64_t_linux *buf);
-long fstatfs64_linux(unsigned int fd, unsigned long sz, statfs64_t_linux *buf);
+long statfs64_linux(const char *path, statfs64_t_linux *buf);
+long fstatfs64_linux(unsigned int fd, statfs64_t_linux *buf);
 // Disabled wrapper: long ustat_linux(unsigned dev, ustat *ubuf);
 long statmount_linux(const mnt_id_req_linux *req, statmount_t_linux *buf, unsigned long bufsize, unsigned int flags);
 long listmount_linux(const mnt_id_req_linux *req, unsigned long long *mnt_ids, unsigned long nr_mnt_ids, unsigned int flags);
@@ -298,40 +298,40 @@ long inotify_rm_watch_linux(int fd, int wd);
 // 10b. Filesystem-wide event notification
 long fanotify_init_linux(unsigned int flags, unsigned int event_f_flags);
 long fanotify_mark_linux(int fanotify_fd, unsigned int flags, unsigned long long mask, int fd, const char *pathname);
-#if 0 // WIP
 //
 // 11. SIGNALS
 //
 // 11a. Setting up signal handlers
-long signal_linux(int sig, __sighandler_t handler);
-long sigaction_linux(int sig, const old_sigaction *act, old_sigaction *oact);
-long rt_sigaction_linux(int sig, const sigaction *act, sigaction *oact, unsigned long sigsetsize);
+long signal_linux(int sig, void (*handler)(int));
+// Disabled wrapper: long sigaction_linux(int sig, const old_sigaction_linux *act, old_sigaction_linux *oact);
+long rt_sigaction_linux(int sig, const sigaction_t_linux *act, sigaction_t_linux *oact);
 // 11b. Sending signals to processes
 long kill_linux(int pid, int sig);
-long tkill_linux(int pid, int sig);
+// Disabled wrapper: long tkill_linux(int pid, int sig);
 long tgkill_linux(int tgid, int pid, int sig);
-long rt_sigqueueinfo_linux(int pid, int sig, siginfo_t *uinfo);
-long rt_tgsigqueueinfo_linux(int tgid, int pid, int sig, siginfo_t *uinfo);
+long rt_sigqueueinfo_linux(int pid, int sig, siginfo_t_linux *uinfo);
+long rt_tgsigqueueinfo_linux(int tgid, int pid, int sig, siginfo_t_linux *uinfo);
 // 11c. Blocking and unblocking signals
-long sigprocmask_linux(int how, old_sigset_t *set, old_sigset_t *oset);
-long rt_sigprocmask_linux(int how, sigset_t_linux *set, sigset_t_linux *oset, unsigned long sigsetsize);
-long sgetmask_linux(void);
-long ssetmask_linux(int newmask);
+// Disabled wrapper: long sigprocmask_linux(int how, unsigned long *set, unsigned long *oset);
+long rt_sigprocmask_linux(int how, unsigned long long *set, unsigned long long *oset);
+// Disabled wrapper: long sgetmask_linux(void);
+// Disabled wrapper: long ssetmask_linux(int newmask);
 // 11d. Waiting for and querying signals
-long sigpending_linux(old_sigset_t *uset);
-long rt_sigpending_linux(sigset_t_linux *set, unsigned long sigsetsize);
-long sigsuspend_linux(old_sigset_t mask);
-long rt_sigsuspend_linux(sigset_t_linux *unewset, unsigned long sigsetsize);
+// Disabled wrapper: long sigpending_linux(unsigned long *uset);
+long rt_sigpending_linux(unsigned long long *set);
+// Disabled wrapper: long sigsuspend_linux(unsigned long mask);
+long rt_sigsuspend_linux(unsigned long long *unewset);
 long pause_linux(void);
-// Disabled wrapper: long rt_sigtimedwait_linux(const sigset_t_linux *uthese, siginfo_t *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
-long rt_sigtimedwait_time64_linux(compat_sigset_t *uthese, compat_siginfo *uinfo, __kernel_timespec_linux *uts, compat_size_t sigsetsize);
+// Disabled wrapper: long rt_sigtimedwait_linux(const unsigned long long *uthese, siginfo_t_linux *uinfo, const __kernel_old_timespec_linux *uts, unsigned long sigsetsize);
+long rt_sigtimedwait_time64_linux(unsigned long long *uthese, siginfo_t_linux *uinfo, __kernel_timespec_linux *uts);
 // 11e. Alternate signal stack and return from handlers
-long sigaltstack_linux(const sigaltstack *uss, sigaltstack *uoss);
-long sigreturn_linux(pt_regs *regs);
-long rt_sigreturn_linux(pt_regs *regs);
+long sigaltstack_linux(const stack_t_linux *uss, stack_t_linux *uoss);
+// Disabled wrapper: long sigreturn_linux(void);
+long rt_sigreturn_linux(void);
 // 11f. Signal delivery via file descriptors
-long signalfd_linux(int ufd, sigset_t_linux *user_mask, unsigned long sizemask);
-long signalfd4_linux(int ufd, sigset_t_linux *user_mask, unsigned long sizemask, int flags);
+long signalfd_linux(int ufd, unsigned long long *user_mask);
+long signalfd4_linux(int ufd, unsigned long long *user_mask, int flags);
+#if 0 // WIP
 //
 // 12. PIPES & FIFOs
 //
@@ -551,7 +551,7 @@ long kcmp_linux(int pid1, int pid2, int type, unsigned long idx1, unsigned long 
 // 22b. Process file descriptors
 long pidfd_open_linux(int pid, unsigned int flags);
 long pidfd_getfd_linux(int pidfd, int fd, unsigned int flags);
-long pidfd_send_signal_linux(int pidfd, int sig, siginfo_t *info, unsigned int flags);
+long pidfd_send_signal_linux(int pidfd, int sig, siginfo_t_linux *info, unsigned int flags);
 // 22c. Process memory access
 long process_vm_readv_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags);
 long process_vm_writev_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags);

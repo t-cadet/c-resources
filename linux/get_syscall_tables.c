@@ -808,6 +808,53 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
 
   fprintf(stderr, "(LoadSyscallPrototypes) INFO: retrieved %d prototypes from the linux file, %d of which have a syscall number,\n", prototypeCount, prototypeCountWithNumber);
 
+  // Change pointer types
+  Get_htable(syscallTable, substring("munmap"))->prototype = substring("asmlinkage long sys_munmap(void *addr, unsigned long len);\n");
+  Get_htable(syscallTable, substring("mremap"))->prototype = substring("asmlinkage long sys_mremap(void *addr, unsigned long old_len, unsigned long new_len, unsigned long flags, void *new_addr);\n");
+  Get_htable(syscallTable, substring("remap_file_pages"))->prototype = substring("asmlinkage long sys_remap_file_pages(void *start, unsigned long size, unsigned long prot, unsigned long pgoff, unsigned long flags);\n");
+  Get_htable(syscallTable, substring("mprotect"))->prototype = substring("asmlinkage long sys_mprotect(void *start, unsigned long len, unsigned long prot);\n");
+  Get_htable(syscallTable, substring("pkey_mprotect"))->prototype = substring("asmlinkage long sys_pkey_mprotect(void* start, unsigned long len, unsigned long prot, int pkey);\n");
+  Get_htable(syscallTable, substring("madvise"))->prototype = substring("asmlinkage long sys_madvise(void *start, unsigned long len, int behavior);\n");
+  Get_htable(syscallTable, substring("mlock"))->prototype = substring("asmlinkage long sys_mlock(void *start, unsigned long len);\n");
+  Get_htable(syscallTable, substring("mlock2"))->prototype = substring("asmlinkage long sys_mlock2(void *start, unsigned long len, int flags);\n");
+  Get_htable(syscallTable, substring("munlock"))->prototype = substring("asmlinkage long sys_munlock(void *start, unsigned long len);\n");
+  Get_htable(syscallTable, substring("msync"))->prototype = substring("asmlinkage long sys_msync(void *start, unsigned long len, int flags);\n");
+  Get_htable(syscallTable, substring("mseal"))->prototype = substring("asmlinkage long sys_mseal(void *start, unsigned long len, unsigned long flags);\n");
+  Get_htable(syscallTable, substring("mbind"))->prototype = substring("asmlinkage long sys_mbind(void* start, unsigned long len, unsigned long mode, const unsigned long *nmask, unsigned long maxnode, unsigned flags);\n");
+  Get_htable(syscallTable, substring("set_mempolicy_home_node"))->prototype = substring("asmlinkage long sys_set_mempolicy_home_node(void *start, unsigned long len, unsigned long home_node, unsigned long flags);\n");
+  Get_htable(syscallTable, substring("map_shadow_stack"))->prototype = substring("asmlinkage long sys_map_shadow_stack(void *addr, unsigned long size, unsigned int flags);\n");
+  Get_htable(syscallTable, substring("brk"))->prototype = substring("asmlinkage long sys_brk(void* brk);\n");
+
+  Get_htable(syscallTable, substring("read"))->prototype = substring("asmlinkage long sys_read(unsigned int fd, void *buf, unsigned long count);\n");
+  Get_htable(syscallTable, substring("pread64"))->prototype = substring("asmlinkage long sys_pread64(unsigned int fd, void *buf, unsigned long count, long long pos);\n");
+  Get_htable(syscallTable, substring("write"))->prototype = substring("asmlinkage long sys_write(unsigned int fd, const void *buf, unsigned long count);\n");
+  Get_htable(syscallTable, substring("pwrite64"))->prototype = substring("asmlinkage long sys_pwrite64(unsigned int fd, const void *buf, unsigned long count, long long pos);\n");
+  Get_htable(syscallTable, substring("mincore"))->prototype = substring("asmlinkage long sys_mincore(const void* start, unsigned long len, void *vec);\n");
+
+  // infer sigsetsize from mask arg
+  Get_htable(syscallTable, substring("epoll_pwait"))->prototype = substring("asmlinkage long sys_epoll_pwait(int epfd, epoll_event_linux *events, int maxevents, int timeout, const unsigned long long *sigmask);\n");
+  Get_htable(syscallTable, substring("epoll_pwait2"))->prototype = substring("asmlinkage long sys_epoll_pwait2(int epfd, epoll_event_linux *events, int maxevents, const __kernel_timespec_linux *timeout, const unsigned long long *sigmask);\n");
+  Get_htable(syscallTable, substring("rt_sigprocmask"))->prototype = substring("asmlinkage long sys_rt_sigprocmask(int how, unsigned long long *set, unsigned long long *oset);\n");
+  Get_htable(syscallTable, substring("rt_sigpending"))->prototype = substring("asmlinkage long sys_rt_sigpending(unsigned long long *set);\n");
+  Get_htable(syscallTable, substring("rt_sigsuspend"))->prototype = substring("asmlinkage long sys_rt_sigsuspend(unsigned long long *unewset);\n");
+  Get_htable(syscallTable, substring("signalfd"))->prototype = substring("asmlinkage long sys_signalfd(int ufd, unsigned long long *user_mask);\n");
+  Get_htable(syscallTable, substring("signalfd4"))->prototype = substring("asmlinkage long sys_signalfd4(int ufd, unsigned long long *user_mask, int flags)\n");
+  Get_htable(syscallTable, substring("statfs64"))->prototype = substring("asmlinkage long sys_statfs64(const char *path, statfs64_t_linux *buf);\n");
+  Get_htable(syscallTable, substring("fstatfs64"))->prototype = substring("asmlinkage long sys_fstatfs64(unsigned int fd, statfs64_t_linux *buf);\n");
+  Get_htable(syscallTable, substring("sched_getattr"))->prototype = substring("asmlinkage long sys_sched_getattr(int pid, sched_attr_linux *attr, unsigned int flags);\n");
+  Get_htable(syscallTable, substring("openat2"))->prototype = substring("asmlinkage long sys_openat2(int dfd, const char *filename, open_how_linux *how);\n");
+  Get_htable(syscallTable, substring("clone3"))->prototype = substring("asmlinkage long sys_clone3(clone_args_linux *uargs);\n");
+  Get_htable(syscallTable, substring("file_getattr"))->prototype = substring("asmlinkage long sys_file_getattr(int dfd, const char *filename, file_attr_linux *attr, unsigned int at_flags);\n");
+  Get_htable(syscallTable, substring("file_setattr"))->prototype = substring("asmlinkage long sys_file_setattr(int dfd, const char *filename, file_attr_linux *attr, unsigned int at_flags);\n");
+  Get_htable(syscallTable, substring("mount_setattr"))->prototype = substring("asmlinkage long sys_mount_setattr(int dfd, const char *path, unsigned int flags, mount_attr_linux *uattr);\n");
+  Get_htable(syscallTable, substring("open_tree_attr"))->prototype = substring("asmlinkage long sys_open_tree_attr(int dfd, const char *path, unsigned flags, mount_attr_linux *uattr);\n");
+
+  // use 64 bit arg instead of 32 in prototype
+  Get_htable(syscallTable, substring("preadv"))->prototype = substring("asmlinkage long sys_preadv(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos);\n");
+  Get_htable(syscallTable, substring("pwritev"))->prototype = substring("asmlinkage long sys_pwritev(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos);\n");
+  Get_htable(syscallTable, substring("preadv2"))->prototype = substring("asmlinkage long sys_preadv2(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos, int flags);\n");
+  Get_htable(syscallTable, substring("pwritev2"))->prototype = substring("asmlinkage long sys_pwritev2(unsigned long fd, const iovec_linux *vec, unsigned long vlen, unsigned long long pos, int flags);\n");
+
   // Avoid cpp keywords
   Get_htable(syscallTable, substring("symlink"))->prototype = substring("asmlinkage long sys_symlink(const char *old, const char *newname);\n");
 
@@ -841,7 +888,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   // Manually add arg names for prototypes that don't have them
   Get_htable(syscallTable, substring("pselect6"))->prototype = substring("long sys_pselect6(int n, fd_set *inp, fd_set *outp, fd_set *exp, __kernel_old_timespec *tsp, void *sig);\n");
   Get_htable(syscallTable, substring("sigaction"))->prototype = substring("asmlinkage long sys_sigaction(int sig, const struct old_sigaction __user *act, struct old_sigaction __user *oact);\n");
-  Get_htable(syscallTable, substring("rt_sigaction"))->prototype = substring("asmlinkage long sys_rt_sigaction(int sig, const struct sigaction __user *act, struct sigaction __user *oact, size_t sigsetsize);\n");
+  Get_htable(syscallTable, substring("rt_sigaction"))->prototype = substring("asmlinkage long sys_rt_sigaction(int sig, const struct sigaction __user *act, struct sigaction __user *oact);\n");
   Get_htable(syscallTable, substring("socket"))->prototype = substring("asmlinkage long sys_socket(int family, int type, int protocol);\n");
   Get_htable(syscallTable, substring("socketpair"))->prototype = substring("asmlinkage long sys_socketpair(int family, int type, int protocol, int __user *usockvec);\n");
   Get_htable(syscallTable, substring("bind"))->prototype = substring("asmlinkage long sys_bind(int fd, struct sockaddr __user *umyaddr, int addrlen);\n");
@@ -863,12 +910,12 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("modify_ldt"))->prototype = substring("asmlinkage long sys_modify_ldt(int func, void __user *ptr, unsigned long bytecount);\n");
   Get_htable(syscallTable, substring("set_thread_area"))->prototype = substring("asmlinkage long sys_set_thread_area(struct user_desc __user *u_info);\n");
   Get_htable(syscallTable, substring("get_thread_area"))->prototype = substring("asmlinkage long sys_get_thread_area(struct user_desc __user *u_info);\n");
-  Get_htable(syscallTable, substring("mmap"))->prototype = substring("asmlinkage long sys_mmap(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off);\n");
-  Get_htable(syscallTable, substring("mmap2"))->prototype = substring("asmlinkage long sys_mmap2(unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);\n");
+  Get_htable(syscallTable, substring("mmap"))->prototype = substring("asmlinkage long sys_mmap(void *addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off);\n");
+  Get_htable(syscallTable, substring("mmap2"))->prototype = substring("asmlinkage long sys_mmap2(void *addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);\n");
   Get_htable(syscallTable, substring("arm_fadvise64_64"))->prototype = substring("asmlinkage long sys_arm_fadvise64_64(int fd, int advice, loff_t offset, loff_t len);\n");
-  Get_htable(syscallTable, substring("rt_sigtimedwait_time64"))->prototype = substring("asmlinkage long sys_rt_sigtimedwait_time64(compat_sigset_t __user *uthese, struct compat_siginfo __user *uinfo, struct __kernel_timespec __user *uts, compat_size_t sigsetsize);\n");
-  Get_htable(syscallTable, substring("sigreturn"))->prototype = substring("asmlinkage long sys_sigreturn(struct pt_regs *regs);\n");
-  Get_htable(syscallTable, substring("rt_sigreturn"))->prototype = substring("asmlinkage long sys_rt_sigreturn(struct pt_regs *regs);\n");
+  Get_htable(syscallTable, substring("rt_sigtimedwait_time64"))->prototype = substring("asmlinkage long sys_rt_sigtimedwait_time64(compat_sigset_t __user *uthese, struct compat_siginfo __user *uinfo, struct __kernel_timespec __user *uts);\n");
+  Get_htable(syscallTable, substring("sigreturn"))->prototype = substring("asmlinkage long sys_sigreturn(void);\n");
+  Get_htable(syscallTable, substring("rt_sigreturn"))->prototype = substring("asmlinkage long sys_rt_sigreturn(void);\n");
   Get_htable(syscallTable, substring("iopl"))->prototype = substring("asmlinkage long sys_iopl(unsigned int level);\n");
   Get_htable(syscallTable, substring("riscv_flush_icache"))->prototype = substring("asmlinkage long sys_riscv_flush_icache(uintptr_t start, uintptr_t end, uintptr_t flags);\n");
   Get_htable(syscallTable, substring("riscv_hwprobe"))->prototype = substring("asmlinkage long sys_riscv_hwprobe(struct riscv_hwprobe __user *pairs, size_t pair_count, size_t cpu_count, unsigned long __user *cpumask, unsigned int flags);\n");
@@ -881,7 +928,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("arm_sync_file_range"))->prototype = substring("asmlinkage long sys_arm_sync_file_range(int fd, loff_t offset, loff_t nbytes, unsigned int flags);\n");
   Get_htable(syscallTable, substring("_newselect"))->prototype = substring("asmlinkage long sys__newselect(int n, fd_set __user *inp, fd_set __user *outp, fd_set __user *exp, struct __kernel_old_timeval __user *tvp);\n");
   Get_htable(syscallTable, substring("pselect6_time64"))->prototype = substring("asmlinkage long sys_pselect6_time64(int n, fd_set __user *inp, fd_set __user *outp, fd_set __user *exp, struct __kernel_timespec __user *tsp, void __user *sig);\n");
-  Get_htable(syscallTable, substring("ppoll_time64"))->prototype = substring("asmlinkage long sys_ppoll_time64(struct pollfd __user *ufds, unsigned int nfds, struct __kernel_timespec __user *tsp, const sigset_t __user *sigmask, size_t sigsetsize);\n");
+  Get_htable(syscallTable, substring("ppoll_time64"))->prototype = substring("asmlinkage long sys_ppoll_time64(struct pollfd __user *ufds, unsigned int nfds, struct __kernel_timespec __user *tsp, const sigset_t __user *sigmask);\n");
   Get_htable(syscallTable, substring("epoll_ctl_old"))->prototype = substring("asmlinkage long sys_epoll_ctl_old(int epfd, int op, int fd, struct epoll_event __user *event);\n");
   Get_htable(syscallTable, substring("epoll_wait_old"))->prototype = substring("asmlinkage long sys_epoll_wait_old(int epfd, struct epoll_event __user *events, int maxevents, int timeout);\n");
   Get_htable(syscallTable, substring("oldstat"))->prototype = substring("asmlinkage long sys_oldstat(const char __user *filename, struct __old_kernel_stat __user *statbuf);\n");
@@ -1257,6 +1304,10 @@ struct table_printer
   char* customWrapper;
   char* beforeSyscall;
   char* afterSyscall;
+
+  char* hardCodedPrototype;
+  substring hardCodedPrototypeArgNames[6];
+  int hardCodedPrototypeArgNamesCount;
 } table_printer;
 
 void PushSectionTitle(table_printer* printer, char* title)
@@ -1404,6 +1455,10 @@ substring ReplaceLinuxType(substring linuxType)
     out = substring("rusage_linux");
   }
   else if (Eq_string(linuxType, substring("siginfo")))
+  {
+    out = substring("siginfo_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("siginfo_t")))
   {
     out = substring("siginfo_t_linux");
   }
@@ -1621,7 +1676,7 @@ substring ReplaceLinuxType(substring linuxType)
   }
   else if (Eq_string(linuxType, substring("sigset_t")))
   {
-    out = substring("sigset_t_linux");
+    out = substring("unsigned long long");
   }
   else if (Eq_string(linuxType, substring("fd_set")))
   {
@@ -1787,6 +1842,42 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("int");
   }
+  else if (Eq_string(linuxType, substring("old_sigset_t")))
+  {
+    out = substring("unsigned long");
+  }
+  else if (Eq_string(linuxType, substring("old_sigaction")))
+  {
+    out = substring("old_sigaction_linux");
+  }
+  else if (Eq_string(linuxType, substring("sigaction_t")))
+  {
+    out = substring("sigaction_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("stack_t")))
+  {
+    out = substring("stack_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("signalfd_siginfo")))
+  {
+    out = substring("signalfd_siginfo_linux");
+  }
+  else if (Eq_string(linuxType, substring("compat_sigset_t")))
+  {
+    out = substring("unsigned long long");
+  }
+  else if (Eq_string(linuxType, substring("compat_siginfo")))
+  {
+    out = substring("siginfo_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("sigaction")))
+  {
+    out = substring("sigaction_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("sigaltstack")))
+  {
+    out = substring("stack_t_linux");
+  }
   return out;
 }
 
@@ -1819,101 +1910,118 @@ void PrintSyscallLine(table_printer* printer, char* s) {
 
       substring argNames[6] = {0};
       int argNamesCount = 0;
-
-      char* cursor = slot->prototype.bytes;
-      assert(ReadUntil(&cursor, " ", 0));
-
-      substring returnType = {0};
-      assert(ReadUntil(&cursor, "sys_", &returnType));
-
       substring syscallName = {0};
-      assert(ReadUntil(&cursor, "(", &syscallName));
-      fprintf(printer->wrapperPrototypesFile, "%.*s%.*s_linux(", (int)returnType.size, returnType.bytes, (int)syscallName.size, syscallName.bytes);
-      fprintf(printer->wrapperImplementationFile, "%.*s%.*s_linux(", (int)returnType.size, returnType.bytes, (int)syscallName.size, syscallName.bytes);
 
-      substring arg = {0};
-      do
+      if (printer->hardCodedPrototype)
       {
-        assert(ReadUntilOneOf(&cursor, ",)", &arg));
-        char* argCursor = arg.bytes;
-        bool sawType = false;
-        SkipSpaces(&argCursor);
-        char delim = 0;
+        syscallName = slot->key;
+        argNamesCount = printer->hardCodedPrototypeArgNamesCount;
+        for (int i = 0; i < argNamesCount; ++i)
+        {
+          argNames[i] = printer->hardCodedPrototypeArgNames[i];
+        }
+        fprintf(printer->wrapperPrototypesFile, "%s", printer->hardCodedPrototype);
+        fprintf(printer->wrapperImplementationFile, "%s", printer->hardCodedPrototype);
+
+        printer->hardCodedPrototype = 0;
+        printer->hardCodedPrototypeArgNamesCount = 0;
+      }
+      else
+      {
+        char* cursor = slot->prototype.bytes;
+        assert(ReadUntil(&cursor, " ", 0));
+
+        substring returnType = {0};
+        assert(ReadUntil(&cursor, "sys_", &returnType));
+
+        assert(ReadUntil(&cursor, "(", &syscallName));
+        fprintf(printer->wrapperPrototypesFile, "%.*s%.*s_linux(", (int)returnType.size, returnType.bytes, (int)syscallName.size, syscallName.bytes);
+        fprintf(printer->wrapperImplementationFile, "%.*s%.*s_linux(", (int)returnType.size, returnType.bytes, (int)syscallName.size, syscallName.bytes);
+
+        substring arg = {0};
         do
         {
-          substring buf = {0};
+          assert(ReadUntilOneOf(&cursor, ",)", &arg));
+          char* argCursor = arg.bytes;
+          bool sawType = false;
           SkipSpaces(&argCursor);
-          assert(ReadUntilOneOf(&argCursor, " ,)", &buf));
-          delim = argCursor[-1];
-          if (IsSpace(delim))
+          char delim = 0;
+          do
           {
+            substring buf = {0};
             SkipSpaces(&argCursor);
-            delim = *argCursor;
-          }
-          switch (delim)
-          {
-            default:
+            assert(ReadUntilOneOf(&argCursor, " ,)", &buf));
+            delim = argCursor[-1];
+            if (IsSpace(delim))
             {
-              if (!Eq_string(buf, substring("__user")) && !Eq_string(buf, substring("struct")))
-              {
-                sawType = true;
-                buf = ReplaceLinuxType(buf);
-                fprintf(printer->wrapperPrototypesFile, "%.*s ", (int)buf.size, buf.bytes);
-                fprintf(printer->wrapperImplementationFile, "%.*s ", (int)buf.size, buf.bytes);
-              }
-            } break;
-            case ',':
-            case ')':
+              SkipSpaces(&argCursor);
+              delim = *argCursor;
+            }
+            switch (delim)
             {
-              if (sawType)
+              default:
               {
-                // arg name
-                assert(argCursor[-2] != ' ');
-                fprintf(printer->wrapperPrototypesFile, "%.*s", (int)buf.size, buf.bytes);
-                fprintf(printer->wrapperImplementationFile, "%.*s", (int)buf.size, buf.bytes);
-                substring argName = buf;
-                for (size_t i = 0; i < argName.size; ++i)
+                if (!Eq_string(buf, substring("__user")) && !Eq_string(buf, substring("struct")))
                 {
-                  char c = argName.bytes[i];
-                  if (IsAlpha(c) || c == '_')
-                  {
-                    argName.bytes = argName.bytes + i;
-                    argName.size -= i;
-                    break;
-                  }
+                  sawType = true;
+                  buf = ReplaceLinuxType(buf);
+                  fprintf(printer->wrapperPrototypesFile, "%.*s ", (int)buf.size, buf.bytes);
+                  fprintf(printer->wrapperImplementationFile, "%.*s ", (int)buf.size, buf.bytes);
                 }
-                for (size_t i = 0; i < argName.size; ++i)
-                {
-                  char c = argName.bytes[i];
-                  if (!IsAlpha(c) && !IsDigit(c) && c != '_')
-                  {
-                    argName.size = i;
-                    break;
-                  }
-                }
-                argNames[argNamesCount++] = argName;
-                sawType = false;
-              }
-              else
+              } break;
+              case ',':
+              case ')':
               {
-                if (delim != ')')
+                if (sawType)
                 {
-                  fprintf(stderr, "ERROR: delim != ')' (missing arg name?) for %.*s", (int)slot->prototype.size, slot->prototype.bytes);
+                  // arg name
+                  assert(argCursor[-2] != ' ');
+                  fprintf(printer->wrapperPrototypesFile, "%.*s", (int)buf.size, buf.bytes);
+                  fprintf(printer->wrapperImplementationFile, "%.*s", (int)buf.size, buf.bytes);
+                  substring argName = buf;
+                  for (size_t i = 0; i < argName.size; ++i)
+                  {
+                    char c = argName.bytes[i];
+                    if (IsAlpha(c) || c == '_')
+                    {
+                      argName.bytes = argName.bytes + i;
+                      argName.size -= i;
+                      break;
+                    }
+                  }
+                  for (size_t i = 0; i < argName.size; ++i)
+                  {
+                    char c = argName.bytes[i];
+                    if (!IsAlpha(c) && !IsDigit(c) && c != '_')
+                    {
+                      argName.size = i;
+                      break;
+                    }
+                  }
+                  argNames[argNamesCount++] = argName;
+                  sawType = false;
                 }
-                buf = ReplaceLinuxType(buf);
-                fprintf(printer->wrapperPrototypesFile, "%.*s", (int)buf.size, buf.bytes);
-                fprintf(printer->wrapperImplementationFile, "%.*s", (int)buf.size, buf.bytes);
-              }
+                else
+                {
+                  if (delim != ')')
+                  {
+                    fprintf(stderr, "ERROR: delim != ')' (missing arg name?) for %.*s", (int)slot->prototype.size, slot->prototype.bytes);
+                  }
+                  buf = ReplaceLinuxType(buf);
+                  fprintf(printer->wrapperPrototypesFile, "%.*s", (int)buf.size, buf.bytes);
+                  fprintf(printer->wrapperImplementationFile, "%.*s", (int)buf.size, buf.bytes);
+                }
 
-              if (delim == ',')
-              {
-                fprintf(printer->wrapperPrototypesFile, ", ");
-                fprintf(printer->wrapperImplementationFile, ", ");
-              }
-            } break;
-          }
-        } while (delim != ')' && delim != ',');
-      } while(cursor[-1] != ')');
+                if (delim == ',')
+                {
+                  fprintf(printer->wrapperPrototypesFile, ", ");
+                  fprintf(printer->wrapperImplementationFile, ", ");
+                }
+              } break;
+            }
+          } while (delim != ')' && delim != ',');
+        } while(cursor[-1] != ')');
+      }
 
       fprintf(printer->wrapperPrototypesFile, ");\n");
       if (printer->disabledWrapper)
@@ -2142,13 +2250,13 @@ char* pollWrapper = \
 "    ts.tv_nsec = (timeout % 1000) * 1000000;\n"
 "    tsp = &ts;\n"
 "  }\n"
-"  return ppoll_time64_linux(ufds, nfds, tsp, 0, _NSIG_WORDS_linux * sizeof(unsigned long));\n";
+"  return ppoll_time64_linux(ufds, nfds, tsp, 0);\n";
 
 char* ppoll_time64Wrapper = \
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
-"  return Syscall5_linux(NR_ppoll_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);\n"
+"  return Syscall5_linux(NR_ppoll_linux, ufds, nfds, tsp, sigmask, sizeof(*sigmask), 0);\n"
 "#else\n"
-"  return Syscall5_linux(NR_ppoll_time64_linux, ufds, nfds, tsp, sigmask, sigsetsize, 0);\n"
+"  return Syscall5_linux(NR_ppoll_time64_linux, ufds, nfds, tsp, sigmask, sizeof(*sigmask), 0);\n"
 "#endif\n";
 
 char* utimensat_time64Wrapper = \
@@ -2162,14 +2270,14 @@ char* statfs64Wrapper = \
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
 "  return Syscall2_linux(NR_statfs_linux, path, buf, 0);\n"
 "#else\n"
-"  return Syscall3_linux(NR_statfs64_linux, path, sz, buf, 0);\n"
+"  return Syscall3_linux(NR_statfs64_linux, path, sizeof(*buf), buf, 0);\n"
 "#endif\n";
 
 char* fstatfs64Wrapper = \
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
 "  return Syscall2_linux(NR_fstatfs_linux, fd, buf, 0);\n"
 "#else\n"
-"  return Syscall3_linux(NR_fstatfs64_linux, fd, sz, buf, 0);\n"
+"  return Syscall3_linux(NR_fstatfs64_linux, fd, sizeof(*buf), buf, 0);\n"
 "#endif\n";
 
 char* fanotify_markWrapper = \
@@ -2177,6 +2285,29 @@ char* fanotify_markWrapper = \
 "  return Syscall5_linux(NR_fanotify_mark_linux, fanotify_fd, flags, mask, fd, pathname, 0);\n"
 "#else\n"
 "  return Syscall6_linux(NR_fanotify_mark_linux, fanotify_fd, flags, LO32_bits(mask), HI32_bits(mask), fd, pathname, 0);\n"
+"#endif\n";
+
+char* signalWrapper = \
+"  sigaction_t_linux act, oact;\n"
+"  act.sa_handler_linux = handler;\n"
+"  act.sa_flags = SA_RESTART_linux;\n"
+"  act.sa_mask = 0;\n"
+"  act.sa_restorer = 0;\n"
+"  long ret = rt_sigaction_linux(sig, &act, &oact);\n"
+"  return ret < 0 ? ret : (long)oact.sa_handler_linux;\n";
+
+char* pauseWrapper = \
+"  unsigned long long mask = 0;\n"
+"  long ret = rt_sigprocmask_linux(SIG_BLOCK_linux, 0, &mask);\n"
+"  if (ret < 0) return ret;\n"
+"  return rt_sigsuspend_linux(&mask);\n";
+
+
+char* rt_sigtimedwait_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_rt_sigtimedwait_linux, uthese, uinfo, uts, sizeof(*uthese), 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_rt_sigtimedwait_time64_linux, uthese, uinfo, uts, sizeof(*uthese), 0);\n"
 "#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
@@ -2231,6 +2362,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("vfork");
   printer.customWrapper = cloneWrapper;
   PRINT("clone");
+  printer.customWrapper = "  return Syscall2_linux(NR_clone3_linux, uargs, sizeof(*uargs), 0);\n";
   PRINT("clone3");
   PRINT("execve");
   PRINT("execveat");
@@ -2270,6 +2402,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("sched_setparam");
   PRINT("sched_getparam");
   PRINT("sched_setattr");
+  printer.customWrapper = "  return Syscall4_linux(NR_sched_getattr_linux, pid, attr, sizeof(*attr), flags, 0);\n";
   PRINT("sched_getattr");
   PRINT("sched_yield");
   PRINT("sched_get_priority_max");
@@ -2349,6 +2482,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   printer.customWrapper = "  return openat_linux(AT_FDCWD_linux, filename, flags, mode);\n";
   PRINT("open");
   PRINT("openat");
+  printer.customWrapper = "  return Syscall4_linux(NR_openat2_linux, dfd, filename, how, sizeof(*how), 0);\n";
   PRINT("openat2");
   printer.customWrapper = "  return open_linux(pathname, O_CREAT_linux | O_WRONLY_linux | O_TRUNC_linux, mode);\n";
   PRINT("creat");
@@ -2367,9 +2501,13 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("pread64");
   printer.customWrapper = pwrite64Wrapper;
   PRINT("pwrite64");
+  printer.customWrapper = "  return Syscall5_linux(NR_preadv_linux, fd, vec, vlen, LO32_bits(pos), HI32_bits(pos), 0);\n";
   PRINT("preadv");
+  printer.customWrapper = "  return Syscall5_linux(NR_pwritev_linux, fd, vec, vlen, LO32_bits(pos), HI32_bits(pos), 0);\n";
   PRINT("pwritev");
+  printer.customWrapper = "  return Syscall6_linux(NR_preadv2_linux, fd, vec, vlen, LO32_bits(pos), HI32_bits(pos), flags, 0);\n";
   PRINT("preadv2");
+  printer.customWrapper = "  return Syscall6_linux(NR_pwritev2_linux, fd, vec, vlen, LO32_bits(pos), HI32_bits(pos), flags, 0);\n";
   PRINT("pwritev2");
 
   PrintSubsection(&printer, "Seeking and truncating files");
@@ -2463,9 +2601,11 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("epoll_create");
   PRINT("epoll_create1");
   PRINT("epoll_ctl");
-  printer.customWrapper = "  return epoll_pwait_linux(epfd, events, maxevents, timeout, 0, 0);\n";
+  printer.customWrapper = "  return epoll_pwait_linux(epfd, events, maxevents, timeout, 0);\n";
   PRINT("epoll_wait");
+  printer.customWrapper = "  return Syscall6_linux(NR_epoll_pwait_linux, epfd, events, maxevents, timeout, sigmask, sizeof(*sigmask), 0);\n";
   PRINT("epoll_pwait");
+  printer.customWrapper = "  return Syscall6_linux(NR_epoll_pwait2_linux, epfd, events, maxevents, timeout, sigmask, sizeof(*sigmask), 0);\n";
   PRINT("epoll_pwait2");
   printer.disabledWrapper = true;
   PRINT("epoll_ctl_old");
@@ -2498,6 +2638,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("oldfstat");
   printer.disabledWrapper = true;
   PRINT("oldlstat");
+  printer.customWrapper = "  return Syscall5_linux(NR_file_getattr_linux, dfd, filename, attr, sizeof(*attr), at_flags, 0);\n";
   PRINT("file_getattr");
 
   PrintSubsection(&printer, "Changing file permissions and ownership");
@@ -2521,6 +2662,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   printer.customWrapper = "  return fchownat_linux(AT_FDCWD_linux, filename, user, group, AT_SYMLINK_NOFOLLOW_linux);\n";
   PRINT("lchown32");
   PRINT("fchownat");
+  printer.customWrapper = "  return Syscall5_linux(NR_file_setattr_linux, dfd, filename, attr, sizeof(*attr), at_flags, 0);\n";
   PRINT("file_setattr");
 
   PrintSubsection(&printer, "File access and modification times");
@@ -2621,9 +2763,11 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("umount2");
   PRINT("pivot_root");
   PRINT("chroot");
+  printer.customWrapper = "  return Syscall5_linux(NR_mount_setattr_linux, dfd, path, flags, uattr, sizeof(*uattr), 0);\n";
   PRINT("mount_setattr");
   PRINT("move_mount");
   PRINT("open_tree");
+  printer.customWrapper = "  return Syscall5_linux(NR_open_tree_attr_linux, dfd, path, flags, uattr, sizeof(*uattr), 0);\n";
   PRINT("open_tree_attr");
   PRINT("fsconfig");
   PRINT("fsmount");
@@ -2663,19 +2807,26 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("fanotify_init");
   printer.customWrapper = fanotify_markWrapper;
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("fanotify_mark");
 
   PrintSection(&printer, "SIGNALS", NULL);
   PrintSubsection(&printer, "Setting up signal handlers");
 
+  printer.customWrapper = signalWrapper;
+  printer.hardCodedPrototype = "long signal_linux(int sig, void (*handler)(int)";
+  printer.hardCodedPrototypeArgNames[0] = substring("sig");
+  printer.hardCodedPrototypeArgNames[1] = substring("handler");
+  printer.hardCodedPrototypeArgNamesCount = 2;
   PRINT("signal");
+  printer.disabledWrapper = true;
   PRINT("sigaction");
+  printer.customWrapper = "  return Syscall4_linux(NR_rt_sigaction_linux, sig, act, oact, sizeof(act->sa_mask), 0);\n";
   PRINT("rt_sigaction");
 
   PrintSubsection(&printer, "Sending signals to processes");
 
   PRINT("kill");
+  printer.disabledWrapper = true;
   PRINT("tkill");
   PRINT("tgkill");
   PRINT("rt_sigqueueinfo");
@@ -2683,31 +2834,45 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Blocking and unblocking signals");
 
+  printer.disabledWrapper = true;
   PRINT("sigprocmask");
+  printer.customWrapper = "  return Syscall4_linux(NR_rt_sigprocmask_linux, how, set, oset, sizeof(*set), 0);\n";
   PRINT("rt_sigprocmask");
+  printer.disabledWrapper = true;
   PRINT("sgetmask");
+  printer.disabledWrapper = true;
   PRINT("ssetmask");
 
   PrintSubsection(&printer, "Waiting for and querying signals");
 
+  printer.disabledWrapper = true;
   PRINT("sigpending");
+  printer.customWrapper = "  return Syscall2_linux(NR_rt_sigpending_linux, set, sizeof(*set), 0);\n";
   PRINT("rt_sigpending");
+  printer.disabledWrapper = true;
   PRINT("sigsuspend");
+  printer.customWrapper = "  return Syscall2_linux(NR_rt_sigsuspend_linux, unewset, sizeof(*unewset), 0);\n";
   PRINT("rt_sigsuspend");
+  printer.customWrapper = pauseWrapper;
   PRINT("pause");
   printer.disabledWrapper = true;
   PRINT("rt_sigtimedwait");
+  printer.customWrapper = rt_sigtimedwait_time64Wrapper;
   PRINT("rt_sigtimedwait_time64");
 
   PrintSubsection(&printer, "Alternate signal stack and return from handlers");
 
   PRINT("sigaltstack");
+  printer.disabledWrapper = true;
   PRINT("sigreturn");
   PRINT("rt_sigreturn");
 
   PrintSubsection(&printer, "Signal delivery via file descriptors");
 
+  printer.customWrapper = "  return signalfd4_linux(ufd, user_mask, 0);\n";
   PRINT("signalfd");
+  printer.customWrapper = "  return Syscall4_linux(NR_signalfd4_linux, ufd, user_mask, sizeof(*user_mask), flags, 0);\n";
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("signalfd4");
 
   PrintSection(&printer, "PIPES & FIFOs", NULL);

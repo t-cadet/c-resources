@@ -1939,7 +1939,7 @@ substring ReplaceLinuxType(substring linuxType)
   }
   else if (Eq_string(linuxType, substring("futex_waitv")))
   {
-    out = substring("futex_waitv_linux");
+    out = substring("futex_waitv_t_linux");
   }
   else if (Eq_string(linuxType, substring("robust_list")))
   {
@@ -1950,6 +1950,14 @@ substring ReplaceLinuxType(substring linuxType)
     out = substring("robust_list_head_linux");
   }
   else if (Eq_string(linuxType, substring("clockid_t")))
+  {
+    out = substring("int");
+  }
+  else if (Eq_string(linuxType, substring("sigevent")))
+  {
+    out = substring("sigevent_linux");
+  }
+  else if (Eq_string(linuxType, substring("mqd_t")))
   {
     out = substring("int");
   }
@@ -2394,24 +2402,24 @@ char* semtimedop_time64Wrapper = \
 
 char* mq_timedsend_time64Wrapper = \
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
-"  return Syscall5_linux(NR_mq_timedsend_linux, mqdes, u_msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);\n"
+"  return Syscall5_linux(NR_mq_timedsend_linux, mqdes, msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);\n"
 "#else\n"
-"  return Syscall5_linux(NR_mq_timedsend_time64_linux, mqdes, u_msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);\n"
+"  return Syscall5_linux(NR_mq_timedsend_time64_linux, mqdes, msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);\n"
 "#endif\n";
 
 char* mq_timedreceive_time64Wrapper = \
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
-"  return Syscall5_linux(NR_mq_timedreceive_linux, mqdes, u_msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);\n"
+"  return Syscall5_linux(NR_mq_timedreceive_linux, mqdes, msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);\n"
 "#else\n"
-"  return Syscall5_linux(NR_mq_timedreceive_time64_linux, mqdes, u_msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);\n"
+"  return Syscall5_linux(NR_mq_timedreceive_time64_linux, mqdes, msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);\n"
 "#endif\n";
 
 char* futex_time64Wrapper = \
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
 "  return Syscall6_linux(NR_futex_linux, uaddr, op, val, utime, uaddr2, val3, 0);\n"
-"#endif\n"
+"#else\n"
 "  return Syscall6_linux(NR_futex_time64_linux, uaddr, op, val, utime, uaddr2, val3, 0);\n"
-"#end\n";
+"#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
 {
@@ -2975,7 +2983,6 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   printer.customWrapper = "  return signalfd4_linux(ufd, user_mask, 0);\n";
   PRINT("signalfd");
   printer.customWrapper = "  return Syscall4_linux(NR_signalfd4_linux, ufd, user_mask, sizeof(*user_mask), flags, 0);\n";
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("signalfd4");
 
   PrintSection(&printer, "PIPES & FIFOs", NULL);
@@ -3046,6 +3053,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   printer.customWrapper = "  return eventfd2_linux(count, 0);\n";
   PRINT("eventfd");
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("eventfd2");
 
   PrintSection(&printer, "SOCKETS & NETWORKING", NULL);

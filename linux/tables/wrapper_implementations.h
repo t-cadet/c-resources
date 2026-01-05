@@ -914,7 +914,6 @@ long signalfd_linux(int ufd, unsigned long long *user_mask) {
 long signalfd4_linux(int ufd, unsigned long long *user_mask, int flags) {
   return Syscall4_linux(NR_signalfd4_linux, ufd, user_mask, sizeof(*user_mask), flags, 0);
 }
-#if 0 // WIP
 //
 // 12. PIPES & FIFOs
 //
@@ -978,26 +977,26 @@ long mq_open_linux(const char *name, int oflag, unsigned int mode, mq_attr_linux
 long mq_unlink_linux(const char *name) {
   return Syscall1_linux(NR_mq_unlink_linux, name, 0);
 }
-// Disabled wrapper: long mq_timedsend_linux(mqd_t mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
-long mq_timedsend_time64_linux(mqd_t mqdes, const void *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec_linux *u_abs_timeout) {
+// Disabled wrapper: long mq_timedsend_linux(int mqdes, const char *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+long mq_timedsend_time64_linux(int mqdes, const void *msg_ptr, unsigned long msg_len, unsigned int msg_prio, const __kernel_timespec_linux *u_abs_timeout) {
 #if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
-  return Syscall5_linux(NR_mq_timedsend_linux, mqdes, u_msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);
+  return Syscall5_linux(NR_mq_timedsend_linux, mqdes, msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);
 #else
-  return Syscall5_linux(NR_mq_timedsend_time64_linux, mqdes, u_msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);
+  return Syscall5_linux(NR_mq_timedsend_time64_linux, mqdes, msg_ptr, msg_len, msg_prio, u_abs_timeout, 0);
 #endif
 }
-// Disabled wrapper: long mq_timedreceive_linux(mqd_t mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
-long mq_timedreceive_time64_linux(mqd_t mqdes, void *msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec_linux *u_abs_timeout) {
+// Disabled wrapper: long mq_timedreceive_linux(int mqdes, char *msg_ptr, unsigned long msg_len, unsigned int *msg_prio, const __kernel_old_timespec_linux *abs_timeout);
+long mq_timedreceive_time64_linux(int mqdes, void *msg_ptr, unsigned long msg_len, unsigned int *u_msg_prio, const __kernel_timespec_linux *u_abs_timeout) {
 #if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
-  return Syscall5_linux(NR_mq_timedreceive_linux, mqdes, u_msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);
+  return Syscall5_linux(NR_mq_timedreceive_linux, mqdes, msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);
 #else
-  return Syscall5_linux(NR_mq_timedreceive_time64_linux, mqdes, u_msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);
+  return Syscall5_linux(NR_mq_timedreceive_time64_linux, mqdes, msg_ptr, msg_len, u_msg_prio, u_abs_timeout, 0);
 #endif
 }
-long mq_notify_linux(mqd_t mqdes, const sigevent *notification) {
+long mq_notify_linux(int mqdes, const sigevent_linux *notification) {
   return Syscall2_linux(NR_mq_notify_linux, mqdes, notification, 0);
 }
-long mq_getsetattr_linux(mqd_t mqdes, const mq_attr_linux *mqstat, mq_attr_linux *omqstat) {
+long mq_getsetattr_linux(int mqdes, const mq_attr_linux *mqstat, mq_attr_linux *omqstat) {
   return Syscall3_linux(NR_mq_getsetattr_linux, mqdes, mqstat, omqstat, 0);
 }
 // 13e. Synchronization Primitives - Futexes
@@ -1005,9 +1004,9 @@ long mq_getsetattr_linux(mqd_t mqdes, const mq_attr_linux *mqstat, mq_attr_linux
 long futex_time64_linux(unsigned int *uaddr, int op, unsigned int val, const __kernel_timespec_linux *utime, unsigned int *uaddr2, unsigned int val3) {
 #if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall6_linux(NR_futex_linux, uaddr, op, val, utime, uaddr2, val3, 0);
-#endif
+#else
   return Syscall6_linux(NR_futex_time64_linux, uaddr, op, val, utime, uaddr2, val3, 0);
-#end
+#endif
 }
 long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, const __kernel_timespec_linux *timespec, int clockid) {
   return Syscall6_linux(NR_futex_wait_linux, uaddr, val, mask, flags, timespec, clockid, 0);
@@ -1015,10 +1014,10 @@ long futex_wait_linux(void *uaddr, unsigned long val, unsigned long mask, unsign
 long futex_wake_linux(void *uaddr, unsigned long mask, int nr, unsigned int flags) {
   return Syscall4_linux(NR_futex_wake_linux, uaddr, mask, nr, flags, 0);
 }
-long futex_waitv_linux(const futex_waitv_linux *waiters, unsigned int nr_futexes, unsigned int flags, const __kernel_timespec_linux *timeout, int clockid) {
+long futex_waitv_linux(const futex_waitv_t_linux *waiters, unsigned int nr_futexes, unsigned int flags, const __kernel_timespec_linux *timeout, int clockid) {
   return Syscall5_linux(NR_futex_waitv_linux, waiters, nr_futexes, flags, timeout, clockid, 0);
 }
-long futex_requeue_linux(const futex_waitv_linux *waiters, unsigned int flags, int nr_wake, int nr_requeue) {
+long futex_requeue_linux(const futex_waitv_t_linux *waiters, unsigned int flags, int nr_wake, int nr_requeue) {
   return Syscall4_linux(NR_futex_requeue_linux, waiters, flags, nr_wake, nr_requeue, 0);
 }
 long set_robust_list_linux(robust_list_head_linux *head) {
@@ -1034,6 +1033,7 @@ long eventfd_linux(unsigned int count) {
 long eventfd2_linux(unsigned int count, int flags) {
   return Syscall2_linux(NR_eventfd2_linux, count, flags, 0);
 }
+#if 0 // WIP
 //
 // 14. SOCKETS & NETWORKING
 //
@@ -1194,7 +1194,7 @@ long getitimer_linux(int which, __kernel_old_itimerval *value) {
   return Syscall2_linux(NR_getitimer_linux, which, value, 0);
 }
 // 16e. Per-process timers with precise control
-long timer_create_linux(int which_clock, sigevent *timer_event_spec, timer_t * created_timer_id) {
+long timer_create_linux(int which_clock, sigevent_linux *timer_event_spec, timer_t * created_timer_id) {
   return Syscall3_linux(NR_timer_create_linux, which_clock, timer_event_spec, created_timer_id, 0);
 }
 // Disabled wrapper: long timer_settime_linux(timer_t timer_id, int flags, const __kernel_itimerspec *new_setting, __kernel_itimerspec *old_setting);

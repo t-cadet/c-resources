@@ -1033,7 +1033,6 @@ long eventfd_linux(unsigned int count) {
 long eventfd2_linux(unsigned int count, int flags) {
   return Syscall2_linux(NR_eventfd2_linux, count, flags, 0);
 }
-#if 0 // WIP
 //
 // 14. SOCKETS & NETWORKING
 //
@@ -1044,58 +1043,60 @@ long socket_linux(int family, int type, int protocol) {
 long socketpair_linux(int family, int type, int protocol, int *usockvec) {
   return Syscall4_linux(NR_socketpair_linux, family, type, protocol, usockvec, 0);
 }
-long bind_linux(int fd, sockaddr_linux *umyaddr, int addrlen) {
+long bind_linux(int fd, const sockaddr_linux *umyaddr, int addrlen) {
   return Syscall3_linux(NR_bind_linux, fd, umyaddr, addrlen, 0);
 }
 long listen_linux(int fd, int backlog) {
   return Syscall2_linux(NR_listen_linux, fd, backlog, 0);
 }
 long accept_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen) {
-  return Syscall3_linux(NR_accept_linux, fd, upeer_sockaddr, upeer_addrlen, 0);
+  return accept4_linux(fd, upeer_sockaddr, upeer_addrlen, 0);
 }
 long accept4_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen, int flags) {
   return Syscall4_linux(NR_accept4_linux, fd, upeer_sockaddr, upeer_addrlen, flags, 0);
 }
-long connect_linux(int fd, sockaddr_linux *uservaddr, int addrlen) {
+long connect_linux(int fd, const sockaddr_linux *uservaddr, int addrlen) {
   return Syscall3_linux(NR_connect_linux, fd, uservaddr, addrlen, 0);
 }
 long shutdown_linux(int fd, int how) {
   return Syscall2_linux(NR_shutdown_linux, fd, how, 0);
 }
-long socketcall_linux(int call, unsigned long *args) {
-  return Syscall2_linux(NR_socketcall_linux, call, args, 0);
-}
+// Disabled wrapper: long socketcall_linux(int call, unsigned long *args);
 // 14b. Sending and receiving data on sockets
-long send_linux(int fd, void *buff, unsigned long len, unsigned int flags) {
-  return Syscall4_linux(NR_send_linux, fd, buff, len, flags, 0);
+long send_linux(int fd, const void *buf, unsigned long len, unsigned int flags) {
+  return sendto_linux(fd, buf, len, flags, 0, 0);
 }
-long sendto_linux(int fd, void *buff, unsigned long len, unsigned int flags, sockaddr_linux *addr, int addr_len) {
-  return Syscall6_linux(NR_sendto_linux, fd, buff, len, flags, addr, addr_len, 0);
+long sendto_linux(int fd, const void *buf, unsigned long len, unsigned int flags, const sockaddr_linux *addr, int addr_len) {
+  return Syscall6_linux(NR_sendto_linux, fd, buf, len, flags, addr, addr_len, 0);
 }
-long sendmsg_linux(int fd, user_msghdr *msg, unsigned flags) {
+long sendmsg_linux(int fd, const user_msghdr_linux *msg, unsigned flags) {
   return Syscall3_linux(NR_sendmsg_linux, fd, msg, flags, 0);
 }
-long sendmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags) {
+long sendmmsg_linux(int fd, const mmsghdr_linux *msg, unsigned int vlen, unsigned flags) {
   return Syscall4_linux(NR_sendmmsg_linux, fd, msg, vlen, flags, 0);
 }
-long recv_linux(int fd, void *ubuf, unsigned long size, unsigned int flags) {
-  return Syscall4_linux(NR_recv_linux, fd, ubuf, size, flags, 0);
+long recv_linux(int fd, void *buf, unsigned long size, unsigned int flags) {
+  return recvfrom_linux(fd, buf, size, flags, 0, 0);
 }
 long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr_linux *addr, int *addr_len) {
   return Syscall6_linux(NR_recvfrom_linux, fd, ubuf, size, flags, addr, addr_len, 0);
 }
-long recvmsg_linux(int fd, user_msghdr *msg, unsigned flags) {
+long recvmsg_linux(int fd, user_msghdr_linux *msg, unsigned flags) {
   return Syscall3_linux(NR_recvmsg_linux, fd, msg, flags, 0);
 }
-// Disabled wrapper: long recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
-long recvmmsg_time64_linux(int fd, mmsghdr *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout) {
+// Disabled wrapper: long recvmmsg_linux(int fd, mmsghdr_linux *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
+long recvmmsg_time64_linux(int fd, mmsghdr_linux *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall5_linux(NR_recvmmsg_linux, fd, mmsg, vlen, flags, timeout, 0);
+#else
   return Syscall5_linux(NR_recvmmsg_time64_linux, fd, mmsg, vlen, flags, timeout, 0);
+#endif
 }
 // 14c. Getting and setting socket options
-long getsockopt_linux(int fd, int level, int optname, char *optval, int *optlen) {
+long getsockopt_linux(int fd, int level, int optname, void *optval, int *optlen) {
   return Syscall5_linux(NR_getsockopt_linux, fd, level, optname, optval, optlen, 0);
 }
-long setsockopt_linux(int fd, int level, int optname, char *optval, int optlen) {
+long setsockopt_linux(int fd, int level, int optname, const void *optval, int optlen) {
   return Syscall5_linux(NR_setsockopt_linux, fd, level, optname, optval, optlen, 0);
 }
 long getsockname_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len) {
@@ -1108,25 +1109,33 @@ long getpeername_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len) {
 // 15. ASYNCHRONOUS I/O
 //
 // 15a. AIO: asynchronous I/O interface
-long io_setup_linux(unsigned nr_reqs, aio_context_t *ctx) {
+long io_setup_linux(unsigned nr_reqs, unsigned long *ctx) {
   return Syscall2_linux(NR_io_setup_linux, nr_reqs, ctx, 0);
 }
-long io_destroy_linux(aio_context_t ctx) {
+long io_destroy_linux(unsigned long ctx) {
   return Syscall1_linux(NR_io_destroy_linux, ctx, 0);
 }
-long io_submit_linux(aio_context_t ctx_id, long nr, iocb * *iocbpp) {
+long io_submit_linux(unsigned long ctx_id, long nr, iocb_linux *const *iocbpp) {
   return Syscall3_linux(NR_io_submit_linux, ctx_id, nr, iocbpp, 0);
 }
-long io_cancel_linux(aio_context_t ctx_id, iocb *iocb, io_event *result) {
+long io_cancel_linux(unsigned long ctx_id, const iocb_linux *iocb, io_event_linux *result) {
   return Syscall3_linux(NR_io_cancel_linux, ctx_id, iocb, result, 0);
 }
-long io_getevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout) {
+long io_getevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, __kernel_timespec_linux *timeout) {
   return Syscall5_linux(NR_io_getevents_linux, ctx_id, min_nr, nr, events, timeout, 0);
 }
-// Disabled wrapper: long io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
-long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout, const __aio_sigset *sig) {
-  return Syscall6_linux(NR_io_pgetevents_time64_linux, ctx_id, min_nr, nr, events, timeout, sig, 0);
+// Disabled wrapper: long io_pgetevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
+long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_timespec_linux *timeout, unsigned long long sigmask) {
+  aio_sigset_linux sig;
+  sig.sigmask = &sigmask;
+  sig.sigsetsize = sizeof(sigmask);
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall6_linux(NR_io_pgetevents_linux, ctx_id, min_nr, nr, events, timeout, &sig, 0);
+#else
+  return Syscall6_linux(NR_io_pgetevents_time64_linux, ctx_id, min_nr, nr, events, timeout, &sig, 0);
+#endif
 }
+#if 0 // WIP
 // 15b. io_uring: high-performance asynchronous I/O
 long io_uring_setup_linux(unsigned int entries, io_uring_params *p) {
   return Syscall2_linux(NR_io_uring_setup_linux, entries, p, 0);

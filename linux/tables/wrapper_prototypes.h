@@ -376,46 +376,46 @@ long get_robust_list_linux(int pid, robust_list_head_linux * *head_ptr, unsigned
 // 13f. Synchronization Primitives - Event Notification
 long eventfd_linux(unsigned int count);
 long eventfd2_linux(unsigned int count, int flags);
-#if 0 // WIP
 //
 // 14. SOCKETS & NETWORKING
 //
 // 14a. Creating and configuring sockets
 long socket_linux(int family, int type, int protocol);
 long socketpair_linux(int family, int type, int protocol, int *usockvec);
-long bind_linux(int fd, sockaddr_linux *umyaddr, int addrlen);
+long bind_linux(int fd, const sockaddr_linux *umyaddr, int addrlen);
 long listen_linux(int fd, int backlog);
 long accept_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen);
 long accept4_linux(int fd, sockaddr_linux *upeer_sockaddr, int *upeer_addrlen, int flags);
-long connect_linux(int fd, sockaddr_linux *uservaddr, int addrlen);
+long connect_linux(int fd, const sockaddr_linux *uservaddr, int addrlen);
 long shutdown_linux(int fd, int how);
-long socketcall_linux(int call, unsigned long *args);
+// Disabled wrapper: long socketcall_linux(int call, unsigned long *args);
 // 14b. Sending and receiving data on sockets
-long send_linux(int fd, void *buff, unsigned long len, unsigned int flags);
-long sendto_linux(int fd, void *buff, unsigned long len, unsigned int flags, sockaddr_linux *addr, int addr_len);
-long sendmsg_linux(int fd, user_msghdr *msg, unsigned flags);
-long sendmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags);
-long recv_linux(int fd, void *ubuf, unsigned long size, unsigned int flags);
+long send_linux(int fd, const void *buf, unsigned long len, unsigned int flags);
+long sendto_linux(int fd, const void *buf, unsigned long len, unsigned int flags, const sockaddr_linux *addr, int addr_len);
+long sendmsg_linux(int fd, const user_msghdr_linux *msg, unsigned flags);
+long sendmmsg_linux(int fd, const mmsghdr_linux *msg, unsigned int vlen, unsigned flags);
+long recv_linux(int fd, void *buf, unsigned long size, unsigned int flags);
 long recvfrom_linux(int fd, void *ubuf, unsigned long size, unsigned int flags, sockaddr_linux *addr, int *addr_len);
-long recvmsg_linux(int fd, user_msghdr *msg, unsigned flags);
-// Disabled wrapper: long recvmmsg_linux(int fd, mmsghdr *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
-long recvmmsg_time64_linux(int fd, mmsghdr *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout);
+long recvmsg_linux(int fd, user_msghdr_linux *msg, unsigned flags);
+// Disabled wrapper: long recvmmsg_linux(int fd, mmsghdr_linux *msg, unsigned int vlen, unsigned flags, __kernel_old_timespec_linux *timeout);
+long recvmmsg_time64_linux(int fd, mmsghdr_linux *mmsg, unsigned int vlen, unsigned int flags, __kernel_timespec_linux *timeout);
 // 14c. Getting and setting socket options
-long getsockopt_linux(int fd, int level, int optname, char *optval, int *optlen);
-long setsockopt_linux(int fd, int level, int optname, char *optval, int optlen);
+long getsockopt_linux(int fd, int level, int optname, void *optval, int *optlen);
+long setsockopt_linux(int fd, int level, int optname, const void *optval, int optlen);
 long getsockname_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len);
 long getpeername_linux(int fd, sockaddr_linux *usockaddr, int *usockaddr_len);
 //
 // 15. ASYNCHRONOUS I/O
 //
 // 15a. AIO: asynchronous I/O interface
-long io_setup_linux(unsigned nr_reqs, aio_context_t *ctx);
-long io_destroy_linux(aio_context_t ctx);
-long io_submit_linux(aio_context_t ctx_id, long nr, iocb * *iocbpp);
-long io_cancel_linux(aio_context_t ctx_id, iocb *iocb, io_event *result);
-long io_getevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout);
-// Disabled wrapper: long io_pgetevents_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
-long io_pgetevents_time64_linux(aio_context_t ctx_id, long min_nr, long nr, io_event *events, __kernel_timespec_linux *timeout, const __aio_sigset *sig);
+long io_setup_linux(unsigned nr_reqs, unsigned long *ctx);
+long io_destroy_linux(unsigned long ctx);
+long io_submit_linux(unsigned long ctx_id, long nr, iocb_linux *const *iocbpp);
+long io_cancel_linux(unsigned long ctx_id, const iocb_linux *iocb, io_event_linux *result);
+long io_getevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, __kernel_timespec_linux *timeout);
+// Disabled wrapper: long io_pgetevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
+long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_timespec_linux *timeout, unsigned long long sigmask);
+#if 0 // WIP
 // 15b. io_uring: high-performance asynchronous I/O
 long io_uring_setup_linux(unsigned int entries, io_uring_params *p);
 long io_uring_enter_linux(unsigned int fd, unsigned int to_submit, unsigned int min_complete, unsigned int flags, const void *argp, unsigned long argsz);

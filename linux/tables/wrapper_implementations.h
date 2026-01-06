@@ -1135,9 +1135,8 @@ long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_e
   return Syscall6_linux(NR_io_pgetevents_time64_linux, ctx_id, min_nr, nr, events, timeout, &sig, 0);
 #endif
 }
-#if 0 // WIP
 // 15b. io_uring: high-performance asynchronous I/O
-long io_uring_setup_linux(unsigned int entries, io_uring_params *p) {
+long io_uring_setup_linux(unsigned int entries, io_uring_params_linux *p) {
   return Syscall2_linux(NR_io_uring_setup_linux, entries, p, 0);
 }
 long io_uring_enter_linux(unsigned int fd, unsigned int to_submit, unsigned int min_complete, unsigned int flags, const void *argp, unsigned long argsz) {
@@ -1150,87 +1149,119 @@ long io_uring_register_linux(unsigned int fd, unsigned int op, void *arg, unsign
 // 16. TIME & CLOCKS
 //
 // 16a. Reading current time from various clocks
-long time_linux(__kernel_old_time_t *tloc) {
-  return Syscall1_linux(NR_time_linux, tloc, 0);
-}
-long gettimeofday_linux(__kernel_old_timeval *tv, timezone *tz) {
-  return Syscall2_linux(NR_gettimeofday_linux, tv, tz, 0);
-}
+// Disabled wrapper: long time_linux(long *tloc);
+// Disabled wrapper: long gettimeofday_linux(__kernel_old_timeval *tv, timezone_linux *tz);
 // Disabled wrapper: long clock_gettime_linux(int which_clock, __kernel_old_timespec_linux *tp);
 long clock_gettime64_linux(int which_clock, __kernel_timespec_linux *tp) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall2_linux(NR_clock_gettime_linux, which_clock, tp, 0);
+#else
   return Syscall2_linux(NR_clock_gettime64_linux, which_clock, tp, 0);
+#endif
 }
 // Disabled wrapper: long clock_getres_linux(int which_clock, __kernel_old_timespec_linux *tp);
 long clock_getres_time64_linux(int which_clock, __kernel_timespec_linux *tp) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall2_linux(NR_clock_getres_linux, which_clock, tp, 0);
+#else
   return Syscall2_linux(NR_clock_getres_time64_linux, which_clock, tp, 0);
+#endif
 }
 // 16b. Setting system time and adjusting clocks
-long settimeofday_linux(__kernel_old_timeval *tv, timezone *tz) {
-  return Syscall2_linux(NR_settimeofday_linux, tv, tz, 0);
-}
+// Disabled wrapper: long settimeofday_linux(__kernel_old_timeval *tv, timezone_linux *tz);
 // Disabled wrapper: long clock_settime_linux(int which_clock, const __kernel_old_timespec_linux *tp);
 long clock_settime64_linux(int which_clock, const __kernel_timespec_linux *tp) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall2_linux(NR_clock_settime_linux, which_clock, tp, 0);
+#else
   return Syscall2_linux(NR_clock_settime64_linux, which_clock, tp, 0);
+#endif
 }
-long stime_linux(__kernel_old_time_t *tptr) {
-  return Syscall1_linux(NR_stime_linux, tptr, 0);
+// Disabled wrapper: long stime_linux(long *tptr);
+long adjtimex_linux(__kernel_timex_linux *txc_p) {
+  return clock_adjtime64_linux(CLOCK_REALTIME_linux, txc_p);
 }
-long adjtimex_linux(__kernel_timex *txc_p) {
-  return Syscall1_linux(NR_adjtimex_linux, txc_p, 0);
-}
-long clock_adjtime_linux(int which_clock, __kernel_timex *tx) {
+// Disabled wrapper: long clock_adjtime_linux(int which_clock, __kernel_timex_linux *tx);
+long clock_adjtime64_linux(int which_clock, __kernel_timex_linux *tx) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall2_linux(NR_clock_adjtime_linux, which_clock, tx, 0);
-}
-long clock_adjtime64_linux(int which_clock, __kernel_timex *tx) {
+#else
   return Syscall2_linux(NR_clock_adjtime64_linux, which_clock, tx, 0);
+#endif
 }
 // 16c. Suspending execution for a period of time
 long nanosleep_linux(__kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp) {
-  return Syscall2_linux(NR_nanosleep_linux, rqtp, rmtp, 0);
+  return clock_nanosleep_time64_linux(CLOCK_REALTIME_linux, 0, rqtp, rmtp);
 }
 // Disabled wrapper: long clock_nanosleep_linux(int which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
 long clock_nanosleep_time64_linux(int which_clock, int flags, const __kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall4_linux(NR_clock_nanosleep_linux, which_clock, flags, rqtp, rmtp, 0);
+#else
   return Syscall4_linux(NR_clock_nanosleep_time64_linux, which_clock, flags, rqtp, rmtp, 0);
+#endif
 }
 // 16d. Setting periodic or one-shot timers
 long alarm_linux(unsigned int seconds) {
-  return Syscall1_linux(NR_alarm_linux, seconds, 0);
+  __kernel_old_itimerval_linux it, old_it;
+  it.it_interval.tv_sec = 0;
+  it.it_interval.tv_usec = 0;
+  it.it_value.tv_sec = seconds;
+  it.it_value.tv_usec = 0;
+  if (setitimer_linux(ITIMER_REAL_linux, &it, &old_it) < 0) return 0;
+  return old_it.it_value.tv_sec;
 }
-long setitimer_linux(int which, __kernel_old_itimerval *value, __kernel_old_itimerval *ovalue) {
+long setitimer_linux(int which, __kernel_old_itimerval_linux *value, __kernel_old_itimerval_linux *ovalue) {
   return Syscall3_linux(NR_setitimer_linux, which, value, ovalue, 0);
 }
-long getitimer_linux(int which, __kernel_old_itimerval *value) {
+long getitimer_linux(int which, __kernel_old_itimerval_linux *value) {
   return Syscall2_linux(NR_getitimer_linux, which, value, 0);
 }
 // 16e. Per-process timers with precise control
-long timer_create_linux(int which_clock, sigevent_linux *timer_event_spec, timer_t * created_timer_id) {
+long timer_create_linux(int which_clock, const sigevent_linux *timer_event_spec, int * created_timer_id) {
   return Syscall3_linux(NR_timer_create_linux, which_clock, timer_event_spec, created_timer_id, 0);
 }
-// Disabled wrapper: long timer_settime_linux(timer_t timer_id, int flags, const __kernel_itimerspec *new_setting, __kernel_itimerspec *old_setting);
-long timer_settime64_linux(timer_t timerid, int flags, const __kernel_timespec_linux *new_setting, __kernel_timespec_linux *old_setting) {
+// Disabled wrapper: long timer_settime_linux(int timer_id, int flags, const __kernel_itimerspec_linux *new_setting, __kernel_itimerspec_linux *old_setting);
+long timer_settime64_linux(int timerid, int flags, const __kernel_timespec_linux *new_setting, __kernel_timespec_linux *old_setting) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall4_linux(NR_timer_settime_linux, timerid, flags, new_setting, old_setting, 0);
+#else
   return Syscall4_linux(NR_timer_settime64_linux, timerid, flags, new_setting, old_setting, 0);
+#endif
 }
-// Disabled wrapper: long timer_gettime_linux(timer_t timer_id, __kernel_itimerspec *setting);
-long timer_gettime64_linux(timer_t timerid, __kernel_timespec_linux *setting) {
+// Disabled wrapper: long timer_gettime_linux(int timer_id, __kernel_itimerspec_linux *setting);
+long timer_gettime64_linux(int timerid, __kernel_timespec_linux *setting) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall2_linux(NR_timer_gettime_linux, timerid, setting, 0);
+#else
   return Syscall2_linux(NR_timer_gettime64_linux, timerid, setting, 0);
+#endif
 }
-long timer_getoverrun_linux(timer_t timer_id) {
+long timer_getoverrun_linux(int timer_id) {
   return Syscall1_linux(NR_timer_getoverrun_linux, timer_id, 0);
 }
-long timer_delete_linux(timer_t timer_id) {
+long timer_delete_linux(int timer_id) {
   return Syscall1_linux(NR_timer_delete_linux, timer_id, 0);
 }
 // 16f. Timers accessible via file descriptors
 long timerfd_create_linux(int clockid, int flags) {
   return Syscall2_linux(NR_timerfd_create_linux, clockid, flags, 0);
 }
-// Disabled wrapper: long timerfd_settime_linux(int ufd, int flags, const __kernel_itimerspec *utmr, __kernel_itimerspec *otmr);
+// Disabled wrapper: long timerfd_settime_linux(int ufd, int flags, const __kernel_itimerspec_linux *utmr, __kernel_itimerspec_linux *otmr);
 long timerfd_settime64_linux(int ufd, int flags, const __kernel_timespec_linux *utmr, __kernel_timespec_linux *otmr) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall4_linux(NR_timerfd_settime_linux, ufd, flags, utmr, otmr, 0);
+#else
   return Syscall4_linux(NR_timerfd_settime64_linux, ufd, flags, utmr, otmr, 0);
+#endif
 }
-// Disabled wrapper: long timerfd_gettime_linux(int ufd, __kernel_itimerspec *otmr);
+// Disabled wrapper: long timerfd_gettime_linux(int ufd, __kernel_itimerspec_linux *otmr);
 long timerfd_gettime64_linux(int ufd, __kernel_timespec_linux *otmr) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+  return Syscall2_linux(NR_timerfd_gettime_linux, ufd, otmr, 0);
+#else
   return Syscall2_linux(NR_timerfd_gettime64_linux, ufd, otmr, 0);
+#endif
 }
 //
 // 17. RANDOM NUMBERS
@@ -1238,6 +1269,7 @@ long timerfd_gettime64_linux(int ufd, __kernel_timespec_linux *otmr) {
 long getrandom_linux(char *buf, unsigned long count, unsigned int flags) {
   return Syscall3_linux(NR_getrandom_linux, buf, count, flags, 0);
 }
+#if 0 // WIP
 //
 // 18. USER & GROUP IDENTITY
 //

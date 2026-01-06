@@ -817,6 +817,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("getsockopt"))->prototype = substring("asmlinkage long sys_getsockopt(int fd, int level, int optname, void *optval, int *optlen);\n");
   Get_htable(syscallTable, substring("setsockopt"))->prototype = substring("asmlinkage long sys_setsockopt(int fd, int level, int optname, const void *optval, int optlen);\n");
   Get_htable(syscallTable, substring("io_cancel"))->prototype = substring("asmlinkage long sys_io_cancel(aio_context_t ctx_id, const iocb *iocb, io_event *result);\n");
+  Get_htable(syscallTable, substring("timer_create"))->prototype = substring("asmlinkage long sys_timer_create(int which_clock, const sigevent_linux *timer_event_spec, timer_t * created_timer_id);\n");
 
   // Change pointer types
   Get_htable(syscallTable, substring("munmap"))->prototype = substring("asmlinkage long sys_munmap(void *addr, unsigned long len);\n");
@@ -2018,6 +2019,66 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("unsigned long");
   }
+  else if (Eq_string(linuxType, substring("io_uring_sqe")))
+  {
+    out = substring("io_uring_sqe_linux");
+  }
+  else if (Eq_string(linuxType, substring("io_uring_cqe")))
+  {
+    out = substring("io_uring_cqe_linux");
+  }
+  else if (Eq_string(linuxType, substring("io_sqring_offsets")))
+  {
+    out = substring("io_sqring_offsets_linux");
+  }
+  else if (Eq_string(linuxType, substring("io_cqring_offsets")))
+  {
+    out = substring("io_cqring_offsets_linux");
+  }
+  else if (Eq_string(linuxType, substring("io_uring_params")))
+  {
+    out = substring("io_uring_params_linux");
+  }
+  else if (Eq_string(linuxType, substring("io_uring_getevents_arg")))
+  {
+    out = substring("io_uring_getevents_arg_linux");
+  }
+  else if (Eq_string(linuxType, substring("time_t")))
+  {
+    out = substring("long");
+  }
+  else if (Eq_string(linuxType, substring("suseconds_t")))
+  {
+    out = substring("long");
+  }
+  else if (Eq_string(linuxType, substring("timezone")))
+  {
+    out = substring("timezone_linux");
+  }
+  else if (Eq_string(linuxType, substring("__kernel_old_time_t")))
+  {
+    out = substring("long");
+  }
+  else if (Eq_string(linuxType, substring("timex")))
+  {
+    out = substring("timex_linux");
+  }
+  else if (Eq_string(linuxType, substring("__kernel_timex")))
+  {
+    out = substring("__kernel_timex_linux");
+  }
+  else if (Eq_string(linuxType, substring("timer_t")))
+  {
+    out = substring("int");
+  }
+  else if (Eq_string(linuxType, substring("__kernel_old_itimerval")))
+  {
+    out = substring("__kernel_old_itimerval_linux");
+  }
+  else if (Eq_string(linuxType, substring("__kernel_itimerspec")))
+  {
+    out = substring("__kernel_itimerspec_linux");
+  }
   return out;
 }
 
@@ -2493,6 +2554,78 @@ char* io_pgetevents_time64Wrapper = \
 "  return Syscall6_linux(NR_io_pgetevents_linux, ctx_id, min_nr, nr, events, timeout, &sig, 0);\n"
 "#else\n"
 "  return Syscall6_linux(NR_io_pgetevents_time64_linux, ctx_id, min_nr, nr, events, timeout, &sig, 0);\n"
+"#endif\n";
+
+char* clock_gettime64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_clock_gettime_linux, which_clock, tp, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_clock_gettime64_linux, which_clock, tp, 0);\n"
+"#endif\n";
+
+char* clock_getres_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_clock_getres_linux, which_clock, tp, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_clock_getres_time64_linux, which_clock, tp, 0);\n"
+"#endif\n";
+
+char* clock_settime64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_clock_settime_linux, which_clock, tp, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_clock_settime64_linux, which_clock, tp, 0);\n"
+"#endif\n";
+
+char* clock_adjtime64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_clock_adjtime_linux, which_clock, tx, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_clock_adjtime64_linux, which_clock, tx, 0);\n"
+"#endif\n";
+
+char* clock_nanosleep_time64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_clock_nanosleep_linux, which_clock, flags, rqtp, rmtp, 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_clock_nanosleep_time64_linux, which_clock, flags, rqtp, rmtp, 0);\n"
+"#endif\n";
+
+char* alarmWrapper = \
+"  __kernel_old_itimerval_linux it, old_it;\n"
+"  it.it_interval.tv_sec = 0;\n"
+"  it.it_interval.tv_usec = 0;\n"
+"  it.it_value.tv_sec = seconds;\n"
+"  it.it_value.tv_usec = 0;\n"
+"  if (setitimer_linux(ITIMER_REAL_linux, &it, &old_it) < 0) return 0;\n"
+"  return old_it.it_value.tv_sec;\n";
+
+char* timer_settime64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_timer_settime_linux, timerid, flags, new_setting, old_setting, 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_timer_settime64_linux, timerid, flags, new_setting, old_setting, 0);\n"
+"#endif\n";
+
+char* timer_gettime64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_timer_gettime_linux, timerid, setting, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_timer_gettime64_linux, timerid, setting, 0);\n"
+"#endif\n";
+
+char* timerfd_settime64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall4_linux(NR_timerfd_settime_linux, ufd, flags, utmr, otmr, 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_timerfd_settime64_linux, ufd, flags, utmr, otmr, 0);\n"
+"#endif\n";
+
+char* timerfd_gettime64Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall2_linux(NR_timerfd_gettime_linux, ufd, otmr, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_timerfd_gettime64_linux, ufd, otmr, 0);\n"
 "#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
@@ -3178,7 +3311,6 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   printer.disabledWrapper = true;
   PRINT("io_pgetevents");
   printer.customWrapper = io_pgetevents_time64Wrapper;
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("io_pgetevents_time64");
 
   PrintSubsection(&printer, "io_uring: high-performance asynchronous I/O");
@@ -3190,35 +3322,48 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSection(&printer, "TIME & CLOCKS", NULL);
   PrintSubsection(&printer, "Reading current time from various clocks");
 
+  printer.disabledWrapper = true;
   PRINT("time");
+  printer.disabledWrapper = true;
   PRINT("gettimeofday");
   printer.disabledWrapper = true;
   PRINT("clock_gettime");
+  printer.customWrapper = clock_gettime64Wrapper;
   PRINT("clock_gettime64");
   printer.disabledWrapper = true;
   PRINT("clock_getres");
+  printer.customWrapper = clock_getres_time64Wrapper;
   PRINT("clock_getres_time64");
 
   PrintSubsection(&printer, "Setting system time and adjusting clocks");
 
+  printer.disabledWrapper = true;
   PRINT("settimeofday");
   printer.disabledWrapper = true;
   PRINT("clock_settime");
+  printer.customWrapper = clock_settime64Wrapper;
   PRINT("clock_settime64");
+  printer.disabledWrapper = true;
   PRINT("stime");
+  printer.customWrapper = "  return clock_adjtime64_linux(CLOCK_REALTIME_linux, txc_p);\n";
   PRINT("adjtimex");
+  printer.disabledWrapper = true;
   PRINT("clock_adjtime");
+  printer.customWrapper = clock_adjtime64Wrapper;
   PRINT("clock_adjtime64");
 
   PrintSubsection(&printer, "Suspending execution for a period of time");
 
+  printer.customWrapper = "  return clock_nanosleep_time64_linux(CLOCK_REALTIME_linux, 0, rqtp, rmtp);\n";
   PRINT("nanosleep");
   printer.disabledWrapper = true;
   PRINT("clock_nanosleep");
+  printer.customWrapper = clock_nanosleep_time64Wrapper;
   PRINT("clock_nanosleep_time64");
 
   PrintSubsection(&printer, "Setting periodic or one-shot timers");
 
+  printer.customWrapper = alarmWrapper;
   PRINT("alarm");
   PRINT("setitimer");
   PRINT("getitimer");
@@ -3228,9 +3373,11 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("timer_create");
   printer.disabledWrapper = true;
   PRINT("timer_settime");
+  printer.customWrapper = timer_settime64Wrapper;
   PRINT("timer_settime64");
   printer.disabledWrapper = true;
   PRINT("timer_gettime");
+  printer.customWrapper = timer_gettime64Wrapper;
   PRINT("timer_gettime64");
   PRINT("timer_getoverrun");
   PRINT("timer_delete");
@@ -3240,13 +3387,16 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("timerfd_create");
   printer.disabledWrapper = true;
   PRINT("timerfd_settime");
+  printer.customWrapper = timerfd_settime64Wrapper;
   PRINT("timerfd_settime64");
   printer.disabledWrapper = true;
   PRINT("timerfd_gettime");
+  printer.customWrapper = timerfd_gettime64Wrapper;
   PRINT("timerfd_gettime64");
 
   PrintSection(&printer, "RANDOM NUMBERS", NULL);
 
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("getrandom");
 
   PrintSection(&printer, "USER & GROUP IDENTITY", NULL);

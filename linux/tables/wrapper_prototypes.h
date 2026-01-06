@@ -415,55 +415,55 @@ long io_cancel_linux(unsigned long ctx_id, const iocb_linux *iocb, io_event_linu
 long io_getevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, __kernel_timespec_linux *timeout);
 // Disabled wrapper: long io_pgetevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
 long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_timespec_linux *timeout, unsigned long long sigmask);
-#if 0 // WIP
 // 15b. io_uring: high-performance asynchronous I/O
-long io_uring_setup_linux(unsigned int entries, io_uring_params *p);
+long io_uring_setup_linux(unsigned int entries, io_uring_params_linux *p);
 long io_uring_enter_linux(unsigned int fd, unsigned int to_submit, unsigned int min_complete, unsigned int flags, const void *argp, unsigned long argsz);
 long io_uring_register_linux(unsigned int fd, unsigned int op, void *arg, unsigned int nr_args);
 //
 // 16. TIME & CLOCKS
 //
 // 16a. Reading current time from various clocks
-long time_linux(__kernel_old_time_t *tloc);
-long gettimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
+// Disabled wrapper: long time_linux(long *tloc);
+// Disabled wrapper: long gettimeofday_linux(__kernel_old_timeval *tv, timezone_linux *tz);
 // Disabled wrapper: long clock_gettime_linux(int which_clock, __kernel_old_timespec_linux *tp);
 long clock_gettime64_linux(int which_clock, __kernel_timespec_linux *tp);
 // Disabled wrapper: long clock_getres_linux(int which_clock, __kernel_old_timespec_linux *tp);
 long clock_getres_time64_linux(int which_clock, __kernel_timespec_linux *tp);
 // 16b. Setting system time and adjusting clocks
-long settimeofday_linux(__kernel_old_timeval *tv, timezone *tz);
+// Disabled wrapper: long settimeofday_linux(__kernel_old_timeval *tv, timezone_linux *tz);
 // Disabled wrapper: long clock_settime_linux(int which_clock, const __kernel_old_timespec_linux *tp);
 long clock_settime64_linux(int which_clock, const __kernel_timespec_linux *tp);
-long stime_linux(__kernel_old_time_t *tptr);
-long adjtimex_linux(__kernel_timex *txc_p);
-long clock_adjtime_linux(int which_clock, __kernel_timex *tx);
-long clock_adjtime64_linux(int which_clock, __kernel_timex *tx);
+// Disabled wrapper: long stime_linux(long *tptr);
+long adjtimex_linux(__kernel_timex_linux *txc_p);
+// Disabled wrapper: long clock_adjtime_linux(int which_clock, __kernel_timex_linux *tx);
+long clock_adjtime64_linux(int which_clock, __kernel_timex_linux *tx);
 // 16c. Suspending execution for a period of time
 long nanosleep_linux(__kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
 // Disabled wrapper: long clock_nanosleep_linux(int which_clock, int flags, const __kernel_old_timespec_linux *rqtp, __kernel_old_timespec_linux *rmtp);
 long clock_nanosleep_time64_linux(int which_clock, int flags, const __kernel_timespec_linux *rqtp, __kernel_timespec_linux *rmtp);
 // 16d. Setting periodic or one-shot timers
 long alarm_linux(unsigned int seconds);
-long setitimer_linux(int which, __kernel_old_itimerval *value, __kernel_old_itimerval *ovalue);
-long getitimer_linux(int which, __kernel_old_itimerval *value);
+long setitimer_linux(int which, __kernel_old_itimerval_linux *value, __kernel_old_itimerval_linux *ovalue);
+long getitimer_linux(int which, __kernel_old_itimerval_linux *value);
 // 16e. Per-process timers with precise control
-long timer_create_linux(int which_clock, sigevent_linux *timer_event_spec, timer_t * created_timer_id);
-// Disabled wrapper: long timer_settime_linux(timer_t timer_id, int flags, const __kernel_itimerspec *new_setting, __kernel_itimerspec *old_setting);
-long timer_settime64_linux(timer_t timerid, int flags, const __kernel_timespec_linux *new_setting, __kernel_timespec_linux *old_setting);
-// Disabled wrapper: long timer_gettime_linux(timer_t timer_id, __kernel_itimerspec *setting);
-long timer_gettime64_linux(timer_t timerid, __kernel_timespec_linux *setting);
-long timer_getoverrun_linux(timer_t timer_id);
-long timer_delete_linux(timer_t timer_id);
+long timer_create_linux(int which_clock, const sigevent_linux *timer_event_spec, int * created_timer_id);
+// Disabled wrapper: long timer_settime_linux(int timer_id, int flags, const __kernel_itimerspec_linux *new_setting, __kernel_itimerspec_linux *old_setting);
+long timer_settime64_linux(int timerid, int flags, const __kernel_timespec_linux *new_setting, __kernel_timespec_linux *old_setting);
+// Disabled wrapper: long timer_gettime_linux(int timer_id, __kernel_itimerspec_linux *setting);
+long timer_gettime64_linux(int timerid, __kernel_timespec_linux *setting);
+long timer_getoverrun_linux(int timer_id);
+long timer_delete_linux(int timer_id);
 // 16f. Timers accessible via file descriptors
 long timerfd_create_linux(int clockid, int flags);
-// Disabled wrapper: long timerfd_settime_linux(int ufd, int flags, const __kernel_itimerspec *utmr, __kernel_itimerspec *otmr);
+// Disabled wrapper: long timerfd_settime_linux(int ufd, int flags, const __kernel_itimerspec_linux *utmr, __kernel_itimerspec_linux *otmr);
 long timerfd_settime64_linux(int ufd, int flags, const __kernel_timespec_linux *utmr, __kernel_timespec_linux *otmr);
-// Disabled wrapper: long timerfd_gettime_linux(int ufd, __kernel_itimerspec *otmr);
+// Disabled wrapper: long timerfd_gettime_linux(int ufd, __kernel_itimerspec_linux *otmr);
 long timerfd_gettime64_linux(int ufd, __kernel_timespec_linux *otmr);
 //
 // 17. RANDOM NUMBERS
 //
 long getrandom_linux(char *buf, unsigned long count, unsigned int flags);
+#if 0 // WIP
 //
 // 18. USER & GROUP IDENTITY
 //

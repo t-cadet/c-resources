@@ -463,18 +463,17 @@ long timerfd_gettime64_linux(int ufd, __kernel_timespec_linux *otmr);
 // 17. RANDOM NUMBERS
 //
 long getrandom_linux(char *buf, unsigned long count, unsigned int flags);
-#if 0 // WIP
 //
 // 18. USER & GROUP IDENTITY
 //
 // 18a. Getting and setting user IDs
-long getuid_linux(void);
-long geteuid_linux(void);
-long setuid_linux(unsigned int uid);
-long setreuid_linux(unsigned int ruid, unsigned int euid);
-long setresuid_linux(unsigned int ruid, unsigned int euid, unsigned int suid);
-long getresuid_linux(unsigned int *ruid, unsigned int *euid, unsigned int *suid);
-long setfsuid_linux(unsigned int uid);
+// Disabled wrapper: long getuid_linux(void);
+// Disabled wrapper: long geteuid_linux(void);
+// Disabled wrapper: long setuid_linux(unsigned int uid);
+// Disabled wrapper: long setreuid_linux(unsigned int ruid, unsigned int euid);
+// Disabled wrapper: long setresuid_linux(unsigned int ruid, unsigned int euid, unsigned int suid);
+// Disabled wrapper: long getresuid_linux(unsigned int *ruid, unsigned int *euid, unsigned int *suid);
+// Disabled wrapper: long setfsuid_linux(unsigned int uid);
 long getuid32_linux(void);
 long geteuid32_linux(void);
 long setuid32_linux(unsigned int uid);
@@ -483,13 +482,13 @@ long setresuid32_linux(unsigned int ruid, unsigned int euid, unsigned int suid);
 long getresuid32_linux(unsigned int *ruid, unsigned int *euid, unsigned int *suid);
 long setfsuid32_linux(unsigned int uid);
 // 18b. Getting and setting group IDs
-long getgid_linux(void);
-long getegid_linux(void);
-long setgid_linux(unsigned int gid);
-long setregid_linux(unsigned int rgid, unsigned int egid);
-long setresgid_linux(unsigned int rgid, unsigned int egid, unsigned int sgid);
-long getresgid_linux(unsigned int *rgid, unsigned int *egid, unsigned int *sgid);
-long setfsgid_linux(unsigned int gid);
+// Disabled wrapper: long getgid_linux(void);
+// Disabled wrapper: long getegid_linux(void);
+// Disabled wrapper: long setgid_linux(unsigned int gid);
+// Disabled wrapper: long setregid_linux(unsigned int rgid, unsigned int egid);
+// Disabled wrapper: long setresgid_linux(unsigned int rgid, unsigned int egid, unsigned int sgid);
+// Disabled wrapper: long getresgid_linux(unsigned int *rgid, unsigned int *egid, unsigned int *sgid);
+// Disabled wrapper: long setfsgid_linux(unsigned int gid);
 long getgid32_linux(void);
 long getegid32_linux(void);
 long setgid32_linux(unsigned int gid);
@@ -498,31 +497,32 @@ long setresgid32_linux(unsigned int rgid, unsigned int egid, unsigned int sgid);
 long getresgid32_linux(unsigned int *rgid, unsigned int *egid, unsigned int *sgid);
 long setfsgid32_linux(unsigned int gid);
 // 18c. Managing supplementary group list
-long getgroups_linux(int gidsetsize, unsigned int *grouplist);
-long setgroups_linux(int gidsetsize, unsigned int *grouplist);
+// Disabled wrapper: long getgroups_linux(int gidsetsize, unsigned int *grouplist);
+// Disabled wrapper: long setgroups_linux(int gidsetsize, unsigned int *grouplist);
 long getgroups32_linux(int gidsetsize, unsigned int *grouplist);
 long setgroups32_linux(int gidsetsize, unsigned int *grouplist);
 //
 // 19. CAPABILITIES & SECURITY
 //
 // 19a. Fine-grained privilege control
-long capget_linux(cap_user_header_t header, cap_user_data_t dataptr);
-long capset_linux(cap_user_header_t header, const cap_user_data_t data);
+long capget_linux(cap_user_header_linux * header, cap_user_data_linux * dataptr);
+long capset_linux(cap_user_header_linux * header, const cap_user_data_linux * data);
 // 19b. Syscall filtering and sandboxing
 long seccomp_linux(unsigned int op, unsigned int flags, void *uargs);
 // 19c. Linux Security Module interfaces
-long security_linux(void);
-long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int *size, unsigned int flags);
-long lsm_set_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int size, unsigned int flags);
+// Disabled wrapper: long security_linux(void);
+long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx_linux *ctx, unsigned int *size, unsigned int flags);
+long lsm_set_self_attr_linux(unsigned int attr, const lsm_ctx_linux *ctx, unsigned int size, unsigned int flags);
 long lsm_list_modules_linux(unsigned long long *ids, unsigned int *size, unsigned int flags);
 // 19d. Unprivileged access control
-long landlock_create_ruleset_linux(const landlock_ruleset_attr *attr, unsigned long size, __u32 flags);
-long landlock_add_rule_linux(int ruleset_fd, enum landlock_rule_type rule_type, const void *rule_attr, __u32 flags);
-long landlock_restrict_self_linux(int ruleset_fd, __u32 flags);
+long landlock_create_ruleset_linux(const landlock_ruleset_attr_linux *attr, unsigned long size, unsigned int flags);
+long landlock_add_rule_linux(int ruleset_fd, int rule_type, const void *rule_attr, unsigned int flags);
+long landlock_restrict_self_linux(int ruleset_fd, unsigned int flags);
 // 19e. Kernel key retention service
-long add_key_linux(const char *_type, const char *_description, const void *_payload, unsigned long plen, key_serial_t destringid);
-long request_key_linux(const char *_type, const char *_description, const char *_callout_info, key_serial_t destringid);
+long add_key_linux(const char *_type, const char *_description, const void *_payload, unsigned long plen, int destringid);
+long request_key_linux(const char *_type, const char *_description, const char *_callout_info, int destringid);
 long keyctl_linux(int cmd, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5);
+#if 0 // WIP
 //
 // 20. RESOURCE LIMITS & ACCOUNTING
 //

@@ -1269,117 +1269,148 @@ long timerfd_gettime64_linux(int ufd, __kernel_timespec_linux *otmr) {
 long getrandom_linux(char *buf, unsigned long count, unsigned int flags) {
   return Syscall3_linux(NR_getrandom_linux, buf, count, flags, 0);
 }
-#if 0 // WIP
 //
 // 18. USER & GROUP IDENTITY
 //
 // 18a. Getting and setting user IDs
-long getuid_linux(void) {
-  return Syscall0_linux(NR_getuid_linux, 0);
-}
-long geteuid_linux(void) {
-  return Syscall0_linux(NR_geteuid_linux, 0);
-}
-long setuid_linux(unsigned int uid) {
-  return Syscall1_linux(NR_setuid_linux, uid, 0);
-}
-long setreuid_linux(unsigned int ruid, unsigned int euid) {
-  return Syscall2_linux(NR_setreuid_linux, ruid, euid, 0);
-}
-long setresuid_linux(unsigned int ruid, unsigned int euid, unsigned int suid) {
-  return Syscall3_linux(NR_setresuid_linux, ruid, euid, suid, 0);
-}
-long getresuid_linux(unsigned int *ruid, unsigned int *euid, unsigned int *suid) {
-  return Syscall3_linux(NR_getresuid_linux, ruid, euid, suid, 0);
-}
-long setfsuid_linux(unsigned int uid) {
-  return Syscall1_linux(NR_setfsuid_linux, uid, 0);
-}
+// Disabled wrapper: long getuid_linux(void);
+// Disabled wrapper: long geteuid_linux(void);
+// Disabled wrapper: long setuid_linux(unsigned int uid);
+// Disabled wrapper: long setreuid_linux(unsigned int ruid, unsigned int euid);
+// Disabled wrapper: long setresuid_linux(unsigned int ruid, unsigned int euid, unsigned int suid);
+// Disabled wrapper: long getresuid_linux(unsigned int *ruid, unsigned int *euid, unsigned int *suid);
+// Disabled wrapper: long setfsuid_linux(unsigned int uid);
 long getuid32_linux(void) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall0_linux(NR_getuid_linux, 0);
+#else
   return Syscall0_linux(NR_getuid32_linux, 0);
+#endif
 }
 long geteuid32_linux(void) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall0_linux(NR_geteuid_linux, 0);
+#else
   return Syscall0_linux(NR_geteuid32_linux, 0);
+#endif
 }
 long setuid32_linux(unsigned int uid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall1_linux(NR_setuid_linux, uid, 0);
+#else
   return Syscall1_linux(NR_setuid32_linux, uid, 0);
+#endif
 }
 long setreuid32_linux(unsigned int ruid, unsigned int euid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall2_linux(NR_setreuid_linux, ruid, euid, 0);
+#else
   return Syscall2_linux(NR_setreuid32_linux, ruid, euid, 0);
+#endif
 }
 long setresuid32_linux(unsigned int ruid, unsigned int euid, unsigned int suid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall3_linux(NR_setresuid_linux, ruid, euid, suid, 0);
+#else
   return Syscall3_linux(NR_setresuid32_linux, ruid, euid, suid, 0);
+#endif
 }
 long getresuid32_linux(unsigned int *ruid, unsigned int *euid, unsigned int *suid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall3_linux(NR_getresuid_linux, ruid, euid, suid, 0);
+#else
   return Syscall3_linux(NR_getresuid32_linux, ruid, euid, suid, 0);
+#endif
 }
 long setfsuid32_linux(unsigned int uid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall1_linux(NR_setfsuid_linux, uid, 0);
+#else
   return Syscall1_linux(NR_setfsuid32_linux, uid, 0);
+#endif
 }
 // 18b. Getting and setting group IDs
-long getgid_linux(void) {
-  return Syscall0_linux(NR_getgid_linux, 0);
-}
-long getegid_linux(void) {
-  return Syscall0_linux(NR_getegid_linux, 0);
-}
-long setgid_linux(unsigned int gid) {
-  return Syscall1_linux(NR_setgid_linux, gid, 0);
-}
-long setregid_linux(unsigned int rgid, unsigned int egid) {
-  return Syscall2_linux(NR_setregid_linux, rgid, egid, 0);
-}
-long setresgid_linux(unsigned int rgid, unsigned int egid, unsigned int sgid) {
-  return Syscall3_linux(NR_setresgid_linux, rgid, egid, sgid, 0);
-}
-long getresgid_linux(unsigned int *rgid, unsigned int *egid, unsigned int *sgid) {
-  return Syscall3_linux(NR_getresgid_linux, rgid, egid, sgid, 0);
-}
-long setfsgid_linux(unsigned int gid) {
-  return Syscall1_linux(NR_setfsgid_linux, gid, 0);
-}
+// Disabled wrapper: long getgid_linux(void);
+// Disabled wrapper: long getegid_linux(void);
+// Disabled wrapper: long setgid_linux(unsigned int gid);
+// Disabled wrapper: long setregid_linux(unsigned int rgid, unsigned int egid);
+// Disabled wrapper: long setresgid_linux(unsigned int rgid, unsigned int egid, unsigned int sgid);
+// Disabled wrapper: long getresgid_linux(unsigned int *rgid, unsigned int *egid, unsigned int *sgid);
+// Disabled wrapper: long setfsgid_linux(unsigned int gid);
 long getgid32_linux(void) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall0_linux(NR_getgid_linux, 0);
+#else
   return Syscall0_linux(NR_getgid32_linux, 0);
+#endif
 }
 long getegid32_linux(void) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall0_linux(NR_getegid_linux, 0);
+#else
   return Syscall0_linux(NR_getegid32_linux, 0);
+#endif
 }
 long setgid32_linux(unsigned int gid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall1_linux(NR_setgid_linux, gid, 0);
+#else
   return Syscall1_linux(NR_setgid32_linux, gid, 0);
+#endif
 }
 long setregid32_linux(unsigned int rgid, unsigned int egid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall2_linux(NR_setregid_linux, rgid, egid, 0);
+#else
   return Syscall2_linux(NR_setregid32_linux, rgid, egid, 0);
+#endif
 }
 long setresgid32_linux(unsigned int rgid, unsigned int egid, unsigned int sgid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall3_linux(NR_setresgid_linux, rgid, egid, sgid, 0);
+#else
   return Syscall3_linux(NR_setresgid32_linux, rgid, egid, sgid, 0);
+#endif
 }
 long getresgid32_linux(unsigned int *rgid, unsigned int *egid, unsigned int *sgid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall3_linux(NR_getresgid_linux, rgid, egid, sgid, 0);
+#else
   return Syscall3_linux(NR_getresgid32_linux, rgid, egid, sgid, 0);
+#endif
 }
 long setfsgid32_linux(unsigned int gid) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall1_linux(NR_setfsgid_linux, gid, 0);
+#else
   return Syscall1_linux(NR_setfsgid32_linux, gid, 0);
+#endif
 }
 // 18c. Managing supplementary group list
-long getgroups_linux(int gidsetsize, unsigned int *grouplist) {
-  return Syscall2_linux(NR_getgroups_linux, gidsetsize, grouplist, 0);
-}
-long setgroups_linux(int gidsetsize, unsigned int *grouplist) {
-  return Syscall2_linux(NR_setgroups_linux, gidsetsize, grouplist, 0);
-}
+// Disabled wrapper: long getgroups_linux(int gidsetsize, unsigned int *grouplist);
+// Disabled wrapper: long setgroups_linux(int gidsetsize, unsigned int *grouplist);
 long getgroups32_linux(int gidsetsize, unsigned int *grouplist) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall2_linux(NR_getgroups_linux, gidsetsize, grouplist, 0);
+#else
   return Syscall2_linux(NR_getgroups32_linux, gidsetsize, grouplist, 0);
+#endif
 }
 long setgroups32_linux(int gidsetsize, unsigned int *grouplist) {
+#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)
+  return Syscall2_linux(NR_setgroups_linux, gidsetsize, grouplist, 0);
+#else
   return Syscall2_linux(NR_setgroups32_linux, gidsetsize, grouplist, 0);
+#endif
 }
 //
 // 19. CAPABILITIES & SECURITY
 //
 // 19a. Fine-grained privilege control
-long capget_linux(cap_user_header_t header, cap_user_data_t dataptr) {
+long capget_linux(cap_user_header_linux * header, cap_user_data_linux * dataptr) {
   return Syscall2_linux(NR_capget_linux, header, dataptr, 0);
 }
-long capset_linux(cap_user_header_t header, const cap_user_data_t data) {
+long capset_linux(cap_user_header_linux * header, const cap_user_data_linux * data) {
   return Syscall2_linux(NR_capset_linux, header, data, 0);
 }
 // 19b. Syscall filtering and sandboxing
@@ -1387,38 +1418,37 @@ long seccomp_linux(unsigned int op, unsigned int flags, void *uargs) {
   return Syscall3_linux(NR_seccomp_linux, op, flags, uargs, 0);
 }
 // 19c. Linux Security Module interfaces
-long security_linux(void) {
-  return Syscall0_linux(NR_security_linux, 0);
-}
-long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int *size, unsigned int flags) {
+// Disabled wrapper: long security_linux(void);
+long lsm_get_self_attr_linux(unsigned int attr, lsm_ctx_linux *ctx, unsigned int *size, unsigned int flags) {
   return Syscall4_linux(NR_lsm_get_self_attr_linux, attr, ctx, size, flags, 0);
 }
-long lsm_set_self_attr_linux(unsigned int attr, lsm_ctx *ctx, unsigned int size, unsigned int flags) {
+long lsm_set_self_attr_linux(unsigned int attr, const lsm_ctx_linux *ctx, unsigned int size, unsigned int flags) {
   return Syscall4_linux(NR_lsm_set_self_attr_linux, attr, ctx, size, flags, 0);
 }
 long lsm_list_modules_linux(unsigned long long *ids, unsigned int *size, unsigned int flags) {
   return Syscall3_linux(NR_lsm_list_modules_linux, ids, size, flags, 0);
 }
 // 19d. Unprivileged access control
-long landlock_create_ruleset_linux(const landlock_ruleset_attr *attr, unsigned long size, __u32 flags) {
+long landlock_create_ruleset_linux(const landlock_ruleset_attr_linux *attr, unsigned long size, unsigned int flags) {
   return Syscall3_linux(NR_landlock_create_ruleset_linux, attr, size, flags, 0);
 }
-long landlock_add_rule_linux(int ruleset_fd, enum landlock_rule_type rule_type, const void *rule_attr, __u32 flags) {
+long landlock_add_rule_linux(int ruleset_fd, int rule_type, const void *rule_attr, unsigned int flags) {
   return Syscall4_linux(NR_landlock_add_rule_linux, ruleset_fd, rule_type, rule_attr, flags, 0);
 }
-long landlock_restrict_self_linux(int ruleset_fd, __u32 flags) {
+long landlock_restrict_self_linux(int ruleset_fd, unsigned int flags) {
   return Syscall2_linux(NR_landlock_restrict_self_linux, ruleset_fd, flags, 0);
 }
 // 19e. Kernel key retention service
-long add_key_linux(const char *_type, const char *_description, const void *_payload, unsigned long plen, key_serial_t destringid) {
+long add_key_linux(const char *_type, const char *_description, const void *_payload, unsigned long plen, int destringid) {
   return Syscall5_linux(NR_add_key_linux, _type, _description, _payload, plen, destringid, 0);
 }
-long request_key_linux(const char *_type, const char *_description, const char *_callout_info, key_serial_t destringid) {
+long request_key_linux(const char *_type, const char *_description, const char *_callout_info, int destringid) {
   return Syscall4_linux(NR_request_key_linux, _type, _description, _callout_info, destringid, 0);
 }
 long keyctl_linux(int cmd, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5) {
   return Syscall5_linux(NR_keyctl_linux, cmd, arg2, arg3, arg4, arg5, 0);
 }
+#if 0 // WIP
 //
 // 20. RESOURCE LIMITS & ACCOUNTING
 //

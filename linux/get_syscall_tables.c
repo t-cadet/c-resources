@@ -818,6 +818,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("setsockopt"))->prototype = substring("asmlinkage long sys_setsockopt(int fd, int level, int optname, const void *optval, int optlen);\n");
   Get_htable(syscallTable, substring("io_cancel"))->prototype = substring("asmlinkage long sys_io_cancel(aio_context_t ctx_id, const iocb *iocb, io_event *result);\n");
   Get_htable(syscallTable, substring("timer_create"))->prototype = substring("asmlinkage long sys_timer_create(int which_clock, const sigevent_linux *timer_event_spec, timer_t * created_timer_id);\n");
+  Get_htable(syscallTable, substring("lsm_set_self_attr"))->prototype = substring("asmlinkage long sys_lsm_set_self_attr(unsigned int attr, const lsm_ctx *ctx, unsigned int size, unsigned int flags);\n");
 
   // Change pointer types
   Get_htable(syscallTable, substring("munmap"))->prototype = substring("asmlinkage long sys_munmap(void *addr, unsigned long len);\n");
@@ -2079,6 +2080,38 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("__kernel_itimerspec_linux");
   }
+  else if (Eq_string(linuxType, substring("cap_user_header_t")))
+  {
+    out = substring("cap_user_header_linux *");
+  }
+  else if (Eq_string(linuxType, substring("cap_user_data_t")))
+  {
+    out = substring("cap_user_data_linux *");
+  }
+  else if (Eq_string(linuxType, substring("lsm_ctx")))
+  {
+    out = substring("lsm_ctx_linux");
+  }
+  else if (Eq_string(linuxType, substring("key_serial_t")))
+  {
+    out = substring("int");
+  }
+  else if (Eq_string(linuxType, substring("__u32")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("landlock_ruleset_attr")))
+  {
+    out = substring("landlock_ruleset_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("landlock_path_beneath_attr")))
+  {
+    out = substring("landlock_path_beneath_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("landlock_rule_type")))
+  {
+    out = substring("int");
+  }
   return out;
 }
 
@@ -2162,7 +2195,7 @@ void PrintSyscallLine(table_printer* printer, char* s) {
             {
               default:
               {
-                if (!Eq_string(buf, substring("__user")) && !Eq_string(buf, substring("struct")))
+                if (!Eq_string(buf, substring("__user")) && !Eq_string(buf, substring("struct")) && !Eq_string(buf, substring("enum")))
                 {
                   sawType = true;
                   buf = ReplaceLinuxType(buf);
@@ -2626,6 +2659,118 @@ char* timerfd_gettime64Wrapper = \
 "  return Syscall2_linux(NR_timerfd_gettime_linux, ufd, otmr, 0);\n"
 "#else\n"
 "  return Syscall2_linux(NR_timerfd_gettime64_linux, ufd, otmr, 0);\n"
+"#endif\n";
+
+char* getuid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall0_linux(NR_getuid_linux, 0);\n"
+"#else\n"
+"  return Syscall0_linux(NR_getuid32_linux, 0);\n"
+"#endif\n";
+
+char* geteuid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall0_linux(NR_geteuid_linux, 0);\n"
+"#else\n"
+"  return Syscall0_linux(NR_geteuid32_linux, 0);\n"
+"#endif\n";
+
+char* setuid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall1_linux(NR_setuid_linux, uid, 0);\n"
+"#else\n"
+"  return Syscall1_linux(NR_setuid32_linux, uid, 0);\n"
+"#endif\n";
+
+char* setreuid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall2_linux(NR_setreuid_linux, ruid, euid, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_setreuid32_linux, ruid, euid, 0);\n"
+"#endif\n";
+
+char* setresuid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall3_linux(NR_setresuid_linux, ruid, euid, suid, 0);\n"
+"#else\n"
+"  return Syscall3_linux(NR_setresuid32_linux, ruid, euid, suid, 0);\n"
+"#endif\n";
+
+char* getresuid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall3_linux(NR_getresuid_linux, ruid, euid, suid, 0);\n"
+"#else\n"
+"  return Syscall3_linux(NR_getresuid32_linux, ruid, euid, suid, 0);\n"
+"#endif\n";
+
+char* setfsuid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall1_linux(NR_setfsuid_linux, uid, 0);\n"
+"#else\n"
+"  return Syscall1_linux(NR_setfsuid32_linux, uid, 0);\n"
+"#endif\n";
+
+char* getgid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall0_linux(NR_getgid_linux, 0);\n"
+"#else\n"
+"  return Syscall0_linux(NR_getgid32_linux, 0);\n"
+"#endif\n";
+
+char* getegid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall0_linux(NR_getegid_linux, 0);\n"
+"#else\n"
+"  return Syscall0_linux(NR_getegid32_linux, 0);\n"
+"#endif\n";
+
+char* setgid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall1_linux(NR_setgid_linux, gid, 0);\n"
+"#else\n"
+"  return Syscall1_linux(NR_setgid32_linux, gid, 0);\n"
+"#endif\n";
+
+char* setregid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall2_linux(NR_setregid_linux, rgid, egid, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_setregid32_linux, rgid, egid, 0);\n"
+"#endif\n";
+
+char* setresgid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall3_linux(NR_setresgid_linux, rgid, egid, sgid, 0);\n"
+"#else\n"
+"  return Syscall3_linux(NR_setresgid32_linux, rgid, egid, sgid, 0);\n"
+"#endif\n";
+
+char* getresgid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall3_linux(NR_getresgid_linux, rgid, egid, sgid, 0);\n"
+"#else\n"
+"  return Syscall3_linux(NR_getresgid32_linux, rgid, egid, sgid, 0);\n"
+"#endif\n";
+
+char* setfsgid32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall1_linux(NR_setfsgid_linux, gid, 0);\n"
+"#else\n"
+"  return Syscall1_linux(NR_setfsgid32_linux, gid, 0);\n"
+"#endif\n";
+
+char* getgroups32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall2_linux(NR_getgroups_linux, gidsetsize, grouplist, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_getgroups32_linux, gidsetsize, grouplist, 0);\n"
+"#endif\n";
+
+char* setgroups32Wrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || defined(__riscv)\n"
+"  return Syscall2_linux(NR_setgroups_linux, gidsetsize, grouplist, 0);\n"
+"#else\n"
+"  return Syscall2_linux(NR_setgroups32_linux, gidsetsize, grouplist, 0);\n"
 "#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
@@ -3396,49 +3541,80 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSection(&printer, "RANDOM NUMBERS", NULL);
 
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("getrandom");
 
   PrintSection(&printer, "USER & GROUP IDENTITY", NULL);
   PrintSubsection(&printer, "Getting and setting user IDs");
 
+  printer.disabledWrapper = true;
   PRINT("getuid");
+  printer.disabledWrapper = true;
   PRINT("geteuid");
+  printer.disabledWrapper = true;
   PRINT("setuid");
+  printer.disabledWrapper = true;
   PRINT("setreuid");
+  printer.disabledWrapper = true;
   PRINT("setresuid");
+  printer.disabledWrapper = true;
   PRINT("getresuid");
+  printer.disabledWrapper = true;
   PRINT("setfsuid");
+  printer.customWrapper = getuid32Wrapper;
   PRINT("getuid32");
+  printer.customWrapper = geteuid32Wrapper;
   PRINT("geteuid32");
+  printer.customWrapper = setuid32Wrapper;
   PRINT("setuid32");
+  printer.customWrapper = setreuid32Wrapper;
   PRINT("setreuid32");
+  printer.customWrapper = setresuid32Wrapper;
   PRINT("setresuid32");
+  printer.customWrapper = getresuid32Wrapper;
   PRINT("getresuid32");
+  printer.customWrapper = setfsuid32Wrapper;
   PRINT("setfsuid32");
 
   PrintSubsection(&printer, "Getting and setting group IDs");
 
+  printer.disabledWrapper = true;
   PRINT("getgid");
+  printer.disabledWrapper = true;
   PRINT("getegid");
+  printer.disabledWrapper = true;
   PRINT("setgid");
+  printer.disabledWrapper = true;
   PRINT("setregid");
+  printer.disabledWrapper = true;
   PRINT("setresgid");
+  printer.disabledWrapper = true;
   PRINT("getresgid");
+  printer.disabledWrapper = true;
   PRINT("setfsgid");
+  printer.customWrapper = getgid32Wrapper;
   PRINT("getgid32");
+  printer.customWrapper = getegid32Wrapper;
   PRINT("getegid32");
+  printer.customWrapper = setgid32Wrapper;
   PRINT("setgid32");
+  printer.customWrapper = setregid32Wrapper;
   PRINT("setregid32");
+  printer.customWrapper = setresgid32Wrapper;
   PRINT("setresgid32");
+  printer.customWrapper = getresgid32Wrapper;
   PRINT("getresgid32");
+  printer.customWrapper = setfsgid32Wrapper;
   PRINT("setfsgid32");
 
   PrintSubsection(&printer, "Managing supplementary group list");
 
+  printer.disabledWrapper = true;
   PRINT("getgroups");
+  printer.disabledWrapper = true;
   PRINT("setgroups");
+  printer.customWrapper = getgroups32Wrapper;
   PRINT("getgroups32");
+  printer.customWrapper = setgroups32Wrapper;
   PRINT("setgroups32");
 
   PrintSection(&printer, "CAPABILITIES & SECURITY", NULL);
@@ -3453,6 +3629,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Linux Security Module interfaces");
 
+  printer.disabledWrapper = true;
   PRINT("security");
   PRINT("lsm_get_self_attr");
   PRINT("lsm_set_self_attr");
@@ -3468,6 +3645,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("add_key");
   PRINT("request_key");
+  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("keyctl");
 
   PrintSection(&printer, "RESOURCE LIMITS & ACCOUNTING", NULL);

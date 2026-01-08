@@ -837,6 +837,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("map_shadow_stack"))->prototype = substring("asmlinkage long sys_map_shadow_stack(void *addr, unsigned long size, unsigned int flags);\n");
   Get_htable(syscallTable, substring("brk"))->prototype = substring("asmlinkage long sys_brk(void* brk);\n");
   Get_htable(syscallTable, substring("set_robust_list"))->prototype = substring("asmlinkage long sys_set_robust_list(robust_list_head *head);\n");
+  Get_htable(syscallTable, substring("ptrace"))->prototype = substring("asmlinkage long sys_ptrace(long op, int pid, void *addr, void *data);\n");
 
   Get_htable(syscallTable, substring("read"))->prototype = substring("asmlinkage long sys_read(unsigned int fd, void *buf, unsigned long count);\n");
   Get_htable(syscallTable, substring("pread64"))->prototype = substring("asmlinkage long sys_pread64(unsigned int fd, void *buf, unsigned long count, long long pos);\n");
@@ -2111,6 +2112,26 @@ substring ReplaceLinuxType(substring linuxType)
   else if (Eq_string(linuxType, substring("landlock_rule_type")))
   {
     out = substring("int");
+  }
+  else if (Eq_string(linuxType, substring("rlimit")))
+  {
+    out = substring("rlimit_linux");
+  }
+  else if (Eq_string(linuxType, substring("rlimit64")))
+  {
+    out = substring("rlimit64_linux");
+  }
+  else if (Eq_string(linuxType, substring("tms")))
+  {
+    out = substring("tms_linux");
+  }
+  else if (Eq_string(linuxType, substring("ns_id_req")))
+  {
+    out = substring("ns_id_req_linux");
+  }
+  else if (Eq_string(linuxType, substring("kcmp_epoll_slot")))
+  {
+    out = substring("kcmp_epoll_slot_linux");
   }
   return out;
 }
@@ -3651,10 +3672,14 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSection(&printer, "RESOURCE LIMITS & ACCOUNTING", NULL);
   PrintSubsection(&printer, "Getting and setting process resource limits");
 
+  printer.disabledWrapper = true;
   PRINT("getrlimit");
+  printer.disabledWrapper = true;
   PRINT("setrlimit");
   PRINT("prlimit64");
+  printer.disabledWrapper = true;
   PRINT("ugetrlimit");
+  printer.disabledWrapper = true;
   PRINT("ulimit");
 
   PrintSubsection(&printer, "Getting resource usage and time statistics");

@@ -527,14 +527,14 @@ long keyctl_linux(int cmd, unsigned long arg2, unsigned long arg3, unsigned long
 // 20. RESOURCE LIMITS & ACCOUNTING
 //
 // 20a. Getting and setting process resource limits
-long getrlimit_linux(unsigned int resource, rlimit *rlim);
-long setrlimit_linux(unsigned int resource, rlimit *rlim);
-long prlimit64_linux(int pid, unsigned int resource, const rlimit64 *new_rlim, rlimit64 *old_rlim);
-long ugetrlimit_linux(unsigned int resource, rlimit *rlim);
-long ulimit_linux(int cmd, long newval);
+// Disabled wrapper: long getrlimit_linux(unsigned int resource, rlimit_linux *rlim);
+// Disabled wrapper: long setrlimit_linux(unsigned int resource, rlimit_linux *rlim);
+long prlimit64_linux(int pid, unsigned int resource, const rlimit64_linux *new_rlim, rlimit64_linux *old_rlim);
+// Disabled wrapper: long ugetrlimit_linux(unsigned int resource, rlimit_linux *rlim);
+// Disabled wrapper: long ulimit_linux(int cmd, long newval);
 // 20b. Getting resource usage and time statistics
 long getrusage_linux(int who, rusage_linux *ru);
-long times_linux(tms *tbuf);
+long times_linux(tms_linux *tbuf);
 // 20c. System-wide process accounting
 long acct_linux(const char *name);
 //
@@ -542,7 +542,7 @@ long acct_linux(const char *name);
 //
 long unshare_linux(unsigned long unshare_flags);
 long setns_linux(int fd, int nstype);
-long listns_linux(const ns_id_req *req, unsigned long long *ns_ids, unsigned long nr_ns_ids, unsigned int flags);
+long listns_linux(const ns_id_req_linux *req, unsigned long long *ns_ids, unsigned long nr_ns_ids, unsigned int flags);
 //
 // 22. PROCESS INSPECTION & CONTROL
 //
@@ -556,7 +556,7 @@ long pidfd_send_signal_linux(int pidfd, int sig, siginfo_t_linux *info, unsigned
 long process_vm_readv_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags);
 long process_vm_writev_linux(int pid, const iovec_linux *lvec, unsigned long liovcnt, const iovec_linux *rvec, unsigned long riovcnt, unsigned long flags);
 // 22d. Process tracing
-long ptrace_linux(long request, long pid, unsigned long addr, unsigned long data);
+long ptrace_linux(long op, int pid, void *addr, void *data);
 //
 // 23. SYSTEM INFORMATION
 //

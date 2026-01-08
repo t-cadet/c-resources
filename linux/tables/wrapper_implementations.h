@@ -1453,26 +1453,18 @@ long keyctl_linux(int cmd, unsigned long arg2, unsigned long arg3, unsigned long
 // 20. RESOURCE LIMITS & ACCOUNTING
 //
 // 20a. Getting and setting process resource limits
-long getrlimit_linux(unsigned int resource, rlimit *rlim) {
-  return Syscall2_linux(NR_getrlimit_linux, resource, rlim, 0);
-}
-long setrlimit_linux(unsigned int resource, rlimit *rlim) {
-  return Syscall2_linux(NR_setrlimit_linux, resource, rlim, 0);
-}
-long prlimit64_linux(int pid, unsigned int resource, const rlimit64 *new_rlim, rlimit64 *old_rlim) {
+// Disabled wrapper: long getrlimit_linux(unsigned int resource, rlimit_linux *rlim);
+// Disabled wrapper: long setrlimit_linux(unsigned int resource, rlimit_linux *rlim);
+long prlimit64_linux(int pid, unsigned int resource, const rlimit64_linux *new_rlim, rlimit64_linux *old_rlim) {
   return Syscall4_linux(NR_prlimit64_linux, pid, resource, new_rlim, old_rlim, 0);
 }
-long ugetrlimit_linux(unsigned int resource, rlimit *rlim) {
-  return Syscall2_linux(NR_ugetrlimit_linux, resource, rlim, 0);
-}
-long ulimit_linux(int cmd, long newval) {
-  return Syscall2_linux(NR_ulimit_linux, cmd, newval, 0);
-}
+// Disabled wrapper: long ugetrlimit_linux(unsigned int resource, rlimit_linux *rlim);
+// Disabled wrapper: long ulimit_linux(int cmd, long newval);
 // 20b. Getting resource usage and time statistics
 long getrusage_linux(int who, rusage_linux *ru) {
   return Syscall2_linux(NR_getrusage_linux, who, ru, 0);
 }
-long times_linux(tms *tbuf) {
+long times_linux(tms_linux *tbuf) {
   return Syscall1_linux(NR_times_linux, tbuf, 0);
 }
 // 20c. System-wide process accounting
@@ -1488,7 +1480,7 @@ long unshare_linux(unsigned long unshare_flags) {
 long setns_linux(int fd, int nstype) {
   return Syscall2_linux(NR_setns_linux, fd, nstype, 0);
 }
-long listns_linux(const ns_id_req *req, unsigned long long *ns_ids, unsigned long nr_ns_ids, unsigned int flags) {
+long listns_linux(const ns_id_req_linux *req, unsigned long long *ns_ids, unsigned long nr_ns_ids, unsigned int flags) {
   return Syscall4_linux(NR_listns_linux, req, ns_ids, nr_ns_ids, flags, 0);
 }
 //
@@ -1516,8 +1508,8 @@ long process_vm_writev_linux(int pid, const iovec_linux *lvec, unsigned long lio
   return Syscall6_linux(NR_process_vm_writev_linux, pid, lvec, liovcnt, rvec, riovcnt, flags, 0);
 }
 // 22d. Process tracing
-long ptrace_linux(long request, long pid, unsigned long addr, unsigned long data) {
-  return Syscall4_linux(NR_ptrace_linux, request, pid, addr, data, 0);
+long ptrace_linux(long op, int pid, void *addr, void *data) {
+  return Syscall4_linux(NR_ptrace_linux, op, pid, addr, data, 0);
 }
 //
 // 23. SYSTEM INFORMATION

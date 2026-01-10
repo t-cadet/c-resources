@@ -748,10 +748,6 @@
 /*║                                          23d. Getting CPU and NUMA node information                                          ║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
 /*║*/ #define NR_getcpu_linux                       BY_ARCH_linux(      309,      168,      168,      318,      345,      168) /*║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║                                         23e. Kernel filesystem information interface                                         ║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║*/ #define NR_sysfs_linux                        BY_ARCH_linux(      139,     void,     void,      135,      135,     void) /*║*/
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/
 /*║                                                      24. KERNEL MODULES                                                      ║*/
 /*║                                       Loading, unloading, and querying kernel modules                                        ║*/
@@ -814,13 +810,7 @@
 /*║*/ #define NR_ioprio_set_linux                   BY_ARCH_linux(      251,       30,       30,      289,      314,       30) /*║*/
 /*║*/ #define NR_ioprio_get_linux                   BY_ARCH_linux(      252,       31,       31,      290,      315,       31) /*║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║                                             27c. PCI device configuration access                                             ║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║*/ #define NR_pciconfig_read_linux               BY_ARCH_linux(     void,     void,     void,     void,      272,     void) /*║*/
-/*║*/ #define NR_pciconfig_write_linux              BY_ARCH_linux(     void,     void,     void,     void,      273,     void) /*║*/
-/*║*/ #define NR_pciconfig_iobase_linux             BY_ARCH_linux(     void,     void,     void,     void,      271,     void) /*║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║                                              27d. CPU cache control operations                                               ║*/
+/*║                                              27c. CPU cache control operations                                               ║*/
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
 /*║*/ #define NR_cacheflush_linux                   BY_ARCH_linux(     void,     void,     void,     void, 0x0f0002,     void) /*║*/
 /*║*/ #define NR_cachestat_linux                    BY_ARCH_linux(      451,      451,      451,      451,      451,      451) /*║*/
@@ -845,10 +835,6 @@
 /*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
 /*║*/ #define NR_riscv_flush_icache_linux           BY_ARCH_linux(     void,     void,      259,     void,     void,      259) /*║*/
 /*║*/ #define NR_riscv_hwprobe_linux                BY_ARCH_linux(     void,     void,      258,     void,     void,      258) /*║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║                                             28d. Intel MPX support (deprecated)                                              ║*/
-/*╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢*/
-/*║*/ #define NR_mpx_linux                          BY_ARCH_linux(     void,     void,     void,       56,     void,     void) /*║*/
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/
 /*║                                                29. ADVANCED EXECUTION CONTROL                                                ║*/
 /*╠══════════════════════════════════════════════════════════════╦═════════╤═════════╤═════════╤═════════╤═════════╤═════════════╣*/
@@ -868,6 +854,11 @@
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/
 /*║                                             30. LEGACY, OBSOLETE & UNIMPLEMENTED                                             ║*/
 /*╠══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣*/
+/*║*/ #define NR_mpx_linux                          BY_ARCH_linux(     void,     void,     void,       56,     void,     void) /*║*/
+/*║*/ #define NR_pciconfig_read_linux               BY_ARCH_linux(     void,     void,     void,     void,      272,     void) /*║*/
+/*║*/ #define NR_pciconfig_write_linux              BY_ARCH_linux(     void,     void,     void,     void,      273,     void) /*║*/
+/*║*/ #define NR_pciconfig_iobase_linux             BY_ARCH_linux(     void,     void,     void,     void,      271,     void) /*║*/
+/*║*/ #define NR_sysfs_linux                        BY_ARCH_linux(      139,     void,     void,      135,      135,     void) /*║*/
 /*║*/ #define NR__sysctl_linux                      BY_ARCH_linux(      156,     void,     void,      149,      149,     void) /*║*/
 /*║*/ #define NR_ipc_linux                          BY_ARCH_linux(     void,     void,     void,      117,     void,     void) /*║*/
 /*║*/ #define NR_profil_linux                       BY_ARCH_linux(     void,     void,     void,       98,     void,     void) /*║*/

@@ -1448,7 +1448,6 @@ long request_key_linux(const char *_type, const char *_description, const char *
 long keyctl_linux(int cmd, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5) {
   return Syscall5_linux(NR_keyctl_linux, cmd, arg2, arg3, arg4, arg5, 0);
 }
-#if 0 // WIP
 //
 // 20. RESOURCE LIMITS & ACCOUNTING
 //
@@ -1515,26 +1514,36 @@ long ptrace_linux(long op, int pid, void *addr, void *data) {
 // 23. SYSTEM INFORMATION
 //
 // 23a. System name and domain information
-long uname_linux(old_utsname *) {
-  return Syscall1_linux(NR_uname_linux, , 0);
+long uname_linux(utsname_linux *name) {
+  return Syscall1_linux(NR_uname_linux, name, 0);
 }
-long olduname_linux(oldold_utsname *) {
-  return Syscall1_linux(NR_olduname_linux, , 0);
+// Disabled wrapper: long olduname_linux(old_utsname *name);
+// Disabled wrapper: long oldolduname_linux(oldold_utsname *name);
+long gethostname_linux(char *name, unsigned long len) {
+  utsname_linux uts;
+  long res = uname_linux(&uts);
+  if (res < 0) return res;
+  long i = 0;
+  while (i < len && uts.nodename[i]) {
+    name[i] = uts.nodename[i];
+    ++i;
+  }
+  if (i < len) {
+    name[i] = '\0';
+    return 0;
+  } else if (len > 0) {
+    name[len - 1] = '\0';
+  }
+  return -ENAMETOOLONG_linux;
 }
-long oldolduname_linux(oldold_utsname *name) {
-  return Syscall1_linux(NR_oldolduname_linux, name, 0);
-}
-long gethostname_linux(char *name, int len) {
-  return Syscall2_linux(NR_gethostname_linux, name, len, 0);
-}
-long sethostname_linux(char *name, int len) {
+long sethostname_linux(const char *name, unsigned long len) {
   return Syscall2_linux(NR_sethostname_linux, name, len, 0);
 }
-long setdomainname_linux(char *name, int len) {
+long setdomainname_linux(const char *name, unsigned long len) {
   return Syscall2_linux(NR_setdomainname_linux, name, len, 0);
 }
 // 23b. Overall system information and statistics
-long sysinfo_linux(sysinfo *info) {
+long sysinfo_linux(sysinfo_t_linux *info) {
   return Syscall1_linux(NR_sysinfo_linux, info, 0);
 }
 // 23c. Reading kernel log messages
@@ -1542,20 +1551,14 @@ long syslog_linux(int type, char *buf, int len) {
   return Syscall3_linux(NR_syslog_linux, type, buf, len, 0);
 }
 // 23d. Getting CPU and NUMA node information
-long getcpu_linux(unsigned *cpu, unsigned *node, getcpu_cache *cache) {
+long getcpu_linux(unsigned int *cpu, unsigned int *node, getcpu_cache_linux *cache) {
   return Syscall3_linux(NR_getcpu_linux, cpu, node, cache, 0);
-}
-// 23e. Kernel filesystem information interface
-long sysfs_linux(int option, unsigned long arg1, unsigned long arg2) {
-  return Syscall3_linux(NR_sysfs_linux, option, arg1, arg2, 0);
 }
 //
 // 24. KERNEL MODULES
 //
-long create_module_linux(const char *name, unsigned long size) {
-  return Syscall2_linux(NR_create_module_linux, name, size, 0);
-}
-long init_module_linux(void *umod, unsigned long len, const char *uargs) {
+// Disabled wrapper: long create_module_linux(const char *name, unsigned long size);
+long init_module_linux(const void *umod, unsigned long len, const char *uargs) {
   return Syscall3_linux(NR_init_module_linux, umod, len, uargs, 0);
 }
 long finit_module_linux(int fd, const char *uargs, int flags) {
@@ -1564,17 +1567,13 @@ long finit_module_linux(int fd, const char *uargs, int flags) {
 long delete_module_linux(const char *name_user, unsigned int flags) {
   return Syscall2_linux(NR_delete_module_linux, name_user, flags, 0);
 }
-long query_module_linux(const char *name, int which, void *buf, unsigned long bufsize, unsigned long *ret) {
-  return Syscall5_linux(NR_query_module_linux, name, which, buf, bufsize, ret, 0);
-}
-long get_kernel_syms_linux(kernel_sym *table) {
-  return Syscall1_linux(NR_get_kernel_syms_linux, table, 0);
-}
+// Disabled wrapper: long query_module_linux(const char *name, int which, void *buf, unsigned long bufsize, unsigned long *ret);
+// Disabled wrapper: long get_kernel_syms_linux(kernel_sym_linux *table);
 //
 // 25. SYSTEM CONTROL & ADMINISTRATION
 //
 // 25a. Rebooting and shutting down the system
-long reboot_linux(int magic1, int magic2, unsigned int cmd, void *arg) {
+long reboot_linux(int magic1, int magic2, unsigned int cmd, const void *arg) {
   return Syscall4_linux(NR_reboot_linux, magic1, magic2, cmd, arg, 0);
 }
 // 25b. Enabling and disabling swap areas
@@ -1585,12 +1584,14 @@ long swapoff_linux(const char *specialfile) {
   return Syscall1_linux(NR_swapoff_linux, specialfile, 0);
 }
 // 25c. Loading and executing new kernels
-long kexec_load_linux(unsigned long entry, unsigned long nr_segments, kexec_segment *segments, unsigned long flags) {
+long kexec_load_linux(unsigned long entry, unsigned long nr_segments, const kexec_segment_linux *segments, unsigned long flags) {
   return Syscall4_linux(NR_kexec_load_linux, entry, nr_segments, segments, flags, 0);
 }
+#if !defined(__i386__)
 long kexec_file_load_linux(int kernel_fd, int initrd_fd, unsigned long cmdline_len, const char *cmdline_ptr, unsigned long flags) {
   return Syscall5_linux(NR_kexec_file_load_linux, kernel_fd, initrd_fd, cmdline_len, cmdline_ptr, flags, 0);
 }
+#endif
 // 25d. Other system administration operations
 long vhangup_linux(void) {
   return Syscall0_linux(NR_vhangup_linux, 0);
@@ -1599,30 +1600,34 @@ long vhangup_linux(void) {
 // 26. PERFORMANCE MONITORING & TRACING
 //
 // 26a. Hardware and software performance monitoring
-long perf_event_open_linux(perf_event_attr *attr_uptr, int pid, int cpu, int group_fd, unsigned long flags) {
+long perf_event_open_linux(const perf_event_attr_linux *attr_uptr, int pid, int cpu, int group_fd, unsigned long flags) {
   return Syscall5_linux(NR_perf_event_open_linux, attr_uptr, pid, cpu, group_fd, flags, 0);
 }
 // 26b. Userspace dynamic tracing
+#if defined(__x86_64__)
 long uprobe_linux(void) {
   return Syscall0_linux(NR_uprobe_linux, 0);
 }
 long uretprobe_linux(void) {
   return Syscall0_linux(NR_uretprobe_linux, 0);
 }
+#endif
 // 26c. Programmable Kernel Extensions (eBPF)
-long bpf_linux(int cmd, union bpf_attr *attr, unsigned int size) {
+long bpf_linux(int cmd, bpf_attr_linux *attr, unsigned int size) {
   return Syscall3_linux(NR_bpf_linux, cmd, attr, size, 0);
 }
 //
 // 27. DEVICE & HARDWARE ACCESS
 //
 // 27a. Direct hardware I/O port access
+#if defined(__x86_64__) || defined(__i386__)
 long ioperm_linux(unsigned long from, unsigned long num, int on) {
   return Syscall3_linux(NR_ioperm_linux, from, num, on, 0);
 }
 long iopl_linux(unsigned int level) {
   return Syscall1_linux(NR_iopl_linux, level, 0);
 }
+#endif
 // 27b. Setting I/O scheduling priority
 long ioprio_set_linux(int which, int who, int ioprio) {
   return Syscall3_linux(NR_ioprio_set_linux, which, who, ioprio, 0);
@@ -1630,68 +1635,62 @@ long ioprio_set_linux(int which, int who, int ioprio) {
 long ioprio_get_linux(int which, int who) {
   return Syscall2_linux(NR_ioprio_get_linux, which, who, 0);
 }
-// 27c. PCI device configuration access
-long pciconfig_read_linux(unsigned long bus, unsigned long dfn, unsigned long off, unsigned long len, void *buf) {
-  return Syscall5_linux(NR_pciconfig_read_linux, bus, dfn, off, len, buf, 0);
-}
-long pciconfig_write_linux(unsigned long bus, unsigned long dfn, unsigned long off, unsigned long len, void *buf) {
-  return Syscall5_linux(NR_pciconfig_write_linux, bus, dfn, off, len, buf, 0);
-}
-long pciconfig_iobase_linux(long which, unsigned long bus, unsigned long devfn) {
-  return Syscall3_linux(NR_pciconfig_iobase_linux, which, bus, devfn, 0);
-}
-// 27d. CPU cache control operations
-long cacheflush_linux(unsigned long start, unsigned long end, int flags) {
+// 27c. CPU cache control operations
+#if defined(__arm__)
+long cacheflush_linux(void *start, void *end, int flags) {
   return Syscall3_linux(NR_cacheflush_linux, start, end, flags, 0);
 }
-long cachestat_linux(unsigned int fd, cachestat_range *cstat_range, cachestat *cstat, unsigned int flags) {
+#endif
+long cachestat_linux(unsigned int fd, const cachestat_range_linux *cstat_range, cachestat_t_linux *cstat, unsigned int flags) {
   return Syscall4_linux(NR_cachestat_linux, fd, cstat_range, cstat, flags, 0);
 }
 //
 // 28. ARCHITECTURE-SPECIFIC OPERATIONS
 //
 // 28a. x86 architecture operations
+#if defined(__x86_64__) || defined(__i386__)
 long arch_prctl_linux(int option, unsigned long addr) {
   return Syscall2_linux(NR_arch_prctl_linux, option, addr, 0);
 }
 long modify_ldt_linux(int func, void *ptr, unsigned long bytecount) {
   return Syscall3_linux(NR_modify_ldt_linux, func, ptr, bytecount, 0);
 }
-long set_thread_area_linux(user_desc *u_info) {
+long set_thread_area_linux(const user_desc_linux *u_info) {
   return Syscall1_linux(NR_set_thread_area_linux, u_info, 0);
 }
-long get_thread_area_linux(user_desc *u_info) {
+long get_thread_area_linux(user_desc_linux *u_info) {
   return Syscall1_linux(NR_get_thread_area_linux, u_info, 0);
 }
+#endif
+#if defined(__i386__)
 long vm86_linux(unsigned long cmd, unsigned long arg) {
   return Syscall2_linux(NR_vm86_linux, cmd, arg, 0);
 }
-long vm86old_linux(vm86_struct *user_vm86) {
-  return Syscall1_linux(NR_vm86old_linux, user_vm86, 0);
-}
+// Disabled wrapper: long vm86old_linux(vm86_struct_linux *user_vm86);
+#endif
 // 28b. ARM architecture operations
+#if defined(__arm__)
 long set_tls_linux(unsigned long val) {
   return Syscall1_linux(NR_set_tls_linux, val, 0);
 }
 long get_tls_linux(void) {
   return Syscall0_linux(NR_get_tls_linux, 0);
 }
+#endif
 // 28c. RISC-V architecture operations
-long riscv_flush_icache_linux(uintptr_t start, uintptr_t end, uintptr_t flags) {
+#if defined(__riscv)
+long riscv_flush_icache_linux(void *start, void *end, unsigned long flags) {
   return Syscall3_linux(NR_riscv_flush_icache_linux, start, end, flags, 0);
 }
-long riscv_hwprobe_linux(riscv_hwprobe *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags) {
+long riscv_hwprobe_linux(riscv_hwprobe_linux *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags) {
   return Syscall5_linux(NR_riscv_hwprobe_linux, pairs, pair_count, cpu_count, cpumask, flags, 0);
 }
-// 28d. Intel MPX support (deprecated)
-long mpx_linux(void) {
-  return Syscall0_linux(NR_mpx_linux, 0);
-}
+#endif
 //
 // 29. ADVANCED EXECUTION CONTROL
 //
 // 29a. Restartable sequences
-long rseq_linux(rseq *rseq, uint32_t rseq_len, int flags, uint32_t sig) {
+long rseq_linux(rseq_t_linux *rseq, unsigned int rseq_len, int flags, unsigned int sig) {
   return Syscall4_linux(NR_rseq_linux, rseq, rseq_len, flags, sig, 0);
 }
 // 29b. Restart syscall
@@ -1700,63 +1699,35 @@ long restart_syscall_linux(void) {
 }
 // 29c. Directory entry cache
 long lookup_dcookie_linux(unsigned long long cookie64, char *buf, unsigned long len) {
+#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall3_linux(NR_lookup_dcookie_linux, cookie64, buf, len, 0);
+#else
+  return Syscall4_linux(NR_lookup_dcookie_linux, LO32_bits(cookie64), HI32_bits(cookie64), buf, len);
+#endif
 }
 //
 // 30. LEGACY, OBSOLETE & UNIMPLEMENTED
 //
-long _sysctl_linux(__sysctl_args *args) {
-  return Syscall1_linux(NR__sysctl_linux, args, 0);
-}
-long ipc_linux(unsigned int call, int first, unsigned long second, unsigned long third, void *ptr, long fifth) {
-  return Syscall6_linux(NR_ipc_linux, call, first, second, third, ptr, fifth, 0);
-}
-long profil_linux(unsigned short *sample_buffer, unsigned long size, unsigned long offset, unsigned int scale) {
-  return Syscall4_linux(NR_profil_linux, sample_buffer, size, offset, scale, 0);
-}
-long prof_linux(void) {
-  return Syscall0_linux(NR_prof_linux, 0);
-}
-long afs_syscall_linux(void) {
-  return Syscall0_linux(NR_afs_syscall_linux, 0);
-}
-long break_linux(void) {
-  return Syscall0_linux(NR_break_linux, 0);
-}
-long ftime_linux(void) {
-  return Syscall0_linux(NR_ftime_linux, 0);
-}
-long gtty_linux(void) {
-  return Syscall0_linux(NR_gtty_linux, 0);
-}
-long idle_linux(void) {
-  return Syscall0_linux(NR_idle_linux, 0);
-}
-long lock_linux(void) {
-  return Syscall0_linux(NR_lock_linux, 0);
-}
-long nfsservctl_linux(int cmd, nfsctl_arg *arg, union nfsctl_res *res) {
-  return Syscall3_linux(NR_nfsservctl_linux, cmd, arg, res, 0);
-}
-long getpmsg_linux(int fd, strbuf *ctlptr, strbuf *dataptr, int *bandp, int *flagsp) {
-  return Syscall5_linux(NR_getpmsg_linux, fd, ctlptr, dataptr, bandp, flagsp, 0);
-}
-long putpmsg_linux(int fd, strbuf *ctlptr, strbuf *dataptr, int band, int flags) {
-  return Syscall5_linux(NR_putpmsg_linux, fd, ctlptr, dataptr, band, flags, 0);
-}
-long stty_linux(void) {
-  return Syscall0_linux(NR_stty_linux, 0);
-}
-long tuxcall_linux(void) {
-  return Syscall0_linux(NR_tuxcall_linux, 0);
-}
-long vserver_linux(void) {
-  return Syscall0_linux(NR_vserver_linux, 0);
-}
-long bdflush_linux(int func, long data) {
-  return Syscall2_linux(NR_bdflush_linux, func, data, 0);
-}
-long uselib_linux(const char *library) {
-  return Syscall1_linux(NR_uselib_linux, library, 0);
-}
-#endif // WIP
+// Disabled wrapper: long mpx_linux(void);
+// Disabled wrapper: long pciconfig_read_linux(unsigned long bus, unsigned long dfn, unsigned long off, unsigned long len, void *buf);
+// Disabled wrapper: long pciconfig_write_linux(unsigned long bus, unsigned long dfn, unsigned long off, unsigned long len, void *buf);
+// Disabled wrapper: long pciconfig_iobase_linux(long which, unsigned long bus, unsigned long devfn);
+// Disabled wrapper: long sysfs_linux(int option, unsigned long arg1, unsigned long arg2);
+// Disabled wrapper: long _sysctl_linux(__sysctl_args *args);
+// Disabled wrapper: long ipc_linux(unsigned int call, int first, unsigned long second, unsigned long third, void *ptr, long fifth);
+// Disabled wrapper: long profil_linux(unsigned short *sample_buffer, unsigned long size, unsigned long offset, unsigned int scale);
+// Disabled wrapper: long prof_linux(void);
+// Disabled wrapper: long afs_syscall_linux(void);
+// Disabled wrapper: long break_linux(void);
+// Disabled wrapper: long ftime_linux(void);
+// Disabled wrapper: long gtty_linux(void);
+// Disabled wrapper: long idle_linux(void);
+// Disabled wrapper: long lock_linux(void);
+// Disabled wrapper: long nfsservctl_linux(int cmd, nfsctl_arg *arg, nfsctl_res *res);
+// Disabled wrapper: long getpmsg_linux(int fd, strbuf *ctlptr, strbuf *dataptr, int *bandp, int *flagsp);
+// Disabled wrapper: long putpmsg_linux(int fd, strbuf *ctlptr, strbuf *dataptr, int band, int flags);
+// Disabled wrapper: long stty_linux(void);
+// Disabled wrapper: long tuxcall_linux(void);
+// Disabled wrapper: long vserver_linux(void);
+// Disabled wrapper: long bdflush_linux(int func, long data);
+// Disabled wrapper: long uselib_linux(const char *library);

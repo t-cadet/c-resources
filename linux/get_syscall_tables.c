@@ -808,6 +808,8 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
 
   fprintf(stderr, "(LoadSyscallPrototypes) INFO: retrieved %d prototypes from the linux file, %d of which have a syscall number,\n", prototypeCount, prototypeCountWithNumber);
 
+  Get_htable(syscallTable, substring("uname"))->prototype = substring("asmlinkage long sys_uname(utsname *name);\n");
+
   // Const
   Get_htable(syscallTable, substring("futex_wait"))->prototype = substring("asmlinkage long sys_futex_wait(void *uaddr, unsigned long val, unsigned long mask, unsigned int flags, const __kernel_timespec_linux *timespec, clockid_t clockid);\n");
   Get_htable(syscallTable, substring("futex_waitv"))->prototype = substring("asmlinkage long sys_futex_waitv(const futex_waitv *waiters, unsigned int nr_futexes, unsigned int flags, const __kernel_timespec_linux *timeout, clockid_t clockid);\n");
@@ -819,6 +821,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("io_cancel"))->prototype = substring("asmlinkage long sys_io_cancel(aio_context_t ctx_id, const iocb *iocb, io_event *result);\n");
   Get_htable(syscallTable, substring("timer_create"))->prototype = substring("asmlinkage long sys_timer_create(int which_clock, const sigevent_linux *timer_event_spec, timer_t * created_timer_id);\n");
   Get_htable(syscallTable, substring("lsm_set_self_attr"))->prototype = substring("asmlinkage long sys_lsm_set_self_attr(unsigned int attr, const lsm_ctx *ctx, unsigned int size, unsigned int flags);\n");
+  Get_htable(syscallTable, substring("cachestat"))->prototype = substring("asmlinkage long sys_cachestat(unsigned int fd, const cachestat_range *cstat_range, cachestat *cstat, unsigned int flags);\n");
 
   // Change pointer types
   Get_htable(syscallTable, substring("munmap"))->prototype = substring("asmlinkage long sys_munmap(void *addr, unsigned long len);\n");
@@ -849,6 +852,17 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("shmdt"))->prototype = substring("asmlinkage long sys_shmdt(const void *shmaddr);\n");
   Get_htable(syscallTable, substring("msgsnd"))->prototype = substring("asmlinkage long sys_msgsnd(int msqid, const void *msgp, unsigned long msgsz, int msgflg);\n");
   Get_htable(syscallTable, substring("msgrcv"))->prototype = substring("asmlinkage long sys_msgrcv(int msqid, void *msgp, unsigned long msgsz, long msgtyp, int msgflg);\n");
+
+  Get_htable(syscallTable, substring("gethostname"))->prototype = substring("asmlinkage long sys_gethostname(char *name, unsigned long len);\n");
+  Get_htable(syscallTable, substring("sethostname"))->prototype = substring("asmlinkage long sys_sethostname(const char *name, unsigned long len);\n");
+  Get_htable(syscallTable, substring("setdomainname"))->prototype = substring("asmlinkage long sys_setdomainname(const char *name, unsigned long len);\n");
+
+  Get_htable(syscallTable, substring("getcpu"))->prototype = substring("asmlinkage long sys_getcpu(unsigned int *cpu, unsigned int *node, getcpu_cache_linux *cache);\n");
+  Get_htable(syscallTable, substring("init_module"))->prototype = substring("asmlinkage long sys_init_module(const void *umod, unsigned long len, const char *uargs);\n");
+  Get_htable(syscallTable, substring("reboot"))->prototype = substring("asmlinkage long sys_reboot(int magic1, int magic2, unsigned int cmd, const void *arg);\n");
+  Get_htable(syscallTable, substring("kexec_load"))->prototype = substring("asmlinkage long sys_kexec_load(unsigned long entry, unsigned long nr_segments, const kexec_segment_linux *segments, unsigned long flags);\n");
+  Get_htable(syscallTable, substring("perf_event_open"))->prototype = substring("asmlinkage long sys_perf_event_open(const perf_event_attr_linux *attr_uptr, int pid, int cpu, int group_fd, unsigned long flags);\n");
+  
 
   // infer sigsetsize from mask arg
   Get_htable(syscallTable, substring("epoll_pwait"))->prototype = substring("asmlinkage long sys_epoll_pwait(int epfd, epoll_event_linux *events, int maxevents, int timeout, const unsigned long long *sigmask);\n");
@@ -927,7 +941,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   // Additional prototypes missing from the linux file, these might be unreliable
   Get_htable(syscallTable, substring("arch_prctl"))->prototype = substring("asmlinkage long sys_arch_prctl(int option, unsigned long addr);\n");
   Get_htable(syscallTable, substring("modify_ldt"))->prototype = substring("asmlinkage long sys_modify_ldt(int func, void __user *ptr, unsigned long bytecount);\n");
-  Get_htable(syscallTable, substring("set_thread_area"))->prototype = substring("asmlinkage long sys_set_thread_area(struct user_desc __user *u_info);\n");
+  Get_htable(syscallTable, substring("set_thread_area"))->prototype = substring("asmlinkage long sys_set_thread_area(const struct user_desc __user *u_info);\n");
   Get_htable(syscallTable, substring("get_thread_area"))->prototype = substring("asmlinkage long sys_get_thread_area(struct user_desc __user *u_info);\n");
   Get_htable(syscallTable, substring("mmap"))->prototype = substring("asmlinkage long sys_mmap(void *addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long long off);\n");
   Get_htable(syscallTable, substring("mmap2"))->prototype = substring("asmlinkage long sys_mmap2(void *addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long fd, unsigned long pgoff);\n");
@@ -936,7 +950,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("sigreturn"))->prototype = substring("asmlinkage long sys_sigreturn(void);\n");
   Get_htable(syscallTable, substring("rt_sigreturn"))->prototype = substring("asmlinkage long sys_rt_sigreturn(void);\n");
   Get_htable(syscallTable, substring("iopl"))->prototype = substring("asmlinkage long sys_iopl(unsigned int level);\n");
-  Get_htable(syscallTable, substring("riscv_flush_icache"))->prototype = substring("asmlinkage long sys_riscv_flush_icache(uintptr_t start, uintptr_t end, uintptr_t flags);\n");
+  Get_htable(syscallTable, substring("riscv_flush_icache"))->prototype = substring("asmlinkage long sys_riscv_flush_icache(void *start, void *end, unsigned long flags);\n");
   Get_htable(syscallTable, substring("riscv_hwprobe"))->prototype = substring("asmlinkage long sys_riscv_hwprobe(struct riscv_hwprobe __user *pairs, size_t pair_count, size_t cpu_count, unsigned long __user *cpumask, unsigned int flags);\n");
   Get_htable(syscallTable, substring("vm86"))->prototype = substring("asmlinkage long sys_vm86(unsigned long cmd, unsigned long arg);\n");
   Get_htable(syscallTable, substring("vm86old"))->prototype = substring("asmlinkage long sys_vm86old(struct vm86_struct __user *user_vm86);\n");
@@ -993,11 +1007,12 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("security"))->prototype = substring("asmlinkage long sys_security(void);\n");
   Get_htable(syscallTable, substring("ugetrlimit"))->prototype = substring("asmlinkage long sys_ugetrlimit(unsigned int resource, struct rlimit __user *rlim);\n");
   Get_htable(syscallTable, substring("ulimit"))->prototype = substring("asmlinkage long sys_ulimit(int cmd, long newval);\n");
+  Get_htable(syscallTable, substring("olduname"))->prototype = substring("asmlinkage long sys_olduname(old_utsname *name);\n");
   Get_htable(syscallTable, substring("oldolduname"))->prototype = substring("asmlinkage long sys_oldolduname(struct oldold_utsname __user *name);\n");
   Get_htable(syscallTable, substring("create_module"))->prototype = substring("asmlinkage long sys_create_module(const char __user *name, size_t size);\n");
   Get_htable(syscallTable, substring("query_module"))->prototype = substring("asmlinkage long sys_query_module(const char __user *name, int which, void __user *buf, size_t bufsize, size_t __user *ret);\n");
   Get_htable(syscallTable, substring("get_kernel_syms"))->prototype = substring("asmlinkage long sys_get_kernel_syms(struct kernel_sym __user *table);\n");
-  Get_htable(syscallTable, substring("cacheflush"))->prototype = substring("asmlinkage long sys_cacheflush(unsigned long start, unsigned long end, int flags);\n");
+  Get_htable(syscallTable, substring("cacheflush"))->prototype = substring("asmlinkage long sys_cacheflush(void *start, void *end, int flags);\n");
   Get_htable(syscallTable, substring("mpx"))->prototype = substring("asmlinkage long sys_mpx(void);\n");
   Get_htable(syscallTable, substring("lookup_dcookie"))->prototype = substring("asmlinkage long sys_lookup_dcookie(u64 cookie64, char __user *buf, size_t len);\n");
   Get_htable(syscallTable, substring("_sysctl"))->prototype = substring("asmlinkage long sys__sysctl(struct __sysctl_args __user *args);\n");
@@ -2133,6 +2148,70 @@ substring ReplaceLinuxType(substring linuxType)
   {
     out = substring("kcmp_epoll_slot_linux");
   }
+  else if (Eq_string(linuxType, substring("utsname")))
+  {
+    out = substring("utsname_linux");
+  }
+  else if (Eq_string(linuxType, substring("sysinfo")))
+  {
+    out = substring("sysinfo_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("getcpu_cache")))
+  {
+    out = substring("getcpu_cache_linux");
+  }
+  else if (Eq_string(linuxType, substring("kernel_sym")))
+  {
+    out = substring("kernel_sym_linux");
+  }
+  else if (Eq_string(linuxType, substring("kexec_segment")))
+  {
+    out = substring("kexec_segment_linux");
+  }
+  else if (Eq_string(linuxType, substring("perf_event_attr")))
+  {
+    out = substring("perf_event_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("bpf_attr")))
+  {
+    out = substring("bpf_attr_linux");
+  }
+  else if (Eq_string(linuxType, substring("cachestat_range")))
+  {
+    out = substring("cachestat_range_linux");
+  }
+  else if (Eq_string(linuxType, substring("cachestat")))
+  {
+    out = substring("cachestat_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("vm86_regs")))
+  {
+    out = substring("vm86_regs_linux");
+  }
+  else if (Eq_string(linuxType, substring("vm86_struct")))
+  {
+    out = substring("vm86_struct_linux");
+  }
+  else if (Eq_string(linuxType, substring("riscv_hwprobe")))
+  {
+    out = substring("riscv_hwprobe_linux");
+  }
+  else if (Eq_string(linuxType, substring("uint32_t")))
+  {
+    out = substring("unsigned int");
+  }
+  else if (Eq_string(linuxType, substring("rseq_cs")))
+  {
+    out = substring("rseq_cs_linux");
+  }
+  else if (Eq_string(linuxType, substring("rseq")))
+  {
+    out = substring("rseq_t_linux");
+  }
+  else if (Eq_string(linuxType, substring("user_desc")))
+  {
+    out = substring("user_desc_linux");
+  }
   return out;
 }
 
@@ -2216,7 +2295,7 @@ void PrintSyscallLine(table_printer* printer, char* s) {
             {
               default:
               {
-                if (!Eq_string(buf, substring("__user")) && !Eq_string(buf, substring("struct")) && !Eq_string(buf, substring("enum")))
+                if (!Eq_string(buf, substring("__user")) && !Eq_string(buf, substring("struct")) && !Eq_string(buf, substring("enum")) && !Eq_string(buf, substring("union")))
                 {
                   sawType = true;
                   buf = ReplaceLinuxType(buf);
@@ -2792,6 +2871,30 @@ char* setgroups32Wrapper = \
 "  return Syscall2_linux(NR_setgroups_linux, gidsetsize, grouplist, 0);\n"
 "#else\n"
 "  return Syscall2_linux(NR_setgroups32_linux, gidsetsize, grouplist, 0);\n"
+"#endif\n";
+
+char* gethostnameWrapper = \
+"  utsname_linux uts;\n"
+"  long res = uname_linux(&uts);\n"
+"  if (res < 0) return res;\n"
+"  long i = 0;\n"
+"  while (i < len && uts.nodename[i]) {\n"
+"    name[i] = uts.nodename[i];\n"
+"    ++i;\n"
+"  }\n"
+"  if (i < len) {\n"
+"    name[i] = '\\0';\n"
+"    return 0;\n"
+"  } else if (len > 0) {\n"
+"    name[len - 1] = '\\0';\n"
+"  }\n"
+"  return -ENAMETOOLONG_linux;\n";
+
+char* lookup_dcookieWrapper = \
+"#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
+"  return Syscall3_linux(NR_lookup_dcookie_linux, cookie64, buf, len, 0);\n"
+"#else\n"
+"  return Syscall4_linux(NR_lookup_dcookie_linux, LO32_bits(cookie64), HI32_bits(cookie64), buf, len);\n"
 "#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
@@ -3666,7 +3769,6 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("add_key");
   PRINT("request_key");
-  printer.afterSyscall = "#if 0 // WIP\n";
   PRINT("keyctl");
 
   PrintSection(&printer, "RESOURCE LIMITS & ACCOUNTING", NULL);
@@ -3721,8 +3823,11 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "System name and domain information");
 
   PRINT("uname");
+  printer.disabledWrapper = true;
   PRINT("olduname");
+  printer.disabledWrapper = true;
   PRINT("oldolduname");
+  printer.customWrapper = gethostnameWrapper;
   PRINT("gethostname");
   PRINT("sethostname");
   PRINT("setdomainname");
@@ -3739,17 +3844,16 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PRINT("getcpu");
 
-  PrintSubsection(&printer, "Kernel filesystem information interface");
-
-  PRINT("sysfs");
-
   PrintSection(&printer, "KERNEL MODULES", "Loading, unloading, and querying kernel modules");
 
+  printer.disabledWrapper = true;
   PRINT("create_module");
   PRINT("init_module");
   PRINT("finit_module");
   PRINT("delete_module");
+  printer.disabledWrapper = true;
   PRINT("query_module");
+  printer.disabledWrapper = true;
   PRINT("get_kernel_syms");
 
   PrintSection(&printer, "SYSTEM CONTROL & ADMINISTRATION", NULL);
@@ -3765,6 +3869,8 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSubsection(&printer, "Loading and executing new kernels");
 
   PRINT("kexec_load");
+  printer.beforeSyscall = "#if !defined(__i386__)\n";
+  printer.afterSyscall = "#endif\n";
   PRINT("kexec_file_load");
 
   PrintSubsection(&printer, "Other system administration operations");
@@ -3778,7 +3884,9 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Userspace dynamic tracing");
 
+  printer.beforeSyscall = "#if defined(__x86_64__)\n";
   PRINT("uprobe");
+  printer.afterSyscall = "#endif\n";
   PRINT("uretprobe");
 
   PrintSubsection(&printer, "Programmable Kernel Extensions (eBPF)");
@@ -3788,7 +3896,9 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PrintSection(&printer, "DEVICE & HARDWARE ACCESS", NULL);
   PrintSubsection(&printer, "Direct hardware I/O port access");
 
+  printer.beforeSyscall = "#if defined(__x86_64__) || defined(__i386__)\n";
   PRINT("ioperm");
+  printer.afterSyscall = "#endif\n";
   PRINT("iopl");
 
   PrintSubsection(&printer, "Setting I/O scheduling priority");
@@ -3796,40 +3906,41 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("ioprio_set");
   PRINT("ioprio_get");
 
-  PrintSubsection(&printer, "PCI device configuration access");
-
-  PRINT("pciconfig_read");
-  PRINT("pciconfig_write");
-  PRINT("pciconfig_iobase");
-
   PrintSubsection(&printer, "CPU cache control operations");
 
+  printer.beforeSyscall = "#if defined(__arm__)\n";
+  printer.afterSyscall = "#endif\n";
   PRINT("cacheflush");
   PRINT("cachestat");
 
   PrintSection(&printer, "ARCHITECTURE-SPECIFIC OPERATIONS", NULL);
   PrintSubsection(&printer, "x86 architecture operations");
 
+  printer.beforeSyscall = "#if defined(__x86_64__) || defined(__i386__)\n";
   PRINT("arch_prctl");
   PRINT("modify_ldt");
   PRINT("set_thread_area");
+  printer.afterSyscall = "#endif\n";
   PRINT("get_thread_area");
+  printer.beforeSyscall = "#if defined(__i386__)\n";
   PRINT("vm86");
+  printer.disabledWrapper = true;
+  printer.afterSyscall = "#endif\n";
   PRINT("vm86old");
 
   PrintSubsection(&printer, "ARM architecture operations");
 
+  printer.beforeSyscall = "#if defined(__arm__)\n";
   PRINT("set_tls");
+  printer.afterSyscall = "#endif\n";
   PRINT("get_tls");
 
   PrintSubsection(&printer, "RISC-V architecture operations");
 
+  printer.beforeSyscall = "#if defined(__riscv)\n";
   PRINT("riscv_flush_icache");
+  printer.afterSyscall = "#endif\n";
   PRINT("riscv_hwprobe");
-
-  PrintSubsection(&printer, "Intel MPX support (deprecated)");
-
-  PRINT("mpx");
 
   PrintSection(&printer, "ADVANCED EXECUTION CONTROL", NULL);
   PrintSubsection(&printer, "Restartable sequences");
@@ -3842,28 +3953,56 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   PrintSubsection(&printer, "Directory entry cache");
 
+  printer.customWrapper = lookup_dcookieWrapper;
   PRINT("lookup_dcookie");
 
   PrintSection(&printer, "LEGACY, OBSOLETE & UNIMPLEMENTED", NULL);
 
+  printer.disabledWrapper = true;
+  PRINT("mpx");
+  printer.disabledWrapper = true;
+  PRINT("pciconfig_read");
+  printer.disabledWrapper = true;
+  PRINT("pciconfig_write");
+  printer.disabledWrapper = true;
+  PRINT("pciconfig_iobase");
+  printer.disabledWrapper = true;
+  PRINT("sysfs");
+  printer.disabledWrapper = true;
   PRINT("_sysctl");
+  printer.disabledWrapper = true;
   PRINT("ipc");
+  printer.disabledWrapper = true;
   PRINT("profil");
+  printer.disabledWrapper = true;
   PRINT("prof");
+  printer.disabledWrapper = true;
   PRINT("afs_syscall");
+  printer.disabledWrapper = true;
   PRINT("break");
+  printer.disabledWrapper = true;
   PRINT("ftime");
+  printer.disabledWrapper = true;
   PRINT("gtty");
+  printer.disabledWrapper = true;
   PRINT("idle");
+  printer.disabledWrapper = true;
   PRINT("lock");
+  printer.disabledWrapper = true;
   PRINT("nfsservctl");
+  printer.disabledWrapper = true;
   PRINT("getpmsg");
+  printer.disabledWrapper = true;
   PRINT("putpmsg");
+  printer.disabledWrapper = true;
   PRINT("stty");
+  printer.disabledWrapper = true;
   PRINT("tuxcall");
+  printer.disabledWrapper = true;
   PRINT("vserver");
+  printer.disabledWrapper = true;
   PRINT("bdflush");
-  printer.afterSyscall = "#endif // WIP\n";
+  printer.disabledWrapper = true;
   PRINT("uselib");
 
   PrintTableSeparatorLine(file, "═", &dimensions);

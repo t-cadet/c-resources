@@ -414,7 +414,7 @@ long io_submit_linux(unsigned long ctx_id, long nr, iocb_linux *const *iocbpp);
 long io_cancel_linux(unsigned long ctx_id, const iocb_linux *iocb, io_event_linux *result);
 long io_getevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, __kernel_timespec_linux *timeout);
 // Disabled wrapper: long io_pgetevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
-long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_timespec_linux *timeout, unsigned long long sigmask);
+long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_timespec_linux *timeout, unsigned long long *sigmask);
 // 15b. io_uring: high-performance asynchronous I/O
 long io_uring_setup_linux(unsigned int entries, io_uring_params_linux *p);
 long io_uring_enter_linux(unsigned int fd, unsigned int to_submit, unsigned int min_complete, unsigned int flags, const void *argp, unsigned long argsz);
@@ -646,7 +646,7 @@ long get_tls_linux(void);
 // 28c. RISC-V architecture operations
 #if defined(__riscv)
 long riscv_flush_icache_linux(void *start, void *end, unsigned long flags);
-long riscv_hwprobe_linux(riscv_hwprobe_linux *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags);
+long riscv_hwprobe_linux(riscv_hwprobe_t_linux *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags);
 #endif
 //
 // 29. ADVANCED EXECUTION CONTROL

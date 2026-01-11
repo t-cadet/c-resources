@@ -978,7 +978,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("mq_timedreceive_time64"))->prototype = substring("asmlinkage long sys_mq_timedreceive_time64(mqd_t mqdes, void __user *msg_ptr, size_t msg_len, unsigned int __user *u_msg_prio, const struct __kernel_timespec __user *u_abs_timeout);\n");
   Get_htable(syscallTable, substring("futex_time64"))->prototype = substring("asmlinkage long sys_futex_time64(u32 __user *uaddr, int op, u32 val, const struct __kernel_timespec __user *utime, u32 __user *uaddr2, u32 val3);\n");
   Get_htable(syscallTable, substring("recvmmsg_time64"))->prototype = substring("asmlinkage long sys_recvmmsg_time64(int fd, struct mmsghdr __user *mmsg, unsigned int vlen, unsigned int flags, struct __kernel_timespec __user *timeout);\n");
-  Get_htable(syscallTable, substring("io_pgetevents_time64"))->prototype = substring("asmlinkage long sys_io_pgetevents_time64(aio_context_t ctx_id, long min_nr, long nr, io_event *events, const __kernel_timespec_linux *timeout, unsigned long long sigmask);\n");
+  Get_htable(syscallTable, substring("io_pgetevents_time64"))->prototype = substring("asmlinkage long sys_io_pgetevents_time64(aio_context_t ctx_id, long min_nr, long nr, io_event *events, const __kernel_timespec_linux *timeout, unsigned long long *sigmask);\n");
   Get_htable(syscallTable, substring("clock_gettime64"))->prototype = substring("asmlinkage long sys_clock_gettime64(clockid_t which_clock, struct __kernel_timespec __user *tp);\n");
   Get_htable(syscallTable, substring("clock_getres_time64"))->prototype = substring("asmlinkage long sys_clock_getres_time64(clockid_t which_clock, struct __kernel_timespec __user *tp);\n");
   Get_htable(syscallTable, substring("clock_settime64"))->prototype = substring("asmlinkage long sys_clock_settime64(clockid_t which_clock, const struct __kernel_timespec __user *tp);\n");
@@ -2194,7 +2194,7 @@ substring ReplaceLinuxType(substring linuxType)
   }
   else if (Eq_string(linuxType, substring("riscv_hwprobe")))
   {
-    out = substring("riscv_hwprobe_linux");
+    out = substring("riscv_hwprobe_t_linux");
   }
   else if (Eq_string(linuxType, substring("uint32_t")))
   {
@@ -2532,7 +2532,7 @@ char* fadvise64_64Wrapper = \
 "#elif defined(__arm__)\n"
 "  return Syscall6_linux(NR_arm_fadvise64_64_linux, fd, advice, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);\n"
 "#elif defined(__riscv) && (__riscv_xlen == 32)\n"
-"   return Syscall6_linux(NR_fadvise64_64_linux, fd, advice, 0, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);\n"
+"   return Syscall6_linux(NR_fadvise64_64_linux, fd, advice, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);\n"
 "#endif\n";
 
 char* readaheadWrapper = \
@@ -2681,8 +2681,8 @@ char* recvmmsg_time64Wrapper = \
 
 char* io_pgetevents_time64Wrapper = \
 "  aio_sigset_linux sig;\n"
-"  sig.sigmask = &sigmask;\n"
-"  sig.sigsetsize = sizeof(sigmask);\n"
+"  sig.sigmask = sigmask;\n"
+"  sig.sigsetsize = sizeof(*sigmask);\n"
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
 "  return Syscall6_linux(NR_io_pgetevents_linux, ctx_id, min_nr, nr, events, timeout, &sig, 0);\n"
 "#else\n"
@@ -2874,19 +2874,21 @@ char* setgroups32Wrapper = \
 "#endif\n";
 
 char* gethostnameWrapper = \
-"  utsname_linux uts;\n"
-"  long res = uname_linux(&uts);\n"
-"  if (res < 0) return res;\n"
-"  long i = 0;\n"
-"  while (i < len && uts.nodename[i]) {\n"
-"    name[i] = uts.nodename[i];\n"
-"    ++i;\n"
-"  }\n"
-"  if (i < len) {\n"
-"    name[i] = '\\0';\n"
-"    return 0;\n"
-"  } else if (len > 0) {\n"
-"    name[len - 1] = '\\0';\n"
+"  if (name) {\n"
+"    utsname_linux uts;\n"
+"    long res = uname_linux(&uts);\n"
+"    if (res < 0) return res;\n"
+"    long i = 0;\n"
+"    while (i < len && uts.nodename[i]) {\n"
+"      name[i] = uts.nodename[i];\n"
+"      ++i;\n"
+"    }\n"
+"    if (i < len) {\n"
+"      name[i] = '\\0';\n"
+"      return 0;\n"
+"    } else if (len > 0) {\n"
+"      name[len - 1] = '\\0';\n"
+"    }\n"
 "  }\n"
 "  return -ENAMETOOLONG_linux;\n";
 
@@ -2894,7 +2896,7 @@ char* lookup_dcookieWrapper = \
 "#if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))\n"
 "  return Syscall3_linux(NR_lookup_dcookie_linux, cookie64, buf, len, 0);\n"
 "#else\n"
-"  return Syscall4_linux(NR_lookup_dcookie_linux, LO32_bits(cookie64), HI32_bits(cookie64), buf, len);\n"
+"  return Syscall4_linux(NR_lookup_dcookie_linux, LO32_bits(cookie64), HI32_bits(cookie64), buf, len, 0);\n"
 "#endif\n";
 
 void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outPath)
@@ -3576,6 +3578,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
   PRINT("io_destroy");
   PRINT("io_submit");
   PRINT("io_cancel");
+  printer.customWrapper = "  return io_pgetevents_time64_linux(ctx_id, min_nr, nr, events, timeout, 0);\n";
   PRINT("io_getevents");
   printer.disabledWrapper = true;
   PRINT("io_pgetevents");

@@ -422,7 +422,7 @@ long fadvise64_64_linux(int fd, long long offset, long long len, int advice) {
 #elif defined(__arm__)
   return Syscall6_linux(NR_arm_fadvise64_64_linux, fd, advice, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);
 #elif defined(__riscv) && (__riscv_xlen == 32)
-   return Syscall6_linux(NR_fadvise64_64_linux, fd, advice, 0, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);
+   return Syscall6_linux(NR_fadvise64_64_linux, fd, advice, LO32_bits(offset), HI32_bits(offset), LO32_bits(len), HI32_bits(len), 0);
 #endif
 }
 // Disabled wrapper: long arm_fadvise64_64_linux(int fd, int advice, long long offset, long long len);
@@ -1122,13 +1122,13 @@ long io_cancel_linux(unsigned long ctx_id, const iocb_linux *iocb, io_event_linu
   return Syscall3_linux(NR_io_cancel_linux, ctx_id, iocb, result, 0);
 }
 long io_getevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, __kernel_timespec_linux *timeout) {
-  return Syscall5_linux(NR_io_getevents_linux, ctx_id, min_nr, nr, events, timeout, 0);
+  return io_pgetevents_time64_linux(ctx_id, min_nr, nr, events, timeout, 0);
 }
 // Disabled wrapper: long io_pgetevents_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_old_timespec_linux *timeout, const __aio_sigset *sig);
-long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_timespec_linux *timeout, unsigned long long sigmask) {
+long io_pgetevents_time64_linux(unsigned long ctx_id, long min_nr, long nr, io_event_linux *events, const __kernel_timespec_linux *timeout, unsigned long long *sigmask) {
   aio_sigset_linux sig;
-  sig.sigmask = &sigmask;
-  sig.sigsetsize = sizeof(sigmask);
+  sig.sigmask = sigmask;
+  sig.sigsetsize = sizeof(*sigmask);
 #if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall6_linux(NR_io_pgetevents_linux, ctx_id, min_nr, nr, events, timeout, &sig, 0);
 #else
@@ -1520,19 +1520,21 @@ long uname_linux(utsname_linux *name) {
 // Disabled wrapper: long olduname_linux(old_utsname *name);
 // Disabled wrapper: long oldolduname_linux(oldold_utsname *name);
 long gethostname_linux(char *name, unsigned long len) {
-  utsname_linux uts;
-  long res = uname_linux(&uts);
-  if (res < 0) return res;
-  long i = 0;
-  while (i < len && uts.nodename[i]) {
-    name[i] = uts.nodename[i];
-    ++i;
-  }
-  if (i < len) {
-    name[i] = '\0';
-    return 0;
-  } else if (len > 0) {
-    name[len - 1] = '\0';
+  if (name) {
+    utsname_linux uts;
+    long res = uname_linux(&uts);
+    if (res < 0) return res;
+    long i = 0;
+    while (i < len && uts.nodename[i]) {
+      name[i] = uts.nodename[i];
+      ++i;
+    }
+    if (i < len) {
+      name[i] = '\0';
+      return 0;
+    } else if (len > 0) {
+      name[len - 1] = '\0';
+    }
   }
   return -ENAMETOOLONG_linux;
 }
@@ -1682,7 +1684,7 @@ long get_tls_linux(void) {
 long riscv_flush_icache_linux(void *start, void *end, unsigned long flags) {
   return Syscall3_linux(NR_riscv_flush_icache_linux, start, end, flags, 0);
 }
-long riscv_hwprobe_linux(riscv_hwprobe_linux *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags) {
+long riscv_hwprobe_linux(riscv_hwprobe_t_linux *pairs, unsigned long pair_count, unsigned long cpu_count, unsigned long *cpumask, unsigned int flags) {
   return Syscall5_linux(NR_riscv_hwprobe_linux, pairs, pair_count, cpu_count, cpumask, flags, 0);
 }
 #endif
@@ -1702,7 +1704,7 @@ long lookup_dcookie_linux(unsigned long long cookie64, char *buf, unsigned long 
 #if defined(__x86_64__) || defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
   return Syscall3_linux(NR_lookup_dcookie_linux, cookie64, buf, len, 0);
 #else
-  return Syscall4_linux(NR_lookup_dcookie_linux, LO32_bits(cookie64), HI32_bits(cookie64), buf, len);
+  return Syscall4_linux(NR_lookup_dcookie_linux, LO32_bits(cookie64), HI32_bits(cookie64), buf, len, 0);
 #endif
 }
 //

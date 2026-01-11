@@ -896,7 +896,7 @@ char* LoadSyscallPrototypes(htable* syscallTable, char* inPath)
   Get_htable(syscallTable, substring("exit_group"))->prototype = substring("asmlinkage __attribute__((noreturn)) void sys_exit_group(int error_code);\n");
 
   // Manually specifying prototypes that appear multiple times (#ifdef) in the linux file
-  Get_htable(syscallTable, substring("clone"))->prototype = substring("asmlinkage long sys_clone(unsigned long clone_flags, unsigned long newsp, int __user *parent_tidptr, int __user *child_tidptr, unsigned long tls);\n");
+  Get_htable(syscallTable, substring("clone"))->prototype = substring("asmlinkage long sys_clone(unsigned long flags, void *stack, int __user *parent_tid, int __user *child_tid, unsigned long tls);\n");
   Get_htable(syscallTable, substring("fanotify_mark"))->prototype = substring("asmlinkage long sys_fanotify_mark(int fanotify_fd, unsigned int flags, u64 mask, int fd, const char  __user *pathname);\n");
   Get_htable(syscallTable, substring("sigsuspend"))->prototype = substring("asmlinkage long sys_sigsuspend(old_sigset_t mask);\n");
 
@@ -2400,9 +2400,9 @@ void PrintSyscallLine(table_printer* printer, char* s) {
 
 char* cloneWrapper = \
 "#if defined(__x86_64__)\n"
-"  return Syscall5_linux(NR_clone_linux, clone_flags, newsp,  parent_tidptr, child_tidptr, tls, 0);\n"
+"  return Syscall5_linux(NR_clone_linux, flags, stack,  parent_tid, child_tid, tls, 0);\n"
 "#else\n"
-"  return Syscall5_linux(NR_clone_linux, clone_flags, newsp,  parent_tidptr, tls, child_tidptr, 0);\n"
+"  return Syscall5_linux(NR_clone_linux, flags, stack,  parent_tid, tls, child_tid, 0);\n"
 "#endif\n";
 char* wait4Wrapper = \
 "#if !(defined(__riscv) && (__riscv_xlen == 32))\n"
@@ -2947,7 +2947,7 @@ void PrintUnifiedSyscallNumbersTableAndWrappers(htable* syscallTable, char* outP
 
   printer.customWrapper = "  return clone_linux(SIGCHLD_linux, 0, 0, 0, 0);\n";
   PRINT("fork");
-  printer.customWrapper = "  return clone_linux(CLONE_VFORK_linux | CLONE_VM_linux | SIGCHLD_linux, 0, 0, 0, 0);\n";
+  printer.disabledWrapper = true;
   PRINT("vfork");
   printer.customWrapper = cloneWrapper;
   PRINT("clone");

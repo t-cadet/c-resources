@@ -4,14 +4,12 @@
 long fork_linux(void) {
   return clone_linux(SIGCHLD_linux, 0, 0, 0, 0);
 }
-long vfork_linux(void) {
-  return clone_linux(CLONE_VFORK_linux | CLONE_VM_linux | SIGCHLD_linux, 0, 0, 0, 0);
-}
-long clone_linux(unsigned long clone_flags, unsigned long newsp, int *parent_tidptr, int *child_tidptr, unsigned long tls) {
+// Disabled wrapper: long vfork_linux(void);
+long clone_linux(unsigned long flags, void *stack, int *parent_tid, int *child_tid, unsigned long tls) {
 #if defined(__x86_64__)
-  return Syscall5_linux(NR_clone_linux, clone_flags, newsp,  parent_tidptr, child_tidptr, tls, 0);
+  return Syscall5_linux(NR_clone_linux, flags, stack,  parent_tid, child_tid, tls, 0);
 #else
-  return Syscall5_linux(NR_clone_linux, clone_flags, newsp,  parent_tidptr, tls, child_tidptr, 0);
+  return Syscall5_linux(NR_clone_linux, flags, stack,  parent_tid, tls, child_tid, 0);
 #endif
 }
 long clone3_linux(clone_args_linux *uargs) {

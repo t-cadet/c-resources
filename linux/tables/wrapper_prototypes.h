@@ -2,8 +2,8 @@
 // 1. PROCESS & THREAD LIFECYCLE
 //
 long fork_linux(void);
-long vfork_linux(void);
-long clone_linux(unsigned long clone_flags, unsigned long newsp, int *parent_tidptr, int *child_tidptr, unsigned long tls);
+// Disabled wrapper: long vfork_linux(void);
+long clone_linux(unsigned long flags, void *stack, int *parent_tid, int *child_tid, unsigned long tls);
 long clone3_linux(clone_args_linux *uargs);
 long execve_linux(const char *filename, const char *const *argv, const char *const *envp);
 long execveat_linux(int dfd, const char *filename, const char *const *argv, const char *const *envp, int flags);
